@@ -1,0 +1,147 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.5
+  kernelspec:
+    display_name: Python 2
+    language: python
+    name: python2
+---
+
+```{python}
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import glob
+import re
+import os
+from operator import itemgetter
+import csv
+from qbdataio import getgraspinfo, gdataform, PandaGraspWrite
+
+#from qbdataio import MultiMain
+#MultiMain()
+#import qubic stuff
+import sys
+sys.path.insert(0,'/home/james/eclipse-workspace/qubiclmou2/qubic/')
+import qubic
+from CSFPA_main import MainProg
+
+#load correct qubicdict - do in csfpa_main
+basedir = '/home/james/eclipse-workspace/qubiclmou2/'
+dictfilename = basedir + '/qubic/qubic/scripts/global_source.dict'
+```
+
+```{python}
+#THIS CELL FOR CF1 FILES
+#grasp grd in files
+inrep = '/home/james/multifreqfiles/MultiFreqFilesCF1/'
+files = sorted(glob.glob(inrep+'*.grd'))
+print 'read', len(files), 'GRASP grd files'
+
+#output location of MODAL style files
+orep = '/home/james/multifreqfiles/outfiles/'
+qbfiles = sorted(glob.glob(orep+'*.qb'))
+print 'read', len(qbfiles), 'MODAL style qb files'
+
+#location of TES summed data
+tesdatrep = '/home/james/multifreqfiles/TESdataMODAL/'
+#location of pkl files
+pklrep = '/home/james/multifreqfiles/pklfiles/'
+pklfiles = sorted(glob.glob(pklrep+'*.pkl'))
+print 'read', len(pklfiles), 'Pickled files'
+```
+
+```{python}
+#THIS CELL FOR CF2 FILES
+#grasp grd in files
+inrep = '/home/james/multifreqfiles/MultiFreqFilesCF2/'
+files = sorted(glob.glob(inrep+'*.grd'))
+print 'read', len(files), 'GRASP grd files'
+
+#output location of MODAL style files
+orep = '/home/james/multifreqfiles/cf2outfiles/'
+qbfiles = sorted(glob.glob(orep+'*.qb'))
+print 'read', len(qbfiles), 'MODAL style qb files'
+
+#location of TES summed data
+tesdatrep = '/home/james/multifreqfiles/cf2TESdataMODAL/'
+#location of pkl files
+pklrep = '/home/james/multifreqfiles/cf2pklfiles/'
+pklfiles = sorted(glob.glob(pklrep+'*.pkl'))
+print 'read', len(pklfiles), 'Pickled files'
+```
+
+```{python}
+for f in files:
+    
+    fname = os.path.basename(f)
+    fname = os.path.splitext(fname)[0]
+    #basically call qbdataio functions and output to folder
+    freq, dims, pdims, ktype, params, ixiyparam, datastart = getgraspinfo(f);
+    nx, ny, xmin, xmax, ymin, ymax, comb_data = gdataform(dims, pdims, datastart, f);
+    freq = np.float(freq)
+    PandaGraspWrite(comb_data, freq, orep, fname);
+    
+    print f, fname, freq
+```
+
+```{python}
+for qbf in qbfiles:
+    #print qbf
+    fname = os.path.basename(qbf)
+    #fname = os.path.splitext(fname)[0]
+    #print fname
+    #main prog also saves pkl files to pklrep
+    MainProg(fname, orep, pklrep, tesdatrep)
+```
+
+```{python}
+from CSFPA_plots import *
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+
+Iarr = np.zeros(len(IT))
+IarrTES = np.zeros(len(IntT))
+#print IarrTES.shape
+for pkl in pklfiles:
+    #plt.figure()
+    #TotalIntensityPlot(pkl)
+    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
+    #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
+    Iarr = np.c_[Iarr, IT]
+    IarrTES = np.c_[IarrTES, IntT]
+
+Iarr = Iarr[:,1:10]
+IarrTES = IarrTES[:,1:10]
+#could divide by number of files to normalise back to 1 W
+Iarr = Iarr.sum(axis=1, dtype=float)
+IarrTES = IarrTES.sum(axis=1, dtype=float)
+
+# %matplotlib qt
+#plt.figure()
+MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
+plt.show()
+
+for pkl in pklfiles:
+    #plt.figure()
+    TotalIntensityPlot(pkl)
+plt.show()
+
+```
+
+```{python}
+plt.close('all')
+from CSFPA_plots import *
+print pklrep
+# %matplotlib qt
+TotalIntensityPlot(pklrep+'FPA_objs_cf2165_Mstyle.qb.pkl')
+plt.show()
+```
+
+```{python}
+
+```
