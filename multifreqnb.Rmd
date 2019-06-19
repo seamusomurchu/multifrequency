@@ -122,15 +122,18 @@ Iarr = Iarr.sum(axis=1, dtype=float)
 IarrTES = IarrTES.sum(axis=1, dtype=float)
 
 # %matplotlib qt
-#plt.figure()
+plt.figure()
 MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
 plt.show()
 
+```
+
+```{python}
 for pkl in pklfiles:
     #plt.figure()
     TotalIntensityPlot(pkl)
+    print "*** pkl file, ", pkl
 plt.show()
-
 ```
 
 ```{python}
@@ -140,6 +143,90 @@ print pklrep
 # %matplotlib qt
 TotalIntensityPlot(pklrep+'FPA_objs_cf2165_Mstyle.qb.pkl')
 plt.show()
+```
+
+```{python}
+plt.close('all')
+```
+
+```{python}
+#Model for CF spectrum flux
+freqs = np.linspace(130, 170, 9)
+w = np.linspace(3, 6.2, 9)
+w = w/np.median(w)
+
+from CSFPA_plots import *
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+
+Iarr = np.zeros(len(IT))
+IarrTES = np.zeros(len(IntT))
+#print IarrTES.shape
+for pkl in pklfiles:
+    #plt.figure()
+    #TotalIntensityPlot(pkl)
+    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
+    #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
+    Iarr = np.c_[Iarr, IT]
+    IarrTES = np.c_[IarrTES, IntT]
+
+Iarr = Iarr[:,1:10]
+IarrTES = IarrTES[:,1:10]
+#sum unweighted frequencies
+Iarruw = Iarr.sum(axis=1, dtype=float)
+IarrTESuw = IarrTES.sum(axis=1, dtype=float)
+
+Iarrw = w * Iarr
+IarrTESw = w * IarrTES
+#print freqs
+#print w, np.median(w), np.median(freqs), w.shape
+#print Iarr.shape, IarrTES.shape
+print w
+#print Iarr[100,:]
+#Iarrw = w * Iarr #tested this and seems to work 
+#print  Iarrw.shape
+#print Iarrw[100,:]
+
+Iarrw = Iarrw.sum(axis=1, dtype=float)
+IarrTESw = IarrTESw.sum(axis=1, dtype=float)
+
+# %matplotlib qt
+#plt.figure()
+MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
+plt.show()
+```
+
+```{python}
+#compare weighted frequency summation
+#fancy % diff
+diff = ( (Iarrw - Iarruw) / ((Iarrw + Iarruw)/2) ) * 100
+diffTES = ( (IarrTESw - IarrTESuw) / ((IarrTESw + IarrTESuw)/2) ) * 100
+
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars('/home/james/multifreqfiles/cf2pklfiles/FPA_objs_cf2130_Mstyle.qb.pkl')
+print IT.shape, IntT.shape
+diff150 = ( (Iarrw - IT) / ((Iarrw + IT)/2) ) * 100
+diffTES150 = ( (IarrTESw - IntT) / ((IarrTESw + IntT)/2) ) * 100
+
+#simple difference, *9 for summation to added matrix
+diff = Iarrw - Iarruw
+diffTES = IarrTESw - IarrTESuw
+diff150 = Iarrw - IT*9
+diffTES150 = IarrTESw - IntT*9
+print "mean weighted diff vs unweighted, ", np.mean(diff)
+print "mean weighted diff vs single freq, ", np.mean(diff150)
+
+# %matplotlib qt
+MultiFIntensityPlot(IarrTESuw, Iarruw, PixCenX, PixCenY, xycoords)
+plt.show()
+MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
+plt.show()
+MultiFIntensityPlot(diffTES, diff, PixCenX, PixCenY, xycoords)
+plt.show()
+MultiFIntensityPlot(diffTES150, diff150, PixCenX, PixCenY, xycoords)
+plt.show()
+```
+
+```{python}
+plt.close('all')
 ```
 
 ```{python}

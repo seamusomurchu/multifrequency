@@ -703,7 +703,28 @@ def MultiFIntensityPlot(multifTES, multifraw, PixCenX, PixCenY, xycoords):
     plt.colorbar(cax=cax,label="Intensity (W)")
     plt.show()
     os.system('spd-say "BING! BING! BING!"')
-    return    
+    return
+
+def MultiFIntensityCompPlot(multifTES, multifraw, PixCenX, PixCenY, xycoords):
+    
+    plt.figure()
+    plt.suptitle('Multiple Frequencies 130 - 170, 5 GHz intervals')
+    plt.subplot(121)
+    plt.scatter(PixCenX*1000,PixCenY*1000, c=multifTES, cmap='PuOr',marker='s')
+    plt.axis([-60, 60, -60, 60])
+    plt.axis('equal')
+    plt.title("Bolometers Total Intensity", fontsize=10)
+    plt.subplot(122)
+    plt.scatter(xycoords[:,1], xycoords[:,0], c=multifraw, cmap='PuOr', marker='.', s=1)
+    plt.axis([-60, 60, -60, 60])
+    plt.axis('equal')
+    plt.title("Model Power Data", fontsize=10)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (W)")
+    plt.show()
+    os.system('spd-say "BING! BING! BING!"')
+    return  
 
 def FPCompV2(gpkl, modaldat):
 	
