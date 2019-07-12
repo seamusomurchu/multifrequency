@@ -726,6 +726,52 @@ def MultiFIntensityCompPlot(multifTES, multifraw, PixCenX, PixCenY, xycoords):
     os.system('spd-say "BING! BING! BING!"')
     return  
 
-def FPCompV2(gpkl, modaldat):
-	
-	return
+def rawintensityplot(pklrep):
+    #pklrep = '/home/james/files4CSFPA/qbdataioOUTFILES/' + plotfname
+    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrep)
+    ######################Total Intensity plot - Normalised
+    print filename
+    GPow = GridPowerCalc(pklrep)
+    print "max GPow from plot function ", max(GPow)
+    plt.figure()
+    plt.suptitle('Frequency - {} GHz'.format(freq))
+    plt.scatter(xycoords[:,1], xycoords[:,0], c=GPow, cmap='jet', marker='.', s=1)
+    plt.axis([-60, 60, -60, 60])
+    plt.axis('equal')
+    plt.title("Model Power Data", fontsize=10)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (1 W Source)")
+    plt.show()
+    os.system('spd-say "BING! BING! BING!"')
+    return float(max(GPow))
+
+def MultiFIntensityTESPlot(multifTES, PixCenX, PixCenY):
+    
+    plt.figure()
+    plt.suptitle('Multiple Frequencies 130 - 170, 5 GHz intervals')
+    plt.scatter(PixCenX*1000,PixCenY*1000, c=multifTES, cmap='jet',marker='s')
+    plt.axis([-60, 60, -60, 60])
+    plt.axis('equal')
+    plt.title("Model Power Data", fontsize=10)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (W)")
+    plt.show()
+    os.system('spd-say "BING! BING! BING!"')
+    return
+
+def MultiFIntensityRAWPlot(multifraw, xycoords):
+    
+    plt.figure()
+    plt.suptitle('Multiple Frequencies 130 - 170, 5 GHz intervals')
+    plt.scatter(xycoords[:,1], xycoords[:,0], c=multifraw, cmap='jet', marker='.', s=1)
+    plt.axis([-60, 60, -60, 60])
+    plt.axis('equal')
+    plt.title("Model Power Data", fontsize=10)
+    plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (W)")
+    plt.show()
+    os.system('spd-say "BING! BING! BING!"')
+    return

@@ -53,7 +53,7 @@ tesdatrep = '/home/james/multifreqfiles/TESdataMODAL/'
 #location of pkl files
 pklrep = '/home/james/multifreqfiles/pklfiles/'
 pklfiles = sorted(glob.glob(pklrep+'*.pkl'))
-print 'read', len(pklfiles), 'Pickled files'
+print 'read', len(pklfiles), 'Pickled files', pklfiles
 ```
 
 ```{python}
@@ -106,20 +106,27 @@ MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, P
 
 Iarr = np.zeros(len(IT))
 IarrTES = np.zeros(len(IntT))
+Iarrmax = np.zeros(1)
+Iarrtesmax = np.zeros(1)
 #print IarrTES.shape
 for pkl in pklfiles:
-    #plt.figure()
-    #TotalIntensityPlot(pkl)
     MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
     #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
     Iarr = np.c_[Iarr, IT]
     IarrTES = np.c_[IarrTES, IntT]
+    Iarrmax = np.append(Iarrmax, max(IT))
+    Iarrtesmax = np.append(Iarrtesmax, max(IntT))
 
 Iarr = Iarr[:,1:10]
 IarrTES = IarrTES[:,1:10]
+print "intensity testing ", Iarr.shape, IarrTES.shape
 #could divide by number of files to normalise back to 1 W
-Iarr = Iarr.sum(axis=1, dtype=float)
-IarrTES = IarrTES.sum(axis=1, dtype=float)
+#Iarr = Iarr.sum(axis=1, dtype=float )
+#IarrTES = IarrTES.sum(axis=1, dtype=float)
+Iarr = np.sum(Iarr, axis=1, dtype=float)
+IarrTES = np.sum(IarrTES, axis=1, dtype=float)
+print "max val testing ", Iarrmax, sum(Iarrmax)
+print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
 
 # %matplotlib qt
 plt.figure()
@@ -129,6 +136,7 @@ plt.show()
 ```
 
 ```{python}
+from CSFPA_plots import *
 for pkl in pklfiles:
     #plt.figure()
     TotalIntensityPlot(pkl)
@@ -189,7 +197,7 @@ print w
 Iarrw = Iarrw.sum(axis=1, dtype=float)
 IarrTESw = IarrTESw.sum(axis=1, dtype=float)
 
-# %matplotlib qt
+# #%matplotlib qt
 #plt.figure()
 MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
 plt.show()
@@ -214,19 +222,74 @@ diffTES150 = IarrTESw - IntT*9
 print "mean weighted diff vs unweighted, ", np.mean(diff)
 print "mean weighted diff vs single freq, ", np.mean(diff150)
 
-# %matplotlib qt
+# #%matplotlib qt
 MultiFIntensityPlot(IarrTESuw, Iarruw, PixCenX, PixCenY, xycoords)
-plt.show()
+#plt.show()
 MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
-plt.show()
+#plt.show()
 MultiFIntensityPlot(diffTES, diff, PixCenX, PixCenY, xycoords)
-plt.show()
+#plt.show()
 MultiFIntensityPlot(diffTES150, diff150, PixCenX, PixCenY, xycoords)
-plt.show()
+#plt.show()
 ```
 
 ```{python}
 plt.close('all')
+```
+
+```{python}
+#plot raw intensity withoutTES
+from CSFPA_plots import *
+gpowa = np.zeros(1)
+for pkl in pklfiles:
+    #plt.figure()
+    gpow = rawintensityplot(pkl)
+    gpowa = np.append(gpowa, gpow)
+    print "*** pkl file, ", pkl
+    
+print "GPow test adder", gpowa, sum(gpowa)
+plt.show()
+```
+
+```{python}
+#sum & plot intensities properly
+from CSFPA_dataIO import GridPowerCalc, TESPowerCalc, RetrieveVars
+from CSFPA_plots import *
+
+#just to load plotter dependancies
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+#initialise arrays
+Iarr = np.zeros(len(IT))
+IarrTES = np.zeros(len(IntT))
+Iarrmax = np.zeros(1)
+Iarrtesmax = np.zeros(1)
+#loop over pkl files
+for pkl in pklfiles:
+    IT = GridPowerCalc(pkl)
+    IntT = TESPowerCalc(pkl)
+    Iarr = np.c_[Iarr, IT]
+    IarrTES = np.c_[IarrTES, IntT]
+    Iarrmax = np.append(Iarrmax, max(IT))
+    Iarrtesmax = np.append(Iarrtesmax, max(IntT))
+    
+Iarr = Iarr[:,1:10]
+IarrTES = IarrTES[:,1:10]
+Iarr = np.sum(Iarr, axis=1, dtype=float)
+IarrTES = np.sum(IarrTES, axis=1, dtype=float)
+
+# #%matplotlib qt
+MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
+MultiFIntensityTESPlot(IarrTES, PixCenX, PixCenY)
+MultiFIntensityRAWPlot(Iarr, xycoords)
+
+print "max val testing ", Iarrmax, sum(Iarrmax)
+print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
+```
+
+```{python}
+Iarr = np.sum(Iarr)/9
+IarrTES = np.sum(IarrTES)/9
+print Iarr, IarrTES
 ```
 
 ```{python}
