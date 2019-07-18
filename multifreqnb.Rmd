@@ -271,13 +271,25 @@ for pkl in pklfiles:
     IarrTES = np.c_[IarrTES, IntT]
     Iarrmax = np.append(Iarrmax, max(IT))
     Iarrtesmax = np.append(Iarrtesmax, max(IntT))
-    
+
 Iarr = Iarr[:,1:10]
 IarrTES = IarrTES[:,1:10]
+
+#DO WEIGHTED FLUX HERE
+freqs = np.linspace(130, 170, 9)
+w = np.linspace(3, 6.2, 9)
+w = w/np.median(w)
+Iarrw = w * Iarr
+IarrTESw = w * IarrTES
+
+#DO SUMMING
 Iarr = np.sum(Iarr, axis=1, dtype=float)
 IarrTES = np.sum(IarrTES, axis=1, dtype=float)
 
-# #%matplotlib qt
+Iarrw = Iarrw.sum(axis=1, dtype=float)
+IarrTESw = IarrTESw.sum(axis=1, dtype=float)
+
+# %matplotlib qt
 MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
 MultiFIntensityTESPlot(IarrTES, PixCenX, PixCenY)
 MultiFIntensityRAWPlot(Iarr, xycoords)
@@ -290,6 +302,15 @@ print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
 Iarr = np.sum(Iarr)/9
 IarrTES = np.sum(IarrTES)/9
 print Iarr, IarrTES
+```
+
+```{python}
+plt.close('all')
+# %matplotlib qt
+MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
+MultiFIntensityTESPlot(IarrTESw, PixCenX, PixCenY)
+MultiFIntensityRAWPlot(Iarrw, xycoords)
+
 ```
 
 ```{python}

@@ -755,8 +755,8 @@ def MultiFIntensityTESPlot(multifTES, PixCenX, PixCenY):
     plt.axis('equal')
     plt.title("Model Power Data", fontsize=10)
     plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
-    plt.colorbar(cax=cax,label="Intensity (W)")
+    cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
     plt.show()
     os.system('spd-say "BING! BING! BING!"')
     return
@@ -765,13 +765,13 @@ def MultiFIntensityRAWPlot(multifraw, xycoords):
     
     plt.figure()
     plt.suptitle('Multiple Frequencies 130 - 170, 5 GHz intervals')
-    plt.scatter(xycoords[:,1], xycoords[:,0], c=multifraw, cmap='jet', marker='.', s=1)
+    plt.scatter(xycoords[:,1], xycoords[:,0], c=multifraw, cmap='jet', marker='.')#, s=1)
     plt.axis([-60, 60, -60, 60])
     plt.axis('equal')
     plt.title("Model Power Data", fontsize=10)
     plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
-    cax = plt.axes([0.85, 0.1, 0.05, 0.8])
-    plt.colorbar(cax=cax,label="Intensity (W)")
+    cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+    plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
     plt.show()
     os.system('spd-say "BING! BING! BING!"')
     return
