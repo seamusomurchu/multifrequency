@@ -211,16 +211,16 @@ diffTES = ( (IarrTESw - IarrTESuw) / ((IarrTESw + IarrTESuw)/2) ) * 100
 
 MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars('/home/james/multifreqfiles/cf2pklfiles/FPA_objs_cf2130_Mstyle.qb.pkl')
 print IT.shape, IntT.shape
-diff150 = ( (Iarrw - IT) / ((Iarrw + IT)/2) ) * 100
-diffTES150 = ( (IarrTESw - IntT) / ((IarrTESw + IntT)/2) ) * 100
+#diff150 = ( (Iarrw - IT) / ((Iarrw + IT)/2) ) * 100
+#diffTES150 = ( (IarrTESw - IntT) / ((IarrTESw + IntT)/2) ) * 100
 
 #simple difference, *9 for summation to added matrix
 diff = Iarrw - Iarruw
 diffTES = IarrTESw - IarrTESuw
-diff150 = Iarrw - IT*9
-diffTES150 = IarrTESw - IntT*9
+#diff150 = Iarrw - IT*9
+#diffTES150 = IarrTESw - IntT*9
 print "mean weighted diff vs unweighted, ", np.mean(diff)
-print "mean weighted diff vs single freq, ", np.mean(diff150)
+#print "mean weighted diff vs single freq, ", np.mean(diff150)
 
 # #%matplotlib qt
 MultiFIntensityPlot(IarrTESuw, Iarruw, PixCenX, PixCenY, xycoords)
@@ -229,7 +229,7 @@ MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
 #plt.show()
 MultiFIntensityPlot(diffTES, diff, PixCenX, PixCenY, xycoords)
 #plt.show()
-MultiFIntensityPlot(diffTES150, diff150, PixCenX, PixCenY, xycoords)
+#MultiFIntensityPlot(diffTES150, diff150, PixCenX, PixCenY, xycoords)
 #plt.show()
 ```
 
@@ -289,10 +289,10 @@ IarrTES = np.sum(IarrTES, axis=1, dtype=float)
 Iarrw = Iarrw.sum(axis=1, dtype=float)
 IarrTESw = IarrTESw.sum(axis=1, dtype=float)
 
-# %matplotlib qt
-MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
-MultiFIntensityTESPlot(IarrTES, PixCenX, PixCenY)
-MultiFIntensityRAWPlot(Iarr, xycoords)
+# #%matplotlib qt
+#MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
+#MultiFIntensityTESPlot(IarrTES, PixCenX, PixCenY)
+#MultiFIntensityRAWPlot(Iarr, xycoords)
 
 print "max val testing ", Iarrmax, sum(Iarrmax)
 print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
@@ -311,6 +311,37 @@ MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
 MultiFIntensityTESPlot(IarrTESw, PixCenX, PixCenY)
 MultiFIntensityRAWPlot(Iarrw, xycoords)
 
+```
+
+```{python}
+plt.close('all')
+#compare weighted frequency summation
+#fancy % diff
+diff = ( (Iarrw - Iarr) / ((Iarrw + Iarr)/2) ) * 100
+diffTES = ( (IarrTESw - IarrTES) / ((IarrTESw + IarrTES)/2) ) * 100
+
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars('/home/james/multifreqfiles/cf2pklfiles/FPA_objs_cf2130_Mstyle.qb.pkl')
+print IT.shape, IntT.shape
+#diff150 = ( (Iarrw - IT) / ((Iarrw + IT)/2) ) * 100
+#diffTES150 = ( (IarrTESw - IntT) / ((IarrTESw + IntT)/2) ) * 100
+
+#simple difference, *9 for summation to added matrix
+diff = Iarrw - Iarr
+diffTES = IarrTESw - IarrTES
+#diff150 = Iarrw - IT*9
+#diffTES150 = IarrTESw - IntT*9
+print "mean weighted diff vs unweighted, ", np.mean(diff)
+#print "mean weighted diff vs single freq, ", np.mean(diff150)
+
+# %matplotlib qt
+MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
+#plt.show()
+MultiFIntensityPlot(IarrTESw, Iarrw, PixCenX, PixCenY, xycoords)
+#plt.show()
+MultiFIntensityPlot(diffTES, diff, PixCenX, PixCenY, xycoords)
+#plt.show()
+#MultiFIntensityPlot(diffTES150, diff150, PixCenX, PixCenY, xycoords)
+#plt.show()
 ```
 
 ```{python}
