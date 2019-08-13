@@ -345,5 +345,14 @@ MultiFIntensityPlot(diffTES, diff, PixCenX, PixCenY, xycoords)
 ```
 
 ```{python}
+print IarrTESw.shape, PixCenX.shape, PixCenY.shape
+combdata = np.vstack((IarrTESw, PixCenX, PixCenY)).T
+print combdata[0]
+print combdata.shape
+savefile = '/home/james/multifreqfiles/outfiles/CF1weighted.txt'
+np.savetxt(savefile, combdata, delimiter=', ', fmt='%1.5e', header='weighted intensity, xcen, ycen')
+```
+
+```{python}
 
 ```
