@@ -17,7 +17,7 @@ def getgraspinfo(fname):
 	#find horn num from input file THIS DEPENDS ON WHETHER THE INPUT FILES ARE NAMED CORRECTLY
 	fname2 = re.findall('([^/]+$)', fname)
 	fname2 = re.findall(r'\d+', str(fname2))
-	print "fname2  info = ", fname2, len(fname2), type(fname2)
+	print("fname2  info = ", fname2, len(fname2), type(fname2))
 
 	infile = open(fname,'r')
 
@@ -30,18 +30,18 @@ def getgraspinfo(fname):
 	datastart = 20
 	for i in range(20):
 		temp = infile.readline()
-		print i, temp
+		print(i, temp)
 
 		if 'FREQUENCIES [GHz]:' in temp:
 			freqindex = i + 1
-			print freqindex
+			print(freqindex)
 
 		if i == freqindex:
 			frequency = temp
-			print frequency
+			print(frequency)
 
 		if '++++' in temp:			#this line catches the end of header by finding '++++'
-			print 'found +++', i
+			print('found +++', i)
 			headerend = i
 			iktype = i + 1
 			iparams = i + 2
@@ -64,10 +64,10 @@ def getgraspinfo(fname):
 			
 		if i == GRASPgridarea:		#sets grid area into array
 			gridarea = temp 
-			print gridarea                
+			print("grid area", gridarea)                
 			dims = [float(s) for s in gridarea.split()]
 			dims = np.asarray(dims)
-			print dims[0],dims[2]
+			print("dimensions", dims[0],dims[2])
 		if i == GRASPpixels:
 			gpix = temp
 			pdims = [float(s) for s in gpix.split()]
@@ -96,7 +96,7 @@ def gdataform(dims, pdims, datastart, fname):
 	zarr = np.zeros(int(datalen))
 	zarr = np.asarray(zarr)
 	
-	print "datastart", datastart, "fname, ", fname
+	print("datastart", datastart, "fname, ", fname)
 	data = np.loadtxt(fname, skiprows=datastart) #choose value dynamically... need to reshape this first, its ruining comb currently
 
 	#this puts data from file into array. could be optimsed by reading straight from file (data)
@@ -106,10 +106,7 @@ def gdataform(dims, pdims, datastart, fname):
 		data_array.append(i) 
 	data_array = np.asarray(data_array)
 
-	print "data_array "
-	print data_array[0,0:2]
-	print data_array.shape
-	#print datalen
+	print("data_array info ", data_array[0,0:2], data_array.shape)
 
 	#do calculations for amp and phase
 	ampX = ([])
@@ -119,7 +116,7 @@ def gdataform(dims, pdims, datastart, fname):
 	ampZ = ([])
 	phaZ = ([])
 	
-	print "len data array", len(data_array)
+	print("len data array", len(data_array))
 
 	for i in range(len(data_array)): #maybe undo, was datalen
 		
@@ -155,9 +152,9 @@ def gdataform(dims, pdims, datastart, fname):
 	#transpose array
 	all_data = all_data.T
 	
-	print "all_data shape", all_data.shape
-	print "pts shape", pts.shape
-	print "zarr", zarr.shape
+	print("all_data shape", all_data.shape)
+	print("pts shape", pts.shape)
+	print("zarr", zarr.shape)
 	
 	#reformat xya to include zero arrays to match MODAL style
 	#xya = np.vstack((zarr,xya))
@@ -168,7 +165,7 @@ def gdataform(dims, pdims, datastart, fname):
 	comb_data = np.hstack((zarrs,comb_data))
 	
 	#print "all_data = ", all_data, all_data.shape
-	print "comb data = ", comb_data, comb_data.shape
+	print("comb data = ", comb_data, comb_data.shape)
 	#print "Xamp"
 	#print ampX, ampX.shape, type(ampX)
 
@@ -210,7 +207,7 @@ def PandaGraspWrite(comb_data, freq, graspoutputrep, fname):
 	#create dataframe
 	#NB have to swap Xpos & Ypos columns to match MODAL format
 	df = pd.DataFrame(comb_dict, columns=['Xind', 'Yind', 'Ypos', 'Xpos', 'Xamp', 'Xpha', 'Yamp', 'Ypha', 'Zamp', 'Zpha', 'Freq'])
-	print df
+	print(df)
 	df.to_csv(graspoutputrep+fname+'_Mstyle.qb', sep='\t', index=False, float_format='%.9e')
 	return
 
@@ -233,14 +230,14 @@ def MultiMain():
 	#grasp grd in files
 	inrep = '/home/james/multifreqfiles/MultiFreqFilesCF1/'
 	files = sorted(glob.glob(inrep+'*.grd'))
-	print 'read', len(files), 'files'
+	print('read', len(files), 'files')
 	#output location of MODAL style files
 	orep = '/home/james/multifreqfiles/outfiles/'
 	for f in files:
-		print f
+		print("file path: ", f)
 		fname = os.path.basename(f)
 		fname = os.path.splitext(fname)[0]
-		print fname
+		print("file", fname)
 		#basically call qbdataio functions and output to folder
 		freq, dims, pdims, ktype, params, ixiyparam, datastart = getgraspinfo(f)
 		nx, ny, xmin, xmax, ymin, ymax, comb_data = gdataform(dims, pdims, datastart, f)
@@ -248,6 +245,23 @@ def MultiMain():
 		
 	return	
 		
+def MultiHornMain(inrep, outrep):
+	#grasp grd in files
+	#inrep = '/home/james/multifreqfiles/MultiFreqFilesCF1/'
+	files = sorted(glob.glob(inrep+'*.grd'))
+	print('read', len(files), 'files')
+	#output location of MODAL style files
+	#orep = '/home/james/multifreqfiles/outfiles/'
+	for f in files:
+		#print("file path: ", f)
+		fname = os.path.basename(f)
+		#fname = os.path.splitext(fname)[0]
+		fname = os.path.splitext(fname)
+		print("file", fname)
+		#basically call qbdataio functions and output to folder
+		#freq, dims, pdims, ktype, params, ixiyparam, datastart = getgraspinfo(f)
+		#nx, ny, xmin, xmax, ymin, ymax, comb_data = gdataform(dims, pdims, datastart, f)
+		#PandaGraspWrite(comb_data, orep, fname)
 		
-		
+	return			
 
