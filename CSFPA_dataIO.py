@@ -6,7 +6,7 @@ import pandas as pd
 
 def getXYcoords(f, vtxs):
 
-    print f
+    print(f)
     data = np.loadtxt(f, skiprows=1)
 	
     xycoords = np.array(data[:,2:4])
@@ -243,7 +243,7 @@ def RetrieveVars(plotfname):
     #    with open('objs.pkl') as f:  # Python 3: open(..., 'rb')
     #        MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT = pickle.load(f)
     #    return MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT
-    print "retrieving vars from ", plotfname
+    print("retrieving vars from ", plotfname)
     f=open(plotfname,'rb')
     MagXarr=pickle.load(f)
     PhaXarr=pickle.load(f)
@@ -315,12 +315,12 @@ def IntensityCalcRAW(filename):
     Ix = (data[:,4]*np.cos(data[:,5]))**2 + (data[:,4]*np.sin(data[:,5]))**2
     Iy = (data[:,6]*np.cos(data[:,7]))**2 + (data[:,6]*np.sin(data[:,7]))**2
     IT = Ix[:] + Iy[:]
-    print "Intensity calculation shape test", IT.shape, max(IT)
+    print("Intensity calculation shape test", IT.shape, max(IT))
 	
     return Ix, Iy, IT
 
 def kwavenum(freq):
-	print "function takes frequency in GHz and returns wavenumber in per mm and lambda in mm"
+	print("function takes frequency in GHz and returns wavenumber in per mm and lambda in mm")
 	
 	freq = float(freq) * 10**9
 	
@@ -337,7 +337,7 @@ def FindGridArea(pklrep):
 	#with filename from pickle load data
 	qbrep = '/home/james/multifreqfiles/cf2outfiles/'
 	qbrepfile = qbrep + filename
-	print "***test file reps", qbrepfile, pklrep
+	print("***test file reps", qbrepfile, pklrep)
 	data = np.loadtxt(qbrepfile, skiprows=1)
 	gridmax = max(data[:,3]) * 1000 #convert min and max from m to mm
 	gridmin = min(data[:,3]) * 1000
@@ -355,14 +355,14 @@ def GridPowerCalc(pklrep):
 	#retrieve wavenumber info to calculate power with ksquared
 	k, f, l = kwavenum(freqGHz)
 	
-	print "wavenum l in W/mm^2, freq in Hz, lambda in mm; ", k,f,l
+	print("wavenum l in W/mm^2, freq in Hz, lambda in mm; ", k,f,l)
 
 	#calculate power flux for area of a data point
 	#use area box of each data point
 	gridarea = FindGridArea(pklrep) #find area of grasp grid (in mm)
 	pixarea = gridarea / len(xycoords) #find area of 'pixel' on grasp grid
-	print "FP pix area", pixarea
-	print "grid area", gridarea
+	print("FP pix area", pixarea)
+	print("grid area", gridarea)
 	#calculate power of each data point on grid
 	#IT[IT < 0.000059] = 0 #corresponds to GRASPS -85dB level
 	P = IT * k**2 
@@ -372,7 +372,7 @@ def GridPowerCalc(pklrep):
 	#calculate power on grid with two methods
 	pd = ((PFsum - fourpi) / fourpi) * 100 #%diff to 4pi
 	#print results in line
-	print "from mean power flux, sumed points, %diff", Pmean, PFsum, pd
+	print("from mean power flux, sumed points, %diff", Pmean, PFsum, pd)
 	#return array with power flux for each data point in grid
 	return PF/fourpi
 
@@ -388,7 +388,7 @@ def TESPowerCalc(pklrep):
 	#retrieve wavenumber info to calculate power with ksquared
 	k, f, l = kwavenum(freqGHz)
 
-	print "wavenum l in W/mm^2, freq in Hz, lambda in mm; ", k,f,l
+	print("wavenum l in W/mm^2, freq in Hz, lambda in mm; ", k,f,l)
 
 	#calculate power of each TES on focal plane
 	TESPower = IntT * k**2 * TESarea / fourpi

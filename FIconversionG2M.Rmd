@@ -22,6 +22,7 @@ import os
 from operator import itemgetter
 import csv
 from qbdataio import getgraspinfo, gdataform, PandaGraspWrite, MultiMain, MultiHornMain
+import CSFPA_dataIO
 ```
 
 ```{python}
@@ -198,17 +199,35 @@ MultiHornMain(inrep, outrep)
 ```
 
 ```{python}
-files = sorted(glob.glob(outrep+'*.qb'))
+qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+pklrep = '/home/james/FIgraspFiles/pklrep150/'
+files = sorted(glob.glob(qbfiles+'*.qb'))
 print('read', len(files), 'files')
-for file in files:
-    #print(file)
-    fpath = os.path.basename(file)
-    #print(fname)
-    fname = os.path.splitext(fpath)[0]
-    #print(fname)
-    hnum = re.search(r'\d+', fname).group(0)
-    print("horn number and file name: ",hnum, fname)
+# for file in files:
+#     #print(file)
+#     fpath = os.path.basename(file)
+#     #print(fname)
+#     fname = os.path.splitext(fpath)[0]
+#     #print(fname)
+#     hnum = re.search(r'\d+', fname).group(0)
+#     print("horn number and file name: ",hnum, fname)
     
+    
+print(files[0])
+fpath = os.path.basename(files[0])
+#print(fname)
+fname = os.path.splitext(fpath)[0]
+#print(fname)
+hnum = re.search(r'\d+', fname).group(0)
+print("horn number and file name: ",hnum, fname)
+Ix, Iy, IT = IntensityCalcRAW(files[0])
+```
+
+```{python}
+"""should now create pickle files
+need to load magpha files, calc int, save as pickle
+some modification needed to save horn number also
+maybe should integrate the TES nums with qubicsoft"""
 ```
 
 ```{python}

@@ -187,29 +187,34 @@ def gdataform(dims, pdims, datastart, fname):
 	#pause development here and work on grid area output
 	return nx, ny, xmin, xmax, ymin, ymax, comb_data
 
-def PandaGraspWrite(comb_data, freq, graspoutputrep, fname):
-	#test comb_data shape
-	#setup dict
-	comb_dict = {
-		'Xind': comb_data[:,0],
-		'Yind': comb_data[:,1],
-		'Ypos': comb_data[:,2],
-		'Xpos': comb_data[:,3],
-		'Xamp': comb_data[:,4],
-		'Xpha': comb_data[:,5],
-		'Yamp': comb_data[:,6],
-		'Ypha': comb_data[:,7],
-		'Zamp': comb_data[:,8],
-		'Zpha': comb_data[:,9],
-		'Freq': freq
-	}
-	
-	#create dataframe
-	#NB have to swap Xpos & Ypos columns to match MODAL format
-	df = pd.DataFrame(comb_dict, columns=['Xind', 'Yind', 'Ypos', 'Xpos', 'Xamp', 'Xpha', 'Yamp', 'Ypha', 'Zamp', 'Zpha', 'Freq'])
-	print(df)
-	df.to_csv(graspoutputrep+fname+'_Mstyle.qb', sep='\t', index=False, float_format='%.9e')
-	return
+def PandaGraspWrite(comb_data, freq, graspoutputrep, fname, hnum):
+    #test comb_data shape
+    print(type(comb_data), type(freq), type(graspoutputrep), type(fname), type(hnum))
+    #setup dict
+    comb_dict = {
+        'Xind': comb_data[:,0],
+        'Yind': comb_data[:,1],
+        'Ypos': comb_data[:,2],
+        'Xpos': comb_data[:,3],
+        'Xamp': comb_data[:,4],
+        'Xpha': comb_data[:,5],
+        'Yamp': comb_data[:,6],
+        'Ypha': comb_data[:,7],
+        'Zamp': comb_data[:,8],
+        'Zpha': comb_data[:,9],
+        'Freq': freq,
+        'Hnum': hnum
+    }
+
+    freqstr = float(freq)
+    freqstr = format(freqstr, '3.0f')
+    freqstr = str(freqstr)
+    #create dataframe
+    #NB have to swap Xpos & Ypos columns to match MODAL format
+    df = pd.DataFrame(comb_dict, columns=['Xind', 'Yind', 'Ypos', 'Xpos', 'Xamp', 'Xpha', 'Yamp', 'Ypha', 'Zamp', 'Zpha', 'Freq', 'Hnum'])
+    print(df)
+    df.to_csv(graspoutputrep+fname+'_'+freqstr+'_GHz_Mstyle.qb', sep='\t', index=False, float_format='%.9e')
+    return
 
 def DataIOMain(filename):
 	# output location, use second for multi frequency analysis
@@ -246,22 +251,27 @@ def MultiMain():
 	return	
 		
 def MultiHornMain(inrep, outrep):
-	#grasp grd in files
-	#inrep = '/home/james/multifreqfiles/MultiFreqFilesCF1/'
-	files = sorted(glob.glob(inrep+'*.grd'))
-	print('read', len(files), 'files')
-	#output location of MODAL style files
-	#orep = '/home/james/multifreqfiles/outfiles/'
-	for f in files:
-		#print("file path: ", f)
-		fname = os.path.basename(f)
-		#fname = os.path.splitext(fname)[0]
-		fname = os.path.splitext(fname)
-		print("file", fname)
-		#basically call qbdataio functions and output to folder
-		#freq, dims, pdims, ktype, params, ixiyparam, datastart = getgraspinfo(f)
-		#nx, ny, xmin, xmax, ymin, ymax, comb_data = gdataform(dims, pdims, datastart, f)
-		#PandaGraspWrite(comb_data, orep, fname)
-		
-	return			
+    #grasp grd in files
+    #inrep = '/home/james/multifreqfiles/MultiFreqFilesCF1/'
+    files = sorted(glob.glob(inrep+'*.grd'))
+    print('read', len(files), 'files')
+    #output location of MODAL style files
+    #orep = '/home/james/multifreqfiles/outfiles/'
+    for f in files:
+        #print("file path: ", f)
+        fname = os.path.basename(f)
+        #fname = os.path.splitext(fname)[0]
+        fname = os.path.splitext(fname)
+        #print("file", fname)
+        hornnum = re.search(r'\d+', fname[0]).group(0)
+
+        #basically call qbdataio functions and output to folder
+        freq, dims, pdims, ktype, params, ixiyparam, datastart = getgraspinfo(f);
+        #print("horn num", hornnum, type(hornnum))
+        #print("freq info ", freq, type(freq))
+        #print("filename, fname: ", fname[0], type(fname[0]))
+        nx, ny, xmin, xmax, ymin, ymax, comb_data = gdataform(dims, pdims, datastart, f)
+        PandaGraspWrite(comb_data, freq, outrep, fname[0], hornnum)
+
+    return		
 
