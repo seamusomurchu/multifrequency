@@ -8,7 +8,7 @@ def getXYcoords(f, vtxs):
 
     print(f)
     data = np.loadtxt(f, skiprows=1)
-	
+    
     xycoords = np.array(data[:,2:4])
     
     cnti = 0
@@ -59,9 +59,9 @@ def getXYcoords(f, vtxs):
             #x y are modal data points
             #x1,y1,x2,y2 are detector geometry points
             if f.endswith((".qb")):
-				x = j[1]
-				y = j[0]
-            else:				
+                x = j[1]
+                y = j[0]
+            else:                
                 x = j[0]
                 y = j[1]
             x1 = i[0,0]
@@ -69,7 +69,7 @@ def getXYcoords(f, vtxs):
             x2 = i[2,0]
             y2 = i[2,1]
     
-			#test if x and x1 are same unit
+            #test if x and x1 are same unit
             #print "xandys", x, y, x1, y1
 
             if x >= x2 and x <= x1 and y >= y2 and y <= y1:
@@ -141,7 +141,7 @@ def getXYcoords(f, vtxs):
         vtxcntarr = np.append(vtxcntarr,vtxcnt)
         vtxcnt = 0 
         #Pixel centers as array
-        pixcenx = (x1 + x2) / 2		
+        pixcenx = (x1 + x2) / 2        
         pixceny = (y1 + y2) / 2
         PixCenX = np.append(PixCenX,pixcenx)
         PixCenY = np.append(PixCenY,pixceny)

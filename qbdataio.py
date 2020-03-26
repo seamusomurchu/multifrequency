@@ -189,6 +189,8 @@ def gdataform(dims, pdims, datastart, fname):
 
 def PandaGraspWrite(comb_data, freq, graspoutputrep, fname, hnum):
     #test comb_data shape
+    freq = float(freq)
+    freq = format(freq, '3.0f')
     print(type(comb_data), type(freq), type(graspoutputrep), type(fname), type(hnum))
     #setup dict
     comb_dict = {
@@ -206,9 +208,9 @@ def PandaGraspWrite(comb_data, freq, graspoutputrep, fname, hnum):
         'Hnum': hnum
     }
 
-    freqstr = float(freq)
-    freqstr = format(freqstr, '3.0f')
-    freqstr = str(freqstr)
+#     freqstr = float(freq)
+#     freqstr = format(freqstr, '3.0f')
+    freqstr = str(freq)
     #create dataframe
     #NB have to swap Xpos & Ypos columns to match MODAL format
     df = pd.DataFrame(comb_dict, columns=['Xind', 'Yind', 'Ypos', 'Xpos', 'Xamp', 'Xpha', 'Yamp', 'Ypha', 'Zamp', 'Zpha', 'Freq', 'Hnum'])
