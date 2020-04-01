@@ -378,5 +378,27 @@ for file in files:
 ```
 
 ```{python}
+"""create pkls from modal files
+all here for single frequency
+must make new folders for new frequencies"""
+#do missing files
+
+#modalikefiles
+qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+#rawtessaves
+tesdat150 = '/home/james/FIgraspFiles/tesdata150/'
+pklrep = '/home/james/FIgraspFiles/pklrep150/'
+files = sorted(glob.glob(qbfiles+'*.qb'))
+print('read', len(files), 'files')
+print(files[337])
+files = files[336:]
+print(len(files))
+print(files[1])
+
+for file in files:
+    MainProg(file, pklrep, tesdat150)
+```
+
+```{python}
 
 ```

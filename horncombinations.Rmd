@@ -1,0 +1,107 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.3.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""
+horn combination for baselines and sythetic image from horn array
+probably better to use the TES data rather than pkl data
+"""
+#first start by testing single horn data using the old plotter scripts
+#first start by converting to py3...
+
+from CSFPA_plots import *
+import glob
+import numpy as np
+```
+
+```{python}
+# #location of TES summed data
+# tesdatrep = '/home/james/multifreqfiles/cf2TESdataMODAL/'
+# #location of pkl files
+# pklrep = '/home/james/multifreqfiles/cf2pklfiles/'
+# pklfiles = sorted(glob.glob(pklrep+'*.pkl'))
+# print ('read', len(pklfiles), 'Pickled files')
+
+
+#modalikefiles
+qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+#rawtessaves
+tesdat150 = '/home/james/FIgraspFiles/tesdata150/'
+pklrep = '/home/james/FIgraspFiles/pklrep150/'
+files = sorted(glob.glob(pklrep+'*.pkl'))
+print(len(files))
+
+FIhorns = np.linspace(1,400,400, dtype=int)
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape)
+baseline = [120, 127]
+print(type(baseline))
+
+#load pkls based on array, list, or baseline input
+
+pklfiles = []
+for horn in baseline:
+    #print(horn)
+    file = pklrep+'FPA_objs_FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.pkl'
+    pklfiles.append(file)
+    #print(file)
+    
+print(len(pklfiles))
+
+#load intensity data for a horn and then combine
+TotalIntensityPlot(pklfiles[0])
+```
+
+```{python}
+from CSFPA_plots import *
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+
+Iarr = np.zeros(len(IT))
+IarrTES = np.zeros(len(IntT))
+Iarrmax = np.zeros(1)
+Iarrtesmax = np.zeros(1)
+#print IarrTES.shape
+for pkl in pklfiles:
+    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
+    #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
+    Iarr = np.c_[Iarr, IT]
+    IarrTES = np.c_[IarrTES, IntT]
+    Iarrmax = np.append(Iarrmax, max(IT))
+    Iarrtesmax = np.append(Iarrtesmax, max(IntT))
+
+Iarr = Iarr[:,1:10]
+IarrTES = IarrTES[:,1:10]
+print "intensity testing ", Iarr.shape, IarrTES.shape
+#could divide by number of files to normalise back to 1 W
+#Iarr = Iarr.sum(axis=1, dtype=float )
+#IarrTES = IarrTES.sum(axis=1, dtype=float)
+Iarr = np.sum(Iarr, axis=1, dtype=float)
+IarrTES = np.sum(IarrTES, axis=1, dtype=float)
+print "max val testing ", Iarrmax, sum(Iarrmax)
+print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
+
+# %matplotlib qt
+plt.figure()
+MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
+plt.show()
+```

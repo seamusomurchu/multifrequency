@@ -10,7 +10,7 @@ def TotalIntensityPlot(pklrep):
     #pklrep = '/home/james/files4CSFPA/qbdataioOUTFILES/' + plotfname
     MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrep)
     ######################Total Intensity plot - Normalised
-    print filename
+    print("file to plot: ", filename)
     TESPower = TESPowerCalc(pklrep)
     GPow = GridPowerCalc(pklrep)
 	
@@ -224,9 +224,9 @@ def IntXCompPlot(pkl1,pkl2):
 	#binarr = [0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25]
 	comp = np.abs(comp)
 	#analysisarray = np.abs(analysisarray)
-	print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
+	print("analysis info, max, length, mean ", np.max(analysisarray), len(analysisarray), np.mean(analysisarray))
 	n, bins, patches = plt.hist(analysisarray)
-	print "hist data", n, bins, patches
+	print("hist data", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -284,9 +284,9 @@ def IntYCompPlot(pkl1,pkl2):
 	#binarr = [0, 2.5, 5, 7.5, 10, 12.5, 15, 17.5, 20, 22.5, 25]
 	comp = np.abs(comp)
 	#analysisarray = np.abs(analysisarray)
-	print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
+	print("analysis info, max, length, mean ", np.max(analysisarray), len(analysisarray), np.mean(analysisarray))
 	n, bins, patches = plt.hist(analysisarray)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -348,9 +348,9 @@ def TotIntCompPlot(pkl1,pkl2):
 	#binarr = [0, 1, 2, 3, 4, 5, 6, 7, 8]
 	#comp = np.abs(comp)
 	#analysisarray = np.abs(analysisarray)
-	print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
+	print("analysis info, max, length, mean ", np.max(analysisarray), len(analysisarray), np.mean(analysisarray))
 	n, bins, patches = plt.hist(analysisarray)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -412,7 +412,7 @@ def PhaXCompPlot(pkl1,pkl2):
 	analysisarray = analysisarray[~np.isnan(analysisarray)]
 	#print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
 	n, bins, patches = plt.hist(analysisarray)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -472,7 +472,7 @@ def PhaYCompPlot(pkl1,pkl2):
 	#print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
 	binarr = [-3, -2, -1, 0, 1, 2, 3]
 	n, bins, patches = plt.hist(analysisarray, bins=binarr)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -533,9 +533,9 @@ def MagXCompPlot(pkl1,pkl2):
 
 	analysisarray = np.abs(analysisarray)
 	#analysisarray = analysisarray[~np.isnan(analysisarray)]
-	print "analysis info, max, length, mean", np.max(analysisarray), len(analysisarray), np.mean(analysisarray)
+	print("analysis info, max, length, mean ", np.max(analysisarray), len(analysisarray), np.mean(analysisarray))
 	n, bins, patches = plt.hist(analysisarray)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 			 
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -548,7 +548,7 @@ def FPComparisonPlotRAW(pkl1,pkl2):
 	#initially going to hardcode for intensity or magnitude
 	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename = RetrieveVars(pkl1)
 	IntX1 = IT/max(IT) # cx and co mixed
-	print "pkl1 max intensity", max(IT)
+	print("pkl1 max intensity ", max(IT))
 	
 	plt.figure(facecolor='xkcd:pale green')
 	plt.subplot(221, facecolor='#d8dcd6')
@@ -561,7 +561,7 @@ def FPComparisonPlotRAW(pkl1,pkl2):
 	del MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename
 	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename = RetrieveVars(pkl2)
 	IntX2 = IT/max(IT) # norm to first plot
-	print "pkl2 max intensity", max(IT)
+	print("pkl2 max intensity ", max(IT))
 	plt.subplot(222, facecolor='#d8dcd6')
 	plt.scatter(xycoords[:,0]*1000, xycoords[:,1]*1000, c=IntX2, cmap='jet',marker='s')
 	plt.axis([-60, 60, -60, 60])
@@ -579,9 +579,9 @@ def FPComparisonPlotRAW(pkl1,pkl2):
 	plt.title("Data Comparison",fontsize=10)
 	#Now do histogram
 	plt.subplot(224, facecolor='#d8dcd6')
-	print "analysis info, max, length, mean", np.max(comp), len(comp), np.mean(comp)
+	print("analysis info, max, length, mean ", np.max(comp), len(comp), np.mean(comp))
 	n, bins, patches = plt.hist(comp)
-	print "hist data", n, bins, patches
+	print("hist data ", n, bins, patches)
 	#Set colorbar	
 	plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 	cax = plt.axes([0.85, 0.1, 0.05, 0.8])
@@ -730,9 +730,9 @@ def rawintensityplot(pklrep):
     #pklrep = '/home/james/files4CSFPA/qbdataioOUTFILES/' + plotfname
     MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrep)
     ######################Total Intensity plot - Normalised
-    print filename
+    print("filename : ", filename)
     GPow = GridPowerCalc(pklrep)
-    print "max GPow from plot function ", max(GPow)
+    print("max GPow from plot function ", max(GPow))
     plt.figure()
     plt.suptitle('Frequency - {} GHz'.format(freq))
     plt.scatter(xycoords[:,1], xycoords[:,0], c=GPow, cmap='jet', marker='.', s=1)
