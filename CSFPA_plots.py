@@ -546,7 +546,7 @@ def MagXCompPlot(pkl1,pkl2):
 
 def FPComparisonPlotRAW(pkl1,pkl2):
 	#initially going to hardcode for intensity or magnitude
-	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename = RetrieveVars(pkl1)
+	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl1)
 	IntX1 = IT/max(IT) # cx and co mixed
 	print("pkl1 max intensity ", max(IT))
 	
@@ -558,8 +558,8 @@ def FPComparisonPlotRAW(pkl1,pkl2):
 	plt.title("pkl1",fontsize=10)
 	
 	#delete vars
-	del MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename
-	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename = RetrieveVars(pkl2)
+	del MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq
+	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl2)
 	IntX2 = IT/max(IT) # norm to first plot
 	print("pkl2 max intensity ", max(IT))
 	plt.subplot(222, facecolor='#d8dcd6')

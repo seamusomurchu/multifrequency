@@ -60,7 +60,7 @@ print(type(baseline))
 #load pkls based on array, list, or baseline input
 
 pklfiles = []
-for horn in baseline:
+for horn in TDhorns:
     #print(horn)
     file = pklrep+'FPA_objs_FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.pkl'
     pklfiles.append(file)
@@ -69,7 +69,12 @@ for horn in baseline:
 print(len(pklfiles))
 
 #load intensity data for a horn and then combine
-TotalIntensityPlot(pklfiles[0])
+#
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+print(min(xycoords[:,0]))
+
+TotalIntensityPlot(pklfiles[63])
+
 ```
 
 ```{python}
@@ -78,30 +83,92 @@ MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, P
 
 Iarr = np.zeros(len(IT))
 IarrTES = np.zeros(len(IntT))
-Iarrmax = np.zeros(1)
-Iarrtesmax = np.zeros(1)
+#Iarrmax = np.zeros(1)
+#Iarrtesmax = np.zeros(1)
 #print IarrTES.shape
 for pkl in pklfiles:
     MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
     #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
-    Iarr = np.c_[Iarr, IT]
-    IarrTES = np.c_[IarrTES, IntT]
-    Iarrmax = np.append(Iarrmax, max(IT))
-    Iarrtesmax = np.append(Iarrtesmax, max(IntT))
+    Iarr = np.vstack((Iarr, IT))
+    IarrTES = np.vstack((IarrTES, IntT))
+    #Iarrmax = np.append(Iarrmax, max(IT))
+    #Iarrtesmax = np.append(Iarrtesmax, max(IntT))
 
-Iarr = Iarr[:,1:10]
-IarrTES = IarrTES[:,1:10]
-print "intensity testing ", Iarr.shape, IarrTES.shape
+# Iarr = Iarr[:,1:10]
+# IarrTES = IarrTES[:,1:10]
+print("intensity testing ", Iarr.shape, IarrTES.shape)
 #could divide by number of files to normalise back to 1 W
 #Iarr = Iarr.sum(axis=1, dtype=float )
 #IarrTES = IarrTES.sum(axis=1, dtype=float)
-Iarr = np.sum(Iarr, axis=1, dtype=float)
-IarrTES = np.sum(IarrTES, axis=1, dtype=float)
-print "max val testing ", Iarrmax, sum(Iarrmax)
-print "max val TES testing ", Iarrtesmax, sum(Iarrtesmax)
+Iarr = np.sum(Iarr.T, axis=1, dtype=float)
+IarrTES = np.sum(IarrTES.T, axis=1, dtype=float)
+#print("max val testing ", Iarrmax, sum(Iarrmax))
+#print("max val TES testing ", Iarrtesmax, sum(Iarrtesmax))
+print("intensity testing after summation", Iarr.shape, IarrTES.shape, max(Iarr))
 
-# %matplotlib qt
+# %matplotlib inline
 plt.figure()
 MultiFIntensityPlot(IarrTES, Iarr, PixCenX, PixCenY, xycoords)
 plt.show()
+```
+
+```{python}
+baseline = [267,8]
+
+pklfiles = []
+for horn in FIhorns:
+    #print(horn)
+    file = pklrep+'FPA_objs_FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.pkl'
+    pklfiles.append(file)
+print(pklfiles)
+
+# FPComparisonPlotRAW(pklfiles[0], pklfiles[1])
+
+from CSFPA_plots import *
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklfiles[0])
+
+Iarr = np.zeros(len(IT))
+IarrTES = np.zeros(len(IntT))
+
+addimx = np.zeros(len(MagXarr))
+addrex = np.zeros(len(MagXarr))
+addrey = np.zeros(len(MagXarr))
+addimy = np.zeros(len(MagXarr))
+
+for pkl in pklfiles:
+    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pkl)
+    #print "len IntT, IT", IntT.shape, IT.shape, type(IT)
+    
+    addrex = np.vstack((addrex, ReXarr))
+    addimx = np.vstack((addimx, ImXarr))
+    addrey = np.vstack((addrey, ReYarr))
+    addimy = np.vstack((addimy, ImYarr))
+
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape)
+# Iarr = np.sum(Iarr.T, axis=1, dtype=float)
+# IarrTES = np.sum(IarrTES.T, axis=1, dtype=float)
+
+print("intensity testing after summation", Iarr.shape, IarrTES.shape, max(Iarr))
+
+# %matplotlib inline
+plt.figure()
+MultiFIntensityTESPlot(it, PixCenX, PixCenY)
+plt.show()
+```
+
+```{python}
+
 ```

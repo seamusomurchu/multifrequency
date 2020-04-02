@@ -335,12 +335,12 @@ def FindGridArea(pklrep):
 	#pklrep = '/home/james/files4CSFPA/qbdataioOUTFILES/' + pkl
 	MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrep)
 	#with filename from pickle load data
-	qbrep = '/home/james/multifreqfiles/cf2outfiles/'
-	qbrepfile = qbrep + filename
-	print("***test file reps", qbrepfile, pklrep)
-	data = np.loadtxt(qbrepfile, skiprows=1)
-	gridmax = max(data[:,3]) * 1000 #convert min and max from m to mm
-	gridmin = min(data[:,3]) * 1000
+# 	qbrep = '/home/james/multifreqfiles/cf2outfiles/'
+# 	qbrepfile = qbrep + filename
+# 	print("***test file reps", qbrepfile, pklrep)
+# 	data = np.loadtxt(qbrepfile, skiprows=1)
+	gridmax = max(xycoords[:,0]) * 1000 #convert min and max from m to mm
+	gridmin = min(xycoords[:,0]) * 1000
 	gridarea = (gridmax - gridmin) **2
 	
 	return gridarea
