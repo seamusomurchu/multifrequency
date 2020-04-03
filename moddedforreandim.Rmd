@@ -1,0 +1,40 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.3.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""modifying qbdataio / gdataform to include re and imaginary columns"""
+import numpy as np
+import pandas as pd
+import glob
+import re
+import os
+from operator import itemgetter
+import csv
+
+from qbdataio import *
+```
+
+```{python}
+# inrep = '/home/james/FIgraspFiles/testinfiles/'
+# outrep = '/home/james/FIgraspFiles/testoutfiles/'
+
+inrep = '/home/james/FIgraspFiles/GRASPoriginals/'
+outrep = '/home/james/FIgraspFiles/MODALversions/'
+
+MultiHornMain(inrep, outrep)
+```
+
+```{python}
+
+```
