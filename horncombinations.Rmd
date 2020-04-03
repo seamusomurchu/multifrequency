@@ -163,9 +163,26 @@ print("it shape: ", it.shape)
 
 print("intensity testing after summation", Iarr.shape, IarrTES.shape, max(Iarr))
 
+
+```
+
+```{python}
+plt.figure(figsize=(7,7))
+plt.suptitle('horn combinations')
+plt.scatter(PixCenX*1000,PixCenY*1000, c=it, cmap='jet',marker='s')
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("Model Power Data", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+plt.show()
+```
+
+```{python}
 # %matplotlib inline
-plt.figure()
-MultiFIntensityTESPlot(it, PixCenX, PixCenY)
+plt.figure(figsize=(100,100))
+MultiFIntensityTESPlot(it, PixCenX, PixCenY,'horn combinations')
 plt.show()
 ```
 

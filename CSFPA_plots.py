@@ -746,10 +746,10 @@ def rawintensityplot(pklrep):
     os.system('spd-say "BING! BING! BING!"')
     return float(max(GPow))
 
-def MultiFIntensityTESPlot(multifTES, PixCenX, PixCenY):
+def MultiFIntensityTESPlot(multifTES, PixCenX, PixCenY, title):
     
     plt.figure()
-    plt.suptitle('Multiple Frequencies 130 - 170, 5 GHz intervals')
+    plt.suptitle(title)
     plt.scatter(PixCenX*1000,PixCenY*1000, c=multifTES, cmap='jet',marker='s')
     plt.axis([-60, 60, -60, 60])
     plt.axis('equal')
