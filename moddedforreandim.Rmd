@@ -23,6 +23,9 @@ from operator import itemgetter
 import csv
 
 from qbdataio import *
+import pandas as pd
+from CSFPA_dataIO import *
+import matplotlib.pyplot as plt
 ```
 
 ```{python}
@@ -33,6 +36,168 @@ inrep = '/home/james/FIgraspFiles/GRASPoriginals/'
 outrep = '/home/james/FIgraspFiles/MODALversions/'
 
 MultiHornMain(inrep, outrep)
+```
+
+```{python}
+"""must now do a function and plotter for combining horns
+"""
+
+#modalikefiles
+qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+
+files = sorted(glob.glob(qbfiles+'*.qb'))
+print("len qb files ", len(files))
+
+FIhorns = np.linspace(1,400,400, dtype=int)
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape)
+baseline = [120, 127]
+print(type(baseline))
+
+#load qb based on array, list, or baseline input
+
+qfiles = []
+for horn in TDhorns:
+    #print(horn)
+    file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    qfiles.append(file)
+    #print(file)
+    
+print(len(qfiles), qfiles[0])
+```
+
+```{python}
+#for file in qfiles:
+data = pd.read_csv(qfiles[0], sep='\t')
+print(data)
+```
+
+```{python}
+print(data['Rex'].shape)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+for file in qfiles:
+    
+    data = pd.read_csv(file, sep='\t')
+    print(addrex.shape, data['Rex'].shape)
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape)
+
+
+
+```
+
+```{python}
+expkl = '/home/james/FIgraspFiles/pklrep150/FPA_objs_FP_planar_grid_horn100_150_GHz_Mstyle.pkl'
+
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(expkl)
+
+```
+
+```{python}
+plt.figure()
+plt.suptitle('summing')
+plt.scatter(xycoords[:,0], xycoords[:,1], c=it, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("sample", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+plt.show()
+```
+
+```{python}
+#do for a baseline
+
+baseline = [120, 274]
+#baseline = [274, 281]
+print(type(baseline))
+
+#load qb based on array, list, or baseline input
+
+qfiles = []
+for horn in baseline:
+    #print(horn)
+    file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    qfiles.append(file)
+    #print(file)
+    
+print(len(qfiles), qfiles[0])
+
+#for file in qfiles:
+data = pd.read_csv(qfiles[0], sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+for file in qfiles:
+    
+    data = pd.read_csv(file, sep='\t')
+    print(addrex.shape, data['Rex'].shape)
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape)
+
+plt.figure()
+plt.suptitle('summing')
+plt.scatter(data['Xpos'], data['Ypos'], c=it, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("sample", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+plt.show()
 ```
 
 ```{python}
