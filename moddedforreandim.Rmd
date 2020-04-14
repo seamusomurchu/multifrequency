@@ -66,7 +66,7 @@ print(type(baseline))
 #load qb based on array, list, or baseline input
 
 qfiles = []
-for horn in TDhorns:
+for horn in FIhorns:
     #print(horn)
     file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
     qfiles.append(file)
@@ -198,6 +198,32 @@ plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
 cax = plt.axes([0.825, 0.1, 0.04, 0.8])
 plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
 plt.show()
+```
+
+```{python}
+# %matplotlib qt
+plt.figure()
+plt.suptitle('summing')
+plt.scatter(data['Xpos'], data['Ypos'], c=it, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("sample", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+plt.show()
+```
+
+```{python}
+"""write a function to save image data of summed horns FI, TD or baseline"""
+
+print(it.shape, it[0], data['Xpos'].shape)
+data['sumint'] = it
+print(data['sumint'].shape)
+intdat = pd.DataFrame(data, columns = ['Xpos', 'Ypos', 'sumint'])
+print(intdat)
+intdat.to_csv('FIintensitydata.csv', index=False)
+#np.savetxt('FIintensity')
 ```
 
 ```{python}

@@ -1,0 +1,265 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.3.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""sample code to find peaks in image"""
+import numpy as np
+from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
+import matplotlib.pyplot as pp
+import pandas as pd
+
+#for some reason I had to reshape. Numpy ignored the shape header.
+paws_data = np.loadtxt("paws.txt").reshape(4,11,14)
+
+#getting a list of images
+paws = [p.squeeze() for p in np.vsplit(paws_data,4)]
+
+
+def detect_peaks(image):
+    """
+    Takes an image and detect the peaks usingthe local maximum filter.
+    Returns a boolean mask of the peaks (i.e. 1 when
+    the pixel's value is the neighborhood maximum, 0 otherwise)
+    """
+
+    # define an 8-connected neighborhood
+    neighborhood = generate_binary_structure(2,2)
+    print(neighborhood)
+
+    #apply the local maximum filter; all pixel of maximal value 
+    #in their neighborhood are set to 1
+    local_max = maximum_filter(image, footprint=neighborhood)==image
+    #local_max is a mask that contains the peaks we are 
+    #looking for, but also the background.
+    #In order to isolate the peaks we must remove the background from the mask.
+
+    #we create the mask of the background
+    background = (image==0)
+
+    #a little technicality: we must erode the background in order to 
+    #successfully subtract it form local_max, otherwise a line will 
+    #appear along the background border (artifact of the local maximum filter)
+    eroded_background = binary_erosion(background, structure=neighborhood, border_value=1)
+
+    #we obtain the final mask, containing only peaks, 
+    #by removing the background from the local_max mask (xor operation)
+    detected_peaks = local_max ^ eroded_background
+
+    return detected_peaks
+
+
+#applying the detection and plotting results
+for i, paw in enumerate(paws):
+    detected_peaks = detect_peaks(paw)
+    pp.subplot(4,2,(2*i+1))
+    pp.imshow(paw)
+    pp.subplot(4,2,(2*i+2) )
+    pp.imshow(detected_peaks)
+
+pp.show()
+```
+
+```{python}
+data = pd.read_csv('FIintensitydata.csv')
+
+# from scipy.ndimage import zoom
+# new_array = zoom(data, (0.5, 0.5, 0.5))
+# print(new_array.shape)
+data = data[0::100]
+```
+
+```{python}
+detected_peaks = detect_peaks(data)
+
+
+x_, y_ = np.meshgrid(data['Xpos'], data['Ypos'])
+print(x_.shape)
+z_grid = np.array(data['sumint']).reshape(x_.shape)
+fig = pp.figure()
+ax1 = pp.contourf(x_,y_,z_grid)
+plt.show()
+```
+
+```{python}
+x_, y_, z_ = np.meshgrid(data['Xpos'], data['Ypos'], data['sumint'])
+print(x_.shape)
+
+fig = pp.figure()
+ax1 = pp.contourf(x_,y_)
+plt.show()
+```
+
+```{python}
+data = np.loadtxt('FIintensitydata.csv', skiprows=1, delimiter=',')
+
+mat = data
+print(data.shape)
+
+x = np.unique(mat[:,0])
+y = np.unique(mat[:,1])
+
+X,Y = np.meshgrid(x, y)
+
+# I'm fairly sure there's a more efficient way of doing this...
+def get_z(mat, x, y):
+    ind = (mat[:,(0,1)] == (x,y)).all(axis=1)
+    row = mat[ind,:]
+    return row[0,2]
+
+z = np.array([get_z(mat,x,y) for (x,y) in zip(np.ravel(X), np.ravel(Y))])
+Z = z.reshape(X.shape)
+
+
+```
+
+```{python}
+import matplotlib.pyplot as plt
+
+plt.pcolormesh(X,Y,Z)
+plt.xlim(min(x), max(x))
+plt.ylim(min(y), max(y))
+plt.show()
+```
+
+```{python}
+print(X.shape, Z.shape)
+```
+
+```{python}
+plt.imshow(Z)
+```
+
+```{python}
+detected_peaks = detect_peaks(Z)
+plt.figure(figsize=(20,20))
+plt.subplot(4,2,(2*i+1))
+plt.imshow(Z)
+plt.subplot(4,2,(2*i+2) )
+plt.imshow(detected_peaks)
+```
+
+```{python}
+import numpy as np
+import pandas as pd
+from matplotlib import pyplot as plt
+from sklearn.datasets.samples_generator import make_blobs
+from sklearn.cluster import KMeans
+```
+
+```{python}
+kmeans = KMeans(n_clusters=10, init='k-means++', max_iter=1000, n_init=10, random_state=0)
+pred_y = kmeans.fit_predict(Z)
+plt.scatter(Z[:,0], Z[:,1])
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=20, c='red')
+plt.show()
+```
+
+```{python}
+import scipy.optimize as opt
+def twoD_Gaussian(xdatatuple, amplitude, xo, yo, sigma_x, sigma_y, theta, offset):
+    x, y = xdatatuple
+    xo = float(xo)
+    yo = float(yo)    
+    a = (np.cos(theta)**2)/(2*sigma_x**2) + (np.sin(theta)**2)/(2*sigma_y**2)
+    b = -(np.sin(2*theta))/(4*sigma_x**2) + (np.sin(2*theta))/(4*sigma_y**2)
+    c = (np.sin(theta)**2)/(2*sigma_x**2) + (np.cos(theta)**2)/(2*sigma_y**2)
+    g = offset + amplitude*np.exp( - (a*((x-xo)**2) + 2*b*(x-xo)*(y-yo) 
+                            + c*((y-yo)**2)))
+    return g.ravel()
+
+# Create x and y indices
+x = np.linspace(0, 200, 201)
+y = np.linspace(0, 200, 201)
+x, y = np.meshgrid(x, y)
+print("x val in meshgrid shape", x.shape)
+#create data
+data = twoD_Gaussian((x, y), 3, 100, 100, 20, 40, 0, 10)
+print("data shape (z)", data.shape)
+# plot twoD_Gaussian data generated above
+plt.figure()
+plt.imshow(data.reshape(201, 201))
+plt.colorbar()
+
+# add some noise to the data and try to fit the data generated beforehand
+initial_guess = (3,100,100,20,40,0,10)
+
+data_noisy = data + 0.2*np.random.normal(size=data.shape)
+
+popt, pcov = opt.curve_fit(twoD_Gaussian, (x, y), data_noisy, p0=initial_guess)
+
+data_fitted = twoD_Gaussian((x, y), *popt)
+
+fig, ax = plt.subplots(1, 1)
+#ax.hold(True)
+ax.imshow(data_noisy.reshape(201, 201), cmap=plt.cm.jet, origin='bottom',
+    extent=(x.min(), x.max(), y.min(), y.max()))
+ax.contour(x, y, data_fitted.reshape(201, 201), 8, colors='w')
+plt.show()
+```
+
+```{python}
+data = np.loadtxt('FIintensitydata.csv', skiprows=1, delimiter=',')
+
+mat = data
+print(data.shape, max(data[:,2][np.where[:,0]<-0.02]))
+
+x = np.unique(mat[:,0])
+y = np.unique(mat[:,1])
+
+X,Y = np.meshgrid(x, y)
+
+print("mesh shape", X.shape)
+
+initial_guess = (25,0,0,0.1,0.1,0,0)
+
+popt, pcov = opt.curve_fit(twoD_Gaussian, (X, Y), mat[:,2], p0=initial_guess)
+
+data_fitted = twoD_Gaussian((X, Y), *popt)
+
+plt.figure(figsize=(15,15))
+#ax.hold(True)
+plt.imshow(mat[:,2].reshape(241, 241), cmap=plt.cm.jet, origin='bottom',
+    extent=(x.min(), x.max(), y.min(), y.max()))
+plt.contour(X, Y, data_fitted.reshape(241, 241), 5, colors='w')
+plt.show()
+```
+
+```{python}
+plt.figure()
+plt.imshow(mat[:,2].reshape(241, 241))
+plt.colorbar()
+```
+
+```{python}
+condition = data[:,2][np.where(data[:,0] < -0.02)]
+print(max(condition))
+
+initial_guess = (3,0.025,0.03,0.01,0.01,0,0)
+
+popt, pcov = opt.curve_fit(twoD_Gaussian, (X, Y), mat[:,2], p0=initial_guess)
+
+data_fitted = twoD_Gaussian((X, Y), *popt)
+
+plt.figure(figsize=(15,15))
+#ax.hold(True)
+plt.imshow(mat[:,2].reshape(241, 241), cmap=plt.cm.jet, origin='bottom',
+    extent=(x.min(), x.max(), y.min(), y.max()))
+plt.contour(X, Y, data_fitted.reshape(241, 241), 5, colors='w')
+plt.show()
+```
+
+```{python}
+
+```
