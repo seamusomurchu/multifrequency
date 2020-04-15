@@ -261,5 +261,22 @@ plt.show()
 ```
 
 ```{python}
+print("gaussian parameter headers \n amplitude, xo, yo, sigma_x, sigma_y, theta, offset")
+print("initial guess \n", initial_guess)
+print("curve fit \n ", popt, " \n pcov \n", pcov)
+```
+
+```{python}
+"""find a way to plot only the area around the gaussian"""
+subxmin = popt[1] - 0.01
+subxmax = popt[1] + 0.01
+subymin = popt[2] - 0.01
+subymax = popt[2] + 0.01
+
+tempx = data[:,0][np.where(np.logical_and(data[:,0]>subxmin, data[:,0]<subxmax))]
+print(tempx.shape)
+```
+
+```{python}
 
 ```
