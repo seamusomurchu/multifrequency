@@ -120,7 +120,7 @@ for horn in FIhorns:
     #print(horn)
     file = pklrep+'FPA_objs_FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.pkl'
     pklfiles.append(file)
-print(pklfiles)
+#print(pklfiles)
 
 # FPComparisonPlotRAW(pklfiles[0], pklfiles[1])
 
@@ -184,6 +184,107 @@ plt.show()
 plt.figure(figsize=(100,100))
 MultiFIntensityTESPlot(it, PixCenX, PixCenY,'horn combinations')
 plt.show()
+```
+
+```{python}
+qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+files = sorted(glob.glob(qbfiles+'*.qb'))
+
+FIhorns = np.linspace(1,400,400, dtype=int)
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+#print(TDhorns.shape)
+baseline = [120, 127]
+#print(type(baseline))
+
+addimx = np.zeros(len(data.Rex))
+addrex = np.zeros(len(data.Rex))
+addrey = np.zeros(len(data.Rex))
+addimy = np.zeros(len(data.Rex))
+
+for horn in FIhorns:
+    #print(horn)
+    file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    addrex = np.vstack((addrex, data.Rex))
+    addimx = np.vstack((addimx, data.Imx))
+    addrey = np.vstack((addrey, data.Rey))
+    addimy = np.vstack((addimy, data.Imy))
+    
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape)
+```
+
+```{python}
+savedat= np.array((data.Xpos, data.Ypos, it)).T
+print(savedat.shape)
+print(savedat[:,0].shape)
+
+np.savetxt("synth150INT.txt", savedat, fmt='%3.5f', delimiter=', ')
+```
+
+```{python}
+print(file)
+data = np.loadtxt(file, skiprows=1)
+print(data.T.shape)
+```
+
+```{python}
+import pandas as pd 
+
+data = pd.read_csv(file, sep='\t') 
+print(data.head)
+```
+
+```{python}
+# addimx = np.zeros(len(data.Rex))
+# addrex = np.zeros(len(data.Rex))
+# addrey = np.zeros(len(data.Rex))
+# addimy = np.zeros(len(data.Rex))
+print(savedat.shape)
+```
+
+```{python}
+freq='150'
+import seaborn as sns
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 12}
+
+
+
+plt.figure(figsize=(18,10))
+plt.rc('font', **font)
+plt.suptitle('Frequency - {} GHz'.format(freq))
+plt.subplot(121)
+plt.scatter(savedat[:,0],savedat[:,1], c=savedat[:,2], cmap='jet',marker='s')
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+
+cax = plt.axes([0.5, 0.1, 0.05, 0.8])
+plt.colorbar(cax=cax,label="Intensity [W (Arbitrary)]")
+plt.show()
+
 ```
 
 ```{python}

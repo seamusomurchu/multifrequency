@@ -268,13 +268,68 @@ print("curve fit \n ", popt, " \n pcov \n", pcov)
 
 ```{python}
 """find a way to plot only the area around the gaussian"""
-subxmin = popt[1] - 0.01
-subxmax = popt[1] + 0.01
-subymin = popt[2] - 0.01
-subymax = popt[2] + 0.01
+subxmin = popt[1] - 0.005
+subxmax = popt[1] + 0.005
+subymin = popt[2] - 0.005
+subymax = popt[2] + 0.005
 
 tempx = data[:,0][np.where(np.logical_and(data[:,0]>subxmin, data[:,0]<subxmax))]
-print(tempx.shape)
+tempy = data[:,1][np.where(np.logical_and(data[:,1]>subymin, data[:,1]<subymax))]
+z = data[:,2][np.where(np.logical_and(
+    np.logical_and(data[:,0]>subxmin, data[:,0]<subxmax),
+    np.logical_and(data[:,1]>subymin, data[:,1]<subymax)))]
+
+tempx = np.unique(tempx)
+tempy = np.unique(tempy)
+
+
+
+print(tempx.shape, z.shape)
+
+X, Y = np.meshgrid(tempx, tempy)
+
+data_fitted = twoD_Gaussian((X, Y), *popt)
+
+image = data[:,2].reshape(241, 241)
+image = image[150:200, 150:200]
+
+
+plt.figure(figsize=(15,15))
+plt.scatter(tempx, tempy, c=z)
+#ax.hold(True)
+# plt.imshow(image, cmap=plt.cm.jet, origin='bottom',
+#     extent=(subxmin, subxmax, subymin, subymax))
+# plt.contour(X, Y, data_fitted.reshape(4820, 4820), 8, colors='k')
+# plt.show()
+```
+
+```{python}
+def crop(image, x1, x2, y1, y2):
+    """
+    Return the cropped image at the x1, x2, y1, y2 coordinates
+    """
+    if x2 == -1:
+        x2=image.shape[1]-1
+    if y2 == -1:
+        y2=image.shape[0]-1
+
+    mask = np.zeros(image.shape)
+    mask[y1:y2+1, x1:x2+1]=1
+    m = mask>0
+
+    return image[m].reshape((y2+1-y1, x2+1-x1))
+
+image = data[:,2].reshape(241, 241)
+image_cropped = crop(image, subxmin, subxmax, subymin, subymax)
+
+fig = plt.figure()
+ax1 = fig.add_subplot(121)
+ax2 = fig.add_subplot(122)
+
+ax1.imshow(image)
+ax2.imshow(image_cropped)
+
+plt.show()
 ```
 
 ```{python}

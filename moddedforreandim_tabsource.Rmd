@@ -32,8 +32,8 @@ import matplotlib.pyplot as plt
 # inrep = '/home/james/FIgraspFiles/testinfiles/'
 # outrep = '/home/james/FIgraspFiles/testoutfiles/'
 
-inrep = '/home/james/FIgraspFiles/GRASPoriginals/'
-outrep = '/home/james/FIgraspFiles/MODALversions/'
+inrep = '/home/james/FIgraspFiles/TABsource/GRASPoriginals/BatchRun150TabSource/'
+outrep = '/home/james/FIgraspFiles/TABsource/MODALversions/'
 
 MultiHornMain(inrep, outrep)
 ```
@@ -43,7 +43,7 @@ MultiHornMain(inrep, outrep)
 """
 
 #modalikefiles
-qbfiles = '/home/james/FIgraspFiles/MODALversions/'
+qbfiles = '/home/james/FIgraspFiles/TABsource/MODALversions/'
 
 files = sorted(glob.glob(qbfiles+'*.qb'))
 print("len qb files ", len(files))
@@ -67,9 +67,9 @@ sing = [190]
 #load qb based on array, list, or baseline input
 
 qfiles = []
-for horn in sing:
+for horn in FIhorns:
     #print(horn)
-    file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    file = qbfiles+'FP_planar_grid_horn'+str(horn)+'_130_GHz_Mstyle.qb'
     qfiles.append(file)
     #print(file)
     
@@ -132,7 +132,7 @@ plt.scatter(xycoords[:,0], xycoords[:,1], c=it, cmap='jet', marker='.')#, s=1)
 #plt.axis([-60, 60, -60, 60])
 #plt.axis('equal')
 plt.gca().set_aspect('equal', adjustable='box')
-plt.title("2 Baseline Horns - 150 GHz", fontsize=10)
+plt.title("Tab Source - 130 GHz", fontsize=10)
 plt.xlabel('X (m)')
 plt.ylabel('Y (m)')
 plt.subplots_adjust(bottom=0.1, right=0.85, top=0.9)
