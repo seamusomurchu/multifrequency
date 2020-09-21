@@ -431,3 +431,34 @@ def GetMODALGridPixArea(fname):
 	pixarea = gridarea / len(df.X) #area of each data point
 	
 	return gridarea, pixarea
+    
+def ApFieldMag2ReIm(fpath , output):
+    """not fully tested as of 21/09/21
+    this should convert an aperture field file from mag phase to re im and
+    save in grasp format
+    give the input and output file paths you want"""
+
+    #load and format data
+    data = np.loadtxt(fpath, skiprows=1)
+    df = pd.DataFrame(data, columns=['xind', 'yindx', 'ypos', 'xpos', 'xmag', 'xpha', 'ymag', 'ypha'])
+    #calcualte real and imaginary
+    rex = df.xmag * np.cos(df.xpha)
+    imx = df.xmag * np.sin(df.xpha)
+    rey = df.ymag * np.cos(df.ypha)
+    imy = df.ymag * np.sin(df.ypha)
+    #format data to save
+    savedat = np.array([rex, imx])
+    redu2 = np.append(savedat, np.zeros([4, len(rex)]), axis=0)
+    #save the file with header
+    f = open(output + '.grd','w+')
+    f.write('Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im' + '\n' +
+       'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n')
+    f.write('++++' + '\n')
+    f.write('   1' + '\n')
+    f.write('   1   3   3   3' + '\n')
+    f.write('   0   0' + '\n')
+    f.write('-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n')
+    f.write('101 101 0' + '\n')
+    np.savetxt(f, redu2.T, delimiter='  ',fmt='%5.7f')
+    
+    return
