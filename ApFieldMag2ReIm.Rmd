@@ -86,17 +86,17 @@ print(redu2.shape)
 
 ```{python}
 """testsave the file"""
-output = "/home/james/graspfiles/ApField/TESTconvMag2ReIm"
-f = open(output + '.grd','w+')
-f.write('Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im' + '\n' +
-       'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n')
-f.write('++++' + '\n')
-f.write('   1' + '\n')
-f.write('   1   3   3   3' + '\n')
-f.write('   0   0' + '\n')
-f.write('-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n')
-f.write('101 101 0' + '\n')
-np.savetxt(f, redu2.T, delimiter='  ',fmt='%5.7f')
+output = "/home/james/graspfiles/ApField/TEST5convMag2ReIm.grd"
+# f = open(output + '.grd','w+')
+# f.write('Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im' + '\n' +
+#        'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n')
+# f.write('++++' + '\n')
+# f.write('   1' + '\n')
+# f.write('   1   3   3   3' + '\n')
+# f.write('   0   0' + '\n')
+# f.write('-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n')
+# f.write('101 101 0' + '\n')
+np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f')
 ```
 
 ```{python}
@@ -105,8 +105,20 @@ np.savetxt(f, redu2.T, delimiter='  ',fmt='%5.7f')
 
 ```{python}
 from CSFPA_dataIO import ApFieldMag2ReIm
-output2 = "/home/james/graspfiles/ApField/TEST2convMag2ReIm"
+output2 = "/home/james/graspfiles/ApField/TEST4convMag2ReIm"
 ApFieldMag2ReIm("/home/james/graspfiles/ApField/150hornoutput.dat", output2)
+```
+
+```{python}
+print(data.shape, redu2.shape)
+```
+
+```{python}
+header = 'Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im'+'\n'+'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n'+'++++' + '\n'+'   1' + '\n'+'   1   3   3   3' + '\n'+'   0   0' + '\n'+'-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n'+'101 101 0'
+
+print(header)
+
+np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f', header=header, comments='')
 ```
 
 ```{python}

@@ -432,7 +432,7 @@ def GetMODALGridPixArea(fname):
 	
 	return gridarea, pixarea
     
-def ApFieldMag2ReIm(fpath , output):
+def ApFieldMag2ReIm(fpath, output):
     """not fully tested as of 21/09/21
     this should convert an aperture field file from mag phase to re im and
     save in grasp format
@@ -450,15 +450,7 @@ def ApFieldMag2ReIm(fpath , output):
     savedat = np.array([rex, imx])
     redu2 = np.append(savedat, np.zeros([4, len(rex)]), axis=0)
     #save the file with header
-    f = open(output + '.grd','w+')
-    f.write('Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im' + '\n' +
-       'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n')
-    f.write('++++' + '\n')
-    f.write('   1' + '\n')
-    f.write('   1   3   3   3' + '\n')
-    f.write('   0   0' + '\n')
-    f.write('-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n')
-    f.write('101 101 0' + '\n')
-    np.savetxt(f, redu2.T, delimiter='  ',fmt='%5.7f')
+    header = 'Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im'+'\n'+'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n'+'++++' + '\n'+'   1' + '\n'+'   1   3   3   3' + '\n'+'   0   0' + '\n'+'-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n'+'101 101 0'
+    np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f', header=header, comments='')
     
     return
