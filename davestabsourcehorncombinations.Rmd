@@ -128,6 +128,10 @@ MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, P
 ```
 
 ```{python}
+print(IntT.shape, IT.shape)
+```
+
+```{python}
 plt.figure()
 #plt.suptitle('summing')
 plt.scatter(xycoords[:,0], xycoords[:,1], c=it, cmap='jet', marker='.')#, s=1)

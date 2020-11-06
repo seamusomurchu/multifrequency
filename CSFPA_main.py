@@ -21,7 +21,7 @@ def MainProg(filepath, pklrep, tesdatrep):
     d = qubic.qubicdict.qubicDict()
     #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
     #change to moddded dictionary
-    d.read_from_file('../qubic/qubic/dicts/global_source_oneDetFI.dict')
+    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDetFI.dict')
     q = qubic.QubicMultibandInstrument(d)
     
     vtxs = q[0].detector.vertex
