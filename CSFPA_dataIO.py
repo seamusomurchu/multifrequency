@@ -454,3 +454,62 @@ def ApFieldMag2ReIm(fpath, output):
     np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f', header=header, comments='')
     
     return
+
+def IntegrateHornCombOnFP(it, xycoords, vtxs):
+    """Pass in focal plane data combined in mag and phase. e.g. intensity array of 58081
+    to integrate over bolometer area of 992 bolometers
+    xycoords is a 2,58081 array of x y points
+    pass in qubic vtxs array"""
+    #xycoords = np.array(data[:,2:4])
+    #bolometer arrays
+    intbol = np.array([])
+    bols= np.array([])
+    #pixel centers
+    PixCenX = np.array([])
+    PixCenY = np.array([])
+    
+    cnti = 0
+    cntj = 0
+    vtxcntarr = ([])
+    #count number of data points per pixel for analysis/normalisation
+    vtxcnt = 0  
+    for i in vtxs:
+        cnti = cnti + 1
+        cntj = 0
+        
+        for j in range(len(xycoords[0,:])):
+            #if f.endswith((".qb")):
+            #careful here about weird Y first thing from MODAL...
+            x = xycoords[0, j]
+            y = xycoords[1, j]
+            #else:                
+                #x = j[0]
+                #y = j[1]
+            x1 = i[0,0]
+            y1 = i[0,1]
+            x2 = i[2,0]
+            y2 = i[2,1]
+            
+            if x >= x2 and x <= x1 and y >= y2 and y <= y1:
+                #print(x,y, x1, y1, x2, y2)
+                #if the point is inside the bolometer area, add to array
+                intbol = np.append(intbol, it[cntj])
+                
+                vtxcnt = vtxcnt + 1
+                
+            cntj = cntj + 1
+            
+        #sum the values in bolometer area and append to the bolometer array
+        bols = np.append(bols, sum(intbol))
+        intbol = np.array([])
+        
+        #data points per pixel counter
+        vtxcntarr = np.append(vtxcntarr,vtxcnt)
+        vtxcnt = 0 
+        #Pixel centers as array
+        pixcenx = (x1 + x2) / 2        
+        pixceny = (y1 + y2) / 2
+        PixCenX = np.append(PixCenX,pixcenx)
+        PixCenY = np.append(PixCenY,pixceny)
+        
+    return PixCenX, PixCenY, bols
