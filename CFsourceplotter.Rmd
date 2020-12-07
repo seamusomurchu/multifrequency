@@ -1,0 +1,66 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import qubic
+import matplotlib.pyplot as plt
+```
+
+```{python}
+"""Find this dictionary global_source_oneDetFI.dict and set to FI instead of TD"""
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDetFI.dict')
+q = qubic.QubicMultibandInstrument(d)
+vtxs = q[0].detector.vertex
+```
+
+```{python}
+print(vtxs.shape)
+```
+
+```{python}
+xcens = np.zeros(992)
+ycens = np.zeros(992)
+
+j=992
+for i in range(992):
+    
+    cenx = (vtxs[i,0,0] + vtxs[i,2,0]) / 2
+    ceny = (vtxs[i,0,1] + vtxs[i,2,1]) / 2
+    #print(i,j,cenx, ceny)
+    xcens[i] = cenx
+    ycens[i] = ceny
+
+```
+
+```{python}
+
+cfdata = np.loadtxt('TESPowOfile150newCF2_CF.qb.txt', skiprows=1)
+```
+
+```{python}
+print(cfdata.shape, cfdata[:,1].shape)
+print(xcens.shape, ycens.shape)
+print(xcens)
+```
+
+```{python}
+plt.figure(figsize=(8,8))
+plt.scatter(xcens, ycens, c = cfdata[:,1], cmap='jet',marker='s')
+```
+
+```{python}
+
+```
