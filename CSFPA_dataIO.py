@@ -440,7 +440,7 @@ def ApFieldMag2ReIm(fpath, output):
 
     #load and format data
     data = np.loadtxt(fpath, skiprows=1)
-    df = pd.DataFrame(data, columns=['xind', 'yindx', 'ypos', 'xpos', 'xmag', 'xpha', 'ymag', 'ypha'])
+    df = pd.DataFrame(data, columns=['xind', 'yindx', 'xpos', 'ypos', 'xmag', 'xpha', 'ymag', 'ypha', 'poynz'])
     #calcualte real and imaginary
     rex = df.xmag * np.cos(df.xpha)
     imx = df.xmag * np.sin(df.xpha)

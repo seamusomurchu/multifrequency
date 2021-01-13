@@ -1,0 +1,147 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from qbdataio import MultiHornMain
+```
+
+```{python}
+#oldtabfield = np.loadtxt('/home/james/graspfiles/tabsourcefiles/Horn_Clover12b_150GHzSM_Coherent_NF__with_ORTH_grdfileXPOLONLY.grd', skiprows=8).T
+oldtabfield = np.loadtxt('/media/james/DATA/LaptopFiles/graspfiles/tabsourcefiles/Horn_Clover12b_150GHzSM_Coherent_NF__with_ORTH_grdfileXPOLONLY.grd', skiprows=7).T
+print(oldtabfield.shape)
+#davetabfield = np.loadtxt('/home/james/graspfiles/tabsourcefiles/150tabsourcedave.grd', skiprows=8).T
+davetabfield = np.loadtxt('/media/james/DATA/MODALhorn/DavesVersion/150hornoutput.dat', skiprows=1).T
+print(davetabfield.shape)
+#mysource = np.loadtxt('/media/james/DATA/MODALhorn/150 horn output.dat', skiprows=1).T
+mysource = np.loadtxt('/media/james/DATA/MODALhorn2/150hornoutput1123.dat', skiprows=1).T
+print(mysource.shape)
+```
+
+```{python}
+#convert donnys ap field to .dat
+#do calculations for amp and phase
+
+ampXvar = np.sqrt(oldtabfield[0,:]**2 + oldtabfield[1,:]**2) 
+
+phaXvar = np.arctan2(oldtabfield[1,:],oldtabfield[0,:])
+
+ampYvar = np.sqrt(oldtabfield[2,:]**2 + oldtabfield[3,:]**2) 
+
+phaYvar = np.arctan2(oldtabfield[3,:],oldtabfield[2,:])
+
+ampZvar = np.sqrt(oldtabfield[4,:]**2 + oldtabfield[5,:]**2) 
+
+phaZvar = np.arctan2(oldtabfield[5,:],oldtabfield[4,:])
+
+print(ampXvar.shape)
+
+xvals = np.linspace(-6.167E-00, 6.167E-00, 101)
+yvals = np.linspace(-6.167E-00, 6.167E-00, 101)
+X,Y = np.meshgrid(xvals, yvals)
+pts = np.c_[Y.ravel(), X.ravel()]
+
+
+print(ampXvar.shape, X.shape, pts.shape)
+#print(pts[:,0].shape, min(abs(pts[:,0])))
+
+plt.plot(pts[:,1][np.where(pts[:,0] == 0)], ampXvar[np.where(pts[:,0] == 0)], '.')
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+plt.figure(figsize=(12,10))
+
+plt.subplot(2,2,1)
+plt.scatter(davetabfield[2,:], davetabfield[3,:], c=davetabfield[4,:])
+plt.title('Daves File col4')
+plt.colorbar()
+plt.subplot(2,2,2)
+plt.scatter(davetabfield[2,:], davetabfield[3,:], c=davetabfield[5,:])
+plt.title('Daves File col5')
+plt.colorbar()
+plt.subplot(2,2,3)
+plt.scatter(davetabfield[2,:], davetabfield[3,:], c=davetabfield[6,:])
+plt.title('Daves File col6')
+plt.colorbar()
+plt.subplot(2,2,4)
+plt.scatter(davetabfield[2,:], davetabfield[3,:], c=davetabfield[7,:])
+plt.title('Daves File col7')
+plt.colorbar()
+
+
+plt.figure(figsize=(12,10))
+
+plt.subplot(2,2,1)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[4,:])
+plt.title('My Source')
+plt.colorbar()
+plt.subplot(2,2,2)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[5,:])
+plt.title('My Source')
+plt.colorbar()
+plt.subplot(2,2,3)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[6,:])
+plt.title('My Source')
+plt.colorbar()
+plt.subplot(2,2,4)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
+plt.title('My Source')
+plt.colorbar()
+
+#now normalise and do difference
+mys = mysource[4,:]/max(mysource[4,:])
+ds = davetabfield[4,:]/max(davetabfield[4,:])
+print(mys.shape, ds.shape)
+
+plt.figure(figsize=(12,10))
+
+plt.scatter(mysource[2,:], mysource[3,:], c=mys-ds)
+plt.title('Difference')
+plt.colorbar()
+
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+
+plt.plot(davetabfield[2,:][np.where(davetabfield[3,:]==0)], 
+davetabfield[4,:][np.where(davetabfield[3,:]==0)]/max(davetabfield[4,:]), linewidth=3, label='Daves Tab Source')
+plt.plot(mysource[2,:][np.where(mysource[3,:]==0)], 
+         mysource[4,:][np.where(mysource[3,:]==0)]/max(mysource[4,:]), linewidth=3, label='My Tab Source')
+
+plt.plot(pts[:,0][np.where(pts[:,1] == 0)], ampXvar[np.where(pts[:,1] == 0)]/max(ampXvar), linewidth=3, label='Donnys')
+
+plt.grid(True)
+plt.ylabel("Normalised Intenisty (dB)")
+plt.xlabel('Aperture Field (mm)')
+plt.title('Corrugated Horn Aperture Field')
+plt.xlim(0,6.5)
+plt.legend(loc='upper right')
+```
+
+```{python}
+
+```
