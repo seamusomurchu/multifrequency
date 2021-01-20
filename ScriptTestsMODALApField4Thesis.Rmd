@@ -365,5 +365,380 @@ plt.tight_layout()
 ```
 
 ```{python}
+"""here show the aperture field from MODAL"""
+
+plt.figure(figsize=(14,11))
+
+plt.subplot(2,2,1)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[4,:])
+plt.title('Amplitude (X)')
+plt.colorbar(label='dB')
+plt.xlabel('Aperture Field X (mm)')
+plt.ylabel('Aperture Field Y (mm)')
+
+plt.subplot(2,2,2)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[5,:])
+plt.title('Phase (X)')
+plt.colorbar(label='Hz')
+plt.xlabel('Aperture Field X (mm)')
+plt.ylabel('Aperture Field Y (mm)')
+
+plt.subplot(2,2,3)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[6,:])
+plt.title('Amplitude (Y)')
+plt.colorbar(label='dB')
+plt.xlabel('Aperture Field X (mm)')
+plt.ylabel('Aperture Field Y (mm)')
+
+plt.subplot(2,2,4)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
+plt.title('Phase (Y)')
+plt.colorbar(label='Hz')
+plt.xlabel('Aperture Field X (mm)')
+plt.ylabel('Aperture Field Y (mm)')
+
+plt.axis('equal')
+
+plt.tight_layout()
+#plt.savefig("/home/james/OneDrive/ThesisPlots/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
+"""from here I will use the script davetabsourcehorncombinations & TES-integration-refactor
+to convert my grasp files to the modal format
+comment out conversion lines later"""
+from CSFPA_dataIO import *
+
+inrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/GRASPfiles/'
+outrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+
+#MultiHornMain(inrep, outrep)
+```
+
+```{python}
+"""load the MODAL files"""
+qbrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+files = sorted(glob.glob(qbrep+'*.qb'))
+print('read', len(files), 'files')
+
+#define the TD and FI - remember the weird solution to TD numbers 1-64!
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+"""add the relevant horns to be added eventually we could save every possible combination
+can choose, baseline, TD, FI"""
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+#here we loop through the chosen config, baseline, load the 'qb' files
+#and add the instensities
+
+#baseline, TDhorns, FIhorns all interchangeable here
+cnt = 0
+for horn in FIhorns:
+    
+    print(qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape, cnt)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer
+This is for MY Model..."""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+plt.figure(figsize=(16,13))
+
+plt.scatter(data['Xpos'], data['Ypos'], c=it/max(it), cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("400 Horns on Focal Plane")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Normalised Intensity (W)", shrink=0.9)
+
+plt.show()
+#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/400horn.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
+"""load the MODAL files for daves Model"""
+qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+files = sorted(glob.glob(qbrep+'*.qb'))
+print('read', len(files), 'files')
+```
+
+```{python}
+"""add the relevant horns to be added eventually we could save every possible combination
+can choose, baseline, TD, FI"""
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(qbrepDAVE+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+#here we loop through the chosen config, baseline, load the 'qb' files
+#and add the instensities
+
+#baseline, TDhorns, FIhorns all interchangeable here
+cnt = 0
+for horn in FIhorns:
+    
+    print(qbrepDAVE+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrepDAVE+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+itDAVE = itx[:] + ity[:]
+print("itDAVE shape: ", itDAVE.shape, cnt)
+```
+
+```{python}
+"""show example cut"""
+from scipy.interpolate import griddata
+from scipy.signal import chirp, find_peaks, peak_widths
+def makemeshgrid(psfdata, meshsize):
+    x = np.linspace(min(psfdata[0,:]), max(psfdata[0,:]), meshsize)
+    y = np.linspace(min(psfdata[1,:]), max(psfdata[1,:]), meshsize)
+
+    X,Y = np.meshgrid(x, y)
+
+    # Interpolate (x,y,z) points [mat] over a normal (x,y) grid [X,Y]
+    #   Depending on your "error", you may be able to use other methods
+    Z = griddata((psfdata[0,:], psfdata[1,:]), psfdata[2,:], (X,Y), method='nearest')
+
+    #plt.pcolormesh(X,Y,Z)
+    #plt.show()
+    return Z
+
+meshsize = 301
+TDmesh = np.zeros([1, meshsize, meshsize])
+TDmesh = makemeshgrid(np.array([data['Xpos'], data['Ypos'], it]), meshsize)
+print(TDmesh.shape)
+```
+
+```{python}
+"""do the example cut"""
+azmin = min(data['Xpos'])
+azmax = max(data['Xpos'])
+elmin = min(data['Ypos'])
+elmax = max(data['Ypos'])
+
+X = np.linspace(azmin, azmax, 301)
+Y = np.linspace(elmax, elmin, 301)
+
+# x0, y0 = 50, 158# These are in _pixel_ coordinates!! in DEGREES
+# x1, y1 = 175, 32
+x0, y0 = 25, 247# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+plt.figure(figsize=(16,12))
+plt.subplot(1,2,1)
+plt.imshow(TDmesh, aspect='equal')
+plt.grid(True)
+plt.plot([x0, x1], [y0, y1], 'ro-')
+plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+#x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+xr = np.linspace(x0, x2, x2-x0)
+#xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+yi = np.linspace(y0, y1, x1-x0)
+yj = np.linspace(y1, y2, x2-x1)
+
+#xr = np.append(x, xa)
+yr = np.append(yi, yj)
+
+plt.subplot(1,2,2)
+plt.imshow(TDmesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+plt.grid(True)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+#degpt = (azmax - azmin)/301
+degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
+#degpt = np.rad2deg(np.arctan( (max(data['Xpos']) - min(data['Xpos'])) /300e-3)) / 301
+
+
+zi = TDmesh[xr.astype(np.int), yr.astype(np.int)]
+zi = scipy.ndimage.map_coordinates(np.transpose(TDmesh), np.vstack((xr,yr)))
+azi = np.linspace(X[x0], X[x2], len(zi))
+peaks, _ = find_peaks(zi, prominence=2)
+results_half = peak_widths(zi, peaks, rel_height=0.5)
+print(azi.shape, zi.shape, peaks.shape)
+print(results_half)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(np.rad2deg(np.arctan(azi/300e-3)), zi, label="Cut", lw=4)
+
+plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), zi[peaks], "x", label="Peaks", mew=5, ms=10)
+
+plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), results_half[1], '_', mew=5, ms=10, 
+     label="FWHM = {:3.3}$^\circ$".format(np.rad2deg(np.arctan((results_half[0][1])*0.12/301))))
+
+plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), zi[peaks], "x", mew=5, ms=10,
+     label="Peak Sep {:3.2}$^\circ$, {:3.2}$^\circ$".
+         format(np.rad2deg(np.arctan(azi[peaks]/300e-3))[1]-np.rad2deg(np.arctan(azi[peaks]/300e-3))[0], np.rad2deg(np.arctan(azi[peaks]/300e-3))[1]-np.rad2deg(np.arctan(azi[peaks]/300e-3))[2]))
+
+plt.legend(loc='upper left', fontsize=15)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(azi, zi, label="Cut", lw=4)
+
+plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
+
+plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
+     label="FWHM = {:3.3}$^\circ$".format((results_half[0][1])*0.12/301))
+
+plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
+     label="Peak Sep {:3.2}$^\circ$, {:3.2}$^\circ$".
+         format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
+
+plt.legend(loc='upper left', fontsize=15)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer
+This is for MY Model..."""
+"""here show the aperture field from MODAL"""
+
+# diff = (it/max(it)) - (itDAVE/max(itDAVE))
+
+# plt.rcParams['figure.figsize'] = [15, 15]
+# fig = plt.figure(figsize=(14, 11))
+# fig, axes = plt.subplots(nrows=2, ncols=2)
+# print(axes.shape)
+# im1 = axes[0,0].scatter(data['Xpos'], data['Ypos'], c=it/max(it), cmap='gnuplot', marker='.')#, s=1)
+# im2 = axes[0,1].scatter(data['Xpos'], data['Ypos'], c=itDAVE/max(itDAVE), cmap='gnuplot', marker='.')#, s=1)
+# im3 = axes[1,0].scatter(data['Xpos'], data['Ypos'], c=diff, cmap='gnuplot', marker='.')#, s=1)
+# fig.subplots_adjust(right=0.8)
+# cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+# fig.colorbar(im3, cax=cbar_ax)
+
+# plt.show()
+
+plt.figure(figsize=(14,11))
+plt.subplot(2,2,1)
+plt.scatter(data['Xpos'], data['Ypos'], c=it/max(it), cmap='gnuplot', marker='.')#, s=1)
+plt.title('Frequency Model')
+plt.colorbar(label='dB')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (mm)')
+
+plt.subplot(2,2,2)
+plt.scatter(data['Xpos'], data['Ypos'], c=itDAVE/max(itDAVE), cmap='gnuplot', marker='.')#, s=1)
+plt.title('Reference Model')
+plt.colorbar(label='Hz')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(2,2,3)
+plt.scatter(data['Xpos'], data['Ypos'], c=diff, cmap='copper', marker='.')#, s=1)
+plt.title('Difference')
+plt.colorbar(label='dB')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(2,2,4)
+plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
+plt.title('Abberated Cut')
+plt.colorbar(label='Hz')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+plt.axis('equal')
+
+plt.tight_layout()
+# plt.savefig("/home/james/OneDrive/ThesisPlots/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
+
+# plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/400horn.png", bbox_inches='tight', facecolor='white')
+
+
+```
+
+```{python}
 
 ```
