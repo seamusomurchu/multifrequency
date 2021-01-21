@@ -577,6 +577,7 @@ print("itDAVE shape: ", itDAVE.shape, cnt)
 """show example cut"""
 from scipy.interpolate import griddata
 from scipy.signal import chirp, find_peaks, peak_widths
+import scipy
 def makemeshgrid(psfdata, meshsize):
     x = np.linspace(min(psfdata[0,:]), max(psfdata[0,:]), meshsize)
     y = np.linspace(min(psfdata[1,:]), max(psfdata[1,:]), meshsize)
@@ -637,7 +638,7 @@ plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
 plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
 
 #degpt = (azmax - azmin)/301
-degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
+#degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
 #degpt = np.rad2deg(np.arctan( (max(data['Xpos']) - min(data['Xpos'])) /300e-3)) / 301
 
 
@@ -651,33 +652,41 @@ print(results_half)
 
 
 plt.figure(figsize=(16,8))
-plt.plot(np.rad2deg(np.arctan(azi/300e-3)), zi, label="Cut", lw=4)
-
-plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), zi[peaks], "x", label="Peaks", mew=5, ms=10)
-
-plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), results_half[1], '_', mew=5, ms=10, 
-     label="FWHM = {:3.3}$^\circ$".format(np.rad2deg(np.arctan((results_half[0][1])*0.12/301))))
-
-plt.plot(np.rad2deg(np.arctan(azi[peaks]/300e-3)), zi[peaks], "x", mew=5, ms=10,
-     label="Peak Sep {:3.2}$^\circ$, {:3.2}$^\circ$".
-         format(np.rad2deg(np.arctan(azi[peaks]/300e-3))[1]-np.rad2deg(np.arctan(azi[peaks]/300e-3))[0], np.rad2deg(np.arctan(azi[peaks]/300e-3))[1]-np.rad2deg(np.arctan(azi[peaks]/300e-3))[2]))
-
+plt.plot(azi, zi, label="Cut", lw=4)
+plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
+plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
+     label="fwhm label {:3.3}".format(results_half[0][1]*0.12/301))
+plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
+     label="Peak Sep {:3.3}, {:3.3}".
+         format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
 plt.legend(loc='upper left', fontsize=15)
 
+#this version does a radial calculation for cut
+azi = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(zi))
+peaks, _ = find_peaks(zi, prominence=2)
+results_half = peak_widths(zi, peaks, rel_height=0.5)
+
+#normzi
+zin = zi/max(zi)
+results_half_n = peak_widths(zin, peaks, rel_height=0.5)
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
 
 plt.figure(figsize=(16,8))
-plt.plot(azi, zi, label="Cut", lw=4)
-
-plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
-
-plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
-     label="FWHM = {:3.3}$^\circ$".format((results_half[0][1])*0.12/301))
-
-plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
-     label="Peak Sep {:3.2}$^\circ$, {:3.2}$^\circ$".
+plt.plot(azi, zin, label="Cut", lw=4)
+plt.plot(azi[peaks], zin[peaks], "x", label="Peaks", mew=5, ms=10)
+plt.plot(azi[peaks], results_half_n[1], '_', mew=5, ms=10, 
+     label="fwhm label {:3.3}".format(results_half[0][1]*0.12/301))
+plt.plot(azi[peaks], zin[peaks], "x", mew=5, ms=10,
+     label="Peak Sep {:3.3}, {:3.3}".
          format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
 
 plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
 ```
 
 ```{python}
@@ -685,7 +694,7 @@ plt.legend(loc='upper left', fontsize=15)
 This is for MY Model..."""
 """here show the aperture field from MODAL"""
 
-# diff = (it/max(it)) - (itDAVE/max(itDAVE))
+diff = (it/max(it)) - (itDAVE/max(itDAVE))
 
 # plt.rcParams['figure.figsize'] = [15, 15]
 # fig = plt.figure(figsize=(14, 11))
@@ -704,41 +713,41 @@ plt.figure(figsize=(14,11))
 plt.subplot(2,2,1)
 plt.scatter(data['Xpos'], data['Ypos'], c=it/max(it), cmap='gnuplot', marker='.')#, s=1)
 plt.title('Frequency Model')
-plt.colorbar(label='dB')
+plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (mm)')
 
 plt.subplot(2,2,2)
 plt.scatter(data['Xpos'], data['Ypos'], c=itDAVE/max(itDAVE), cmap='gnuplot', marker='.')#, s=1)
 plt.title('Reference Model')
-plt.colorbar(label='Hz')
+plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
 
 plt.subplot(2,2,3)
 plt.scatter(data['Xpos'], data['Ypos'], c=diff, cmap='copper', marker='.')#, s=1)
 plt.title('Difference')
-plt.colorbar(label='dB')
+plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
 
 plt.subplot(2,2,4)
-plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
-plt.title('Abberated Cut')
-plt.colorbar(label='Hz')
+plt.imshow(TDmesh, aspect='equal', extent=[azmin, azmax, elmin, elmax], cmap='gnuplot', vmin=0, vmax=1)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
-
+plt.title('Cut Example')
 plt.axis('equal')
 
 plt.tight_layout()
-# plt.savefig("/home/james/OneDrive/ThesisPlots/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
 
-# plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/400horn.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/2x2FP.png", bbox_inches='tight', facecolor='white')
 
 
 ```
 
 ```{python}
-
+"""here i should load data for 150GHz, my modal, daves model, donnys, gaussian, all on FP"""
 ```
