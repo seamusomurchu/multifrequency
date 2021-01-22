@@ -2,7 +2,7 @@ import numpy as np
 import pickle
 import math
 import pandas as pd
-
+from scipy.interpolate import griddata
 
 def getXYcoords(f, vtxs):
 
@@ -513,3 +513,17 @@ def IntegrateHornCombOnFP(it, xycoords, vtxs):
         PixCenY = np.append(PixCenY,pixceny)
         
     return PixCenX, PixCenY, bols
+
+def makemeshgrid(psfdata, meshsize):
+    """ make a meshgrid out of .qb data (MODAL style/.dat files)
+    useful for taking cuts of focal plane data"""
+    x = np.linspace(min(psfdata[0,:]), max(psfdata[0,:]), meshsize)
+    y = np.linspace(min(psfdata[1,:]), max(psfdata[1,:]), meshsize)
+
+    X,Y = np.meshgrid(x, y)
+
+    # Interpolate (x,y,z) points [mat] over a normal (x,y) grid [X,Y]
+    #   Depending on your "error", you may be able to use other methods
+    Z = griddata((psfdata[0,:], psfdata[1,:]), psfdata[2,:], (X,Y), method='nearest')
+    
+    return Z

@@ -17,6 +17,10 @@ import numpy as np
 import glob
 import matplotlib.pyplot as plt
 from qbdataio import MultiHornMain
+from CSFPA_dataIO import makemeshgrid, IntensityCalcRAW
+from scipy.interpolate import griddata
+from scipy.signal import chirp, find_peaks, peak_widths
+import scipy
 ```
 
 ```{python}
@@ -32,7 +36,7 @@ print(mysource.shape)
 ```
 
 ```{python}
-#convert donnys ap field to .dat
+#convert donnys ap field to .dat / .qb
 #do calculations for amp and phase
 
 ampXvar = np.sqrt(oldtabfield[0,:]**2 + oldtabfield[1,:]**2) 
@@ -519,7 +523,7 @@ plt.show()
 ```{python}
 """load the MODAL files for daves Model"""
 qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
-files = sorted(glob.glob(qbrep+'*.qb'))
+files = sorted(glob.glob(qbrepDAVE+'*.qb'))
 print('read', len(files), 'files')
 ```
 
@@ -575,9 +579,7 @@ print("itDAVE shape: ", itDAVE.shape, cnt)
 
 ```{python}
 """show example cut"""
-from scipy.interpolate import griddata
-from scipy.signal import chirp, find_peaks, peak_widths
-import scipy
+
 def makemeshgrid(psfdata, meshsize):
     x = np.linspace(min(psfdata[0,:]), max(psfdata[0,:]), meshsize)
     y = np.linspace(min(psfdata[1,:]), max(psfdata[1,:]), meshsize)
@@ -600,6 +602,12 @@ print(TDmesh.shape)
 
 ```{python}
 """do the example cut"""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+
 azmin = min(data['Xpos'])
 azmax = max(data['Xpos'])
 elmin = min(data['Ypos'])
@@ -669,17 +677,13 @@ results_half = peak_widths(zi, peaks, rel_height=0.5)
 #normzi
 zin = zi/max(zi)
 results_half_n = peak_widths(zin, peaks, rel_height=0.5)
-font = {'family' : 'normal',
-        'weight' : 'normal',
-        'size'   : 22}
 
-plt.rc('font', **font)
 
 plt.figure(figsize=(16,8))
 plt.plot(azi, zin, label="Cut", lw=4)
 plt.plot(azi[peaks], zin[peaks], "x", label="Peaks", mew=5, ms=10)
 plt.plot(azi[peaks], results_half_n[1], '_', mew=5, ms=10, 
-     label="fwhm label {:3.3}".format(results_half[0][1]*0.12/301))
+     label="fwhm label {:3.3}".format(results_half_n[0][1]*0.12/301))
 plt.plot(azi[peaks], zin[peaks], "x", mew=5, ms=10,
      label="Peak Sep {:3.3}, {:3.3}".
          format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
@@ -749,5 +753,319 @@ plt.tight_layout()
 ```
 
 ```{python}
-"""here i should load data for 150GHz, my modal, daves model, donnys, gaussian, all on FP"""
+"""pretest data"""
+print(it.shape, itDAVE.shape)
+
+"""load the MODAL files for daves Model"""
+qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+filesDAVE = sorted(glob.glob(qbrepDAVE+'*.qb'))
+print('read', len(filesDAVE), 'DAVE files')
+
+"""load the MODAL files"""
+qbrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+files = sorted(glob.glob(qbrep+'*.qb'))
+print('read', len(files), 'My files')
+
+"""load Donnys SCATTER version"""
+qbrepDONNY = '/media/james/DATA/LaptopFiles/FIgraspFiles/MODALversions/'
+filesDONNY = sorted(glob.glob(qbrepDONNY+'*.qb'))
+print('read', len(filesDONNY), 'Donny files')
+donnydat = pd.read_csv(filesDONNY[0], sep='\t')
+print(donnydat.shape)
+donnydat.head()
+```
+
+```{python}
+"""make donnys intensity data"""
+addimx = np.zeros(len(donnydat['Rex']))
+addrex = np.zeros(len(donnydat['Rex']))
+addrey = np.zeros(len(donnydat['Rex']))
+addimy = np.zeros(len(donnydat['Rex']))
+
+#here we loop through the chosen config, baseline, load the 'qb' files
+#and add the instensities
+
+#baseline, TDhorns, FIhorns all interchangeable here
+cnt = 0
+for horn in FIhorns:
+    
+    print(qbrepDONNY+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrepDONNY+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    donnydat = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, donnydat['Rex']))
+    addimx = np.vstack((addimx, donnydat['Imx']))
+    addrey = np.vstack((addrey, donnydat['Rey']))
+    addimy = np.vstack((addimy, donnydat['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+itDONNY = itx[:] + ity[:]
+print("itDONNY shape: ", itDONNY.shape, cnt)
+```
+
+```{python}
+"""here i should load data for 150GHz, my modal, daves model, donnys, gaussian, all on FP
+must use meshgrid which requires the intensity OR maybe the amplitude of each file
+try to use dataIO functions intensitycalcraw, makemeshgrid
+
+Now here show the cut for DAVES MODAL horn model"""
+from scipy.interpolate import griddata
+meshsize = 301
+DAVEmesh = np.zeros([1, meshsize, meshsize])
+DAVEmesh = makemeshgrid(np.array([data['Xpos'], data['Ypos'], itDAVE]), meshsize)
+print(DAVEmesh.shape)
+
+
+azmin = min(data['Xpos'])
+azmax = max(data['Xpos'])
+elmin = min(data['Ypos'])
+elmax = max(data['Ypos'])
+
+X = np.linspace(azmin, azmax, 301)
+Y = np.linspace(elmax, elmin, 301)
+
+# x0, y0 = 50, 158# These are in _pixel_ coordinates!! in DEGREES
+# x1, y1 = 175, 32
+x0, y0 = 25, 247# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+plt.figure(figsize=(16,12))
+plt.subplot(1,2,1)
+plt.imshow(DAVEmesh, aspect='equal')
+plt.grid(True)
+plt.plot([x0, x1], [y0, y1], 'ro-')
+plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+#x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+xr = np.linspace(x0, x2, x2-x0)
+#xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+yi = np.linspace(y0, y1, x1-x0)
+yj = np.linspace(y1, y2, x2-x1)
+
+#xr = np.append(x, xa)
+yr = np.append(yi, yj)
+
+plt.subplot(1,2,2)
+plt.imshow(DAVEmesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+plt.grid(True)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+#degpt = (azmax - azmin)/301
+#degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
+#degpt = np.rad2deg(np.arctan( (max(data['Xpos']) - min(data['Xpos'])) /300e-3)) / 301
+
+
+ziDAVE = DAVEmesh[xr.astype(np.int), yr.astype(np.int)]
+ziDAVE = scipy.ndimage.map_coordinates(np.transpose(DAVEmesh), np.vstack((xr,yr)))
+aziDAVE = np.linspace(X[x0], X[x2], len(ziDAVE))
+peaks, _ = find_peaks(ziDAVE, prominence=2)
+results_half = peak_widths(ziDAVE, peaks, rel_height=0.5)
+print(aziDAVE.shape, ziDAVE.shape, peaks.shape)
+print(results_half)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziDAVE, ziDAVE, label="Cut", lw=4)
+plt.plot(aziDAVE[peaks], ziDAVE[peaks], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziDAVE[peaks], results_half[1], '_', mew=5, ms=10, 
+     label="fwhm dave label {:3.3}".format(results_half[0][1]*0.12/301))
+plt.plot(aziDAVE[peaks], ziDAVE[peaks], "x", mew=5, ms=10,
+     label="Peak Sep Dave {:3.3}, {:3.3}".
+         format(aziDAVE[peaks][1]-aziDAVE[peaks][0], aziDAVE[peaks][1]-aziDAVE[peaks][2]))
+plt.legend(loc='upper left', fontsize=15)
+
+#this version does a radial calculation for cut
+aziDAVE = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(ziDAVE))
+peaksDAVE, _ = find_peaks(ziDAVE, prominence=2)
+results_half = peak_widths(ziDAVE, peaksDAVE, rel_height=0.5)
+
+#normzi
+zinDAVE = ziDAVE/max(ziDAVE)
+results_half_n_DAVE = peak_widths(zinDAVE, peaksDAVE, rel_height=0.5)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziDAVE, zinDAVE, label="Cut", lw=4)
+plt.plot(aziDAVE[peaksDAVE], zinDAVE[peaksDAVE], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziDAVE[peaksDAVE], results_half_n_DAVE[1], '_', mew=5, ms=10, 
+     label="fwhm label {:3.3}".format(results_half_n_DAVE[0][1]*0.12/301))
+plt.plot(aziDAVE[peaksDAVE], zinDAVE[peaksDAVE], "x", mew=5, ms=10,
+     label="Peak Sep {:3.3}, {:3.3}".
+         format(aziDAVE[peaksDAVE][1]-aziDAVE[peaksDAVE][0], aziDAVE[peaksDAVE][1]-aziDAVE[peaksDAVE][2]))
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.title('DAVES Model (MODAL)')
+```
+
+```{python}
+"""here i should load data for 150GHz, my modal, daves model, donnys, gaussian, all on FP
+must use meshgrid which requires the intensity OR maybe the amplitude of each file
+try to use dataIO functions intensitycalcraw, makemeshgrid
+
+Now here show the cut for DONNYS MODAL horn model"""
+from scipy.interpolate import griddata
+meshsize = 301
+Donnymesh = np.zeros([1, meshsize, meshsize])
+Donnymesh = makemeshgrid(np.array([donnydat['Xpos'], donnydat['Ypos'], itDONNY]), meshsize)
+print(Donnymesh.shape)
+
+
+azmin = min(donnydat['Xpos'])
+azmax = max(donnydat['Xpos'])
+elmin = min(donnydat['Ypos'])
+elmax = max(donnydat['Ypos'])
+
+X = np.linspace(azmin, azmax, 301)
+Y = np.linspace(elmax, elmin, 301)
+
+# x0, y0 = 50, 158# These are in _pixel_ coordinates!! in DEGREES
+# x1, y1 = 175, 32
+x0, y0 = 25, 247# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+plt.figure(figsize=(16,12))
+plt.subplot(1,2,1)
+plt.imshow(Donnymesh, aspect='equal')
+plt.grid(True)
+plt.plot([x0, x1], [y0, y1], 'ro-')
+plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+#x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+xr = np.linspace(x0, x2, x2-x0)
+#xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+yi = np.linspace(y0, y1, x1-x0)
+yj = np.linspace(y1, y2, x2-x1)
+
+#xr = np.append(x, xa)
+yr = np.append(yi, yj)
+
+plt.subplot(1,2,2)
+plt.imshow(Donnymesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+plt.grid(True)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+#degpt = (azmax - azmin)/301
+#degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
+#degpt = np.rad2deg(np.arctan( (max(data['Xpos']) - min(data['Xpos'])) /300e-3)) / 301
+
+
+ziDONNY = Donnymesh[xr.astype(np.int), yr.astype(np.int)]
+ziDONNY = scipy.ndimage.map_coordinates(np.transpose(Donnymesh), np.vstack((xr,yr)))
+aziDONNY = np.linspace(X[x0], X[x2], len(ziDONNY))
+peaks, _ = find_peaks(ziDONNY, prominence=2)
+results_half = peak_widths(ziDONNY, peaks, rel_height=0.5)
+print(aziDONNY.shape, ziDONNY.shape, peaks.shape)
+print(results_half)
+print(aziDONNY[peaks].shape, ziDONNY[1].shape)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziDONNY, ziDONNY, label="Cut", lw=4)
+plt.plot(aziDONNY[peaks], ziDONNY[peaks], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziDONNY[peaks], results_half[1], '_', mew=5, ms=10, 
+     label="fwhm donny label {:3.3}".format(results_half[0][1]*0.12/301))
+plt.plot(aziDONNY[peaks], ziDONNY[peaks], "x", mew=5, ms=10,
+     label="Peak Sep Dave {:3.3}, {:3.3}".
+         format(aziDONNY[peaks][1]-aziDONNY[peaks][0], aziDONNY[peaks][1]-aziDONNY[peaks][2]))
+plt.legend(loc='upper left', fontsize=15)
+
+#this version does a radial calculation for cut
+aziDONNY = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(ziDONNY))
+peaksDONNY, _ = find_peaks(ziDONNY, prominence=2)
+results_half_DONNY = peak_widths(ziDONNY, peaksDONNY, rel_height=0.5)
+
+#normzi
+zinDONNY = ziDONNY/max(ziDONNY)
+results_half_n_DONNY = peak_widths(zinDONNY, peaksDONNY, rel_height=0.5)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziDONNY, zinDONNY, label="Cut", lw=4)
+plt.plot(aziDONNY[peaksDONNY], zinDONNY[peaksDONNY], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziDONNY[peaksDONNY], results_half_n_DONNY[1], '_', mew=5, ms=10, 
+     label="fwhm label {:3.3}".format(results_half_n_DONNY[0][1]*0.12/301))
+plt.plot(aziDONNY[peaksDONNY], zinDONNY[peaksDONNY], "x", mew=5, ms=10,
+     label="Peak Sep {:3.3}, {:3.3}".
+         format(aziDONNY[peaksDONNY][1]-aziDONNY[peaksDONNY][0], aziDONNY[peaksDONNY][1]-aziDONNY[peaksDONNY][2]))
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.title('DAVES Model (MODAL)')
+```
+
+```{python}
+colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
+print(colors)
+#look at color codes
+```
+
+```{python}
+"""now collect all the data/plots"""
+
+plt.figure(figsize=(16,8))
+#keep blue for gaussian...
+
+#MINE
+plt.plot(azi, zin, color='#ff7f0e', label="Frequency Model Cut", lw=4)
+# plt.plot(azi[peaks], zin[peaks], "x", label="Peaks", mew=5, ms=10)
+# plt.plot(azi[peaks], results_half_n[1], '_', mew=5, ms=10, 
+#      label="fwhm label {:3.3}".format(results_half_n[0][1]*0.12/301))
+# plt.plot(azi[peaks], zin[peaks], "x", mew=5, ms=10,
+#      label="Peak Sep {:3.3}, {:3.3}".
+#          format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
+
+#DAVE
+plt.plot(aziDAVE, zinDAVE, ':', color='#2ca02c', label="MODAL Model Cut", lw=3)
+# plt.plot(aziDAVE[peaksDAVE], zinDAVE[peaksDAVE], "x", label="Peaks", mew=5, ms=10)
+# plt.plot(aziDAVE[peaksDAVE], results_half_n_DAVE[1], '_', mew=5, ms=10, 
+#      label="fwhm label {:3.3}".format(results_half_n_DAVE[0][1]*0.12/301))
+# plt.plot(aziDAVE[peaksDAVE], zinDAVE[peaksDAVE], "x", mew=5, ms=10,
+#      label="Peak Sep {:3.3}, {:3.3}".
+#          format(aziDAVE[peaksDAVE][1]-aziDAVE[peaksDAVE][0], aziDAVE[peaksDAVE][1]-aziDAVE[peaksDAVE][2]))
+
+#donny
+plt.plot(aziDONNY, zinDONNY, '-.', color='#d62728', label="SCATTER Model Cut", lw=2)
+#plt.plot(aziDONNY[peaksDONNY], zinDONNY[peaksDONNY], "x", label="Peaks", mew=5, ms=10)
+#plt.plot(aziDONNY[peaksDONNY], results_half_n_DONNY[1], '_', mew=5, ms=10, 
+     #label="fwhm label {:3.3}".format(results_half_n_DONNY[0][1]*0.12/301))
+#plt.plot(aziDONNY[peaksDONNY], zinDONNY[peaksDONNY], "x", mew=5, ms=10,
+     #label="Peak Sep {:3.3}, {:3.3}".
+         #format(aziDONNY[peaksDONNY][1]-aziDONNY[peaksDONNY][0], aziDONNY[peaksDONNY][1]-aziDONNY[peaksDONNY][2]))
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Logarithmic Normalised Intensity (W)')
+plt.title('Aperture Field Models on Focal Plane')
+plt.grid(True)
+plt.yscale('log')
+#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/fpcutplacehold.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
+
 ```
