@@ -773,6 +773,7 @@ print('read', len(filesDONNY), 'Donny files')
 donnydat = pd.read_csv(filesDONNY[0], sep='\t')
 print(donnydat.shape)
 donnydat.head()
+
 ```
 
 ```{python}
@@ -1019,6 +1020,163 @@ plt.title('DAVES Model (MODAL)')
 ```
 
 ```{python}
+"""load the gaussian version, first need to convert to QB files"""
+
+grep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/GRASPfiles/'
+mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+
+#MultiHornMain(grep, mrep)
+
+
+
+gausfiles = sorted(glob.glob(mrep+'*.qb'))
+print('read', len(gausfiles), 'gaussian files')
+gausdata = pd.read_csv(gausfiles[0], sep='\t')
+print(gausdata.shape)
+gausdata.head()
+```
+
+```{python}
+"""make gaussian intensity data"""
+addimx = np.zeros(len(gausdata['Rex']))
+addrex = np.zeros(len(gausdata['Rex']))
+addrey = np.zeros(len(gausdata['Rex']))
+addimy = np.zeros(len(gausdata['Rex']))
+
+#here we loop through the chosen config, baseline, load the 'qb' files
+#and add the instensities
+
+#baseline, TDhorns, FIhorns all interchangeable here
+cnt = 0
+for horn in FIhorns:
+    
+    print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    gausdata = pd.read_csv(file, sep='\t')
+    print(gausdata.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, gausdata['Rex']))
+    addimx = np.vstack((addimx, gausdata['Imx']))
+    addrey = np.vstack((addrey, gausdata['Rey']))
+    addimy = np.vstack((addimy, gausdata['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+itGAUSS = itx[:] + ity[:]
+print("itGAUSS shape: ", itGAUSS.shape, cnt)
+```
+
+```{python}
+"""Now here show the cut for GAUSSIAN MODAL horn model"""
+from scipy.interpolate import griddata
+meshsize = 301
+GAUSSmesh = np.zeros([1, meshsize, meshsize])
+GAUSSmesh = makemeshgrid(np.array([gausdata['Xpos'], gausdata['Ypos'], itGAUSS]), meshsize)
+print(GAUSSmesh.shape)
+
+
+azmin = min(gausdata['Xpos'])
+azmax = max(gausdata['Xpos'])
+elmin = min(gausdata['Ypos'])
+elmax = max(gausdata['Ypos'])
+
+X = np.linspace(azmin, azmax, 301)
+Y = np.linspace(elmax, elmin, 301)
+
+# x0, y0 = 50, 158# These are in _pixel_ coordinates!! in DEGREES
+# x1, y1 = 175, 32
+x0, y0 = 25, 247# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+plt.figure(figsize=(16,12))
+plt.subplot(1,2,1)
+plt.imshow(GAUSSmesh, aspect='equal')
+plt.grid(True)
+plt.plot([x0, x1], [y0, y1], 'ro-')
+plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+#x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+xr = np.linspace(x0, x2, x2-x0)
+#xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+yi = np.linspace(y0, y1, x1-x0)
+yj = np.linspace(y1, y2, x2-x1)
+
+#xr = np.append(x, xa)
+yr = np.append(yi, yj)
+
+plt.subplot(1,2,2)
+plt.imshow(GAUSSmesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+plt.grid(True)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+#degpt = (azmax - azmin)/301
+#degpt = (np.rad2deg(np.arctan(max(data['Xpos']))/300e-3) - np.rad2deg(np.arctan(min(data['Xpos']))/300e-3)) /301
+#degpt = np.rad2deg(np.arctan( (max(data['Xpos']) - min(data['Xpos'])) /300e-3)) / 301
+
+
+ziGAUSS = GAUSSmesh[xr.astype(np.int), yr.astype(np.int)]
+ziGAUSS = scipy.ndimage.map_coordinates(np.transpose(GAUSSmesh), np.vstack((xr,yr)))
+aziGAUSS = np.linspace(X[x0], X[x2], len(ziGAUSS))
+peaksGAUSS, _ = find_peaks(ziDONNY, prominence=2)
+results_half_GAUSS = peak_widths(ziGAUSS, peaksGAUSS, rel_height=0.5)
+print(aziGAUSS.shape, ziGAUSS.shape, peaksGAUSS.shape)
+print(results_half_GAUSS)
+print(aziGAUSS[peaks].shape, ziGAUSS[1].shape)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziGAUSS, ziDONNY, label="Cut", lw=4)
+plt.plot(aziGAUSS[peaksGAUSS], ziGAUSS[peaksGAUSS], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziGAUSS[peaksGAUSS], results_half_GAUSS[1], '_', mew=5, ms=10, 
+     label="fwhm GAUSSIAN label {:3.3}".format(results_half_GAUSS[0][1]*0.12/301))
+plt.plot(aziGAUSS[peaksGAUSS], ziGAUSS[peaksGAUSS], "x", mew=5, ms=10,
+     label="Peak Sep Dave {:3.3}, {:3.3}".
+         format(aziGAUSS[peaksGAUSS][1]-aziGAUSS[peaksGAUSS][0], aziGAUSS[peaksGAUSS][1]-aziGAUSS[peaksGAUSS][2]))
+plt.legend(loc='upper left', fontsize=15)
+
+#this version does a radial calculation for cut
+aziGAUSS = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(ziGAUSS))
+peaksGAUSS, _ = find_peaks(ziGAUSS, prominence=2)
+results_half_GAUSS = peak_widths(ziGAUSS, peaksGAUSS, rel_height=0.5)
+
+#normzi
+zinGAUSS = ziGAUSS/max(ziGAUSS)
+results_half_n_GAUSS = peak_widths(zinGAUSS, peaksGAUSS, rel_height=0.5)
+
+
+plt.figure(figsize=(16,8))
+plt.plot(aziGAUSS, zinGAUSS, label="Cut", lw=4)
+plt.plot(aziGAUSS[peaksGAUSS], zinGAUSS[peaksGAUSS], "x", label="Peaks", mew=5, ms=10)
+plt.plot(aziGAUSS[peaksGAUSS], results_half_n_DONNY[1], '_', mew=5, ms=10, 
+     label="fwhm label {:3.3}".format(results_half_n_GAUSS[0][1]*0.12/301))
+plt.plot(aziGAUSS[peaksGAUSS], zinGAUSS[peaksGAUSS], "x", mew=5, ms=10,
+     label="Peak Sep {:3.3}, {:3.3}".
+         format(aziGAUSS[peaksGAUSS][1]-aziGAUSS[peaksGAUSS][0], aziGAUSS[peaksGAUSS][1]-aziGAUSS[peaksGAUSS][2]))
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.title('GAUSSIAN Model (MODAL)')
+```
+
+```{python}
 colors = plt.rcParams["axes.prop_cycle"].by_key()["color"]
 print(colors)
 #look at color codes
@@ -1029,7 +1187,30 @@ print(colors)
 
 plt.figure(figsize=(16,8))
 #keep blue for gaussian...
+plt.plot(aziGAUSS, zinGAUSS, label="Gaussian Cut", lw=4)
+#MINE
+plt.plot(azi, zin, color='#ff7f0e', label="Frequency Model Cut", lw=4)
 
+#DAVE
+plt.plot(aziDAVE, zinDAVE, ':', color='#2ca02c', label="MODAL Model Cut", lw=3)
+
+#donny
+plt.plot(aziDONNY, zinDONNY, '-.', color='#d62728', label="SCATTER Model Cut", lw=2)
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.title('Aperture Field Models on Focal Plane')
+plt.grid(True)
+
+```
+
+```{python}
+"""now collect all the data/plots"""
+
+plt.figure(figsize=(16,8))
+#keep blue for gaussian...
+plt.plot(aziGAUSS, zinGAUSS, label="Gaussian Cut", lw=4)
 #MINE
 plt.plot(azi, zin, color='#ff7f0e', label="Frequency Model Cut", lw=4)
 # plt.plot(azi[peaks], zin[peaks], "x", label="Peaks", mew=5, ms=10)
@@ -1064,6 +1245,256 @@ plt.title('Aperture Field Models on Focal Plane')
 plt.grid(True)
 plt.yscale('log')
 #plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/fpcutplacehold.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
+"""This seems too congruent/good.... :0"""
+```
+
+```{python}
+"""test single horn on FP horn 113 is the test edge horn as before"""
+
+from CSFPA_dataIO import IntensityCalcRAW
+
+mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+horn = 113
+
+print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+file = mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+gausdata = pd.read_csv(file, sep='\t')
+print(gausdata.shape)
+
+
+GIx, GIy, GI = IntensityCalcRAW(file)
+print(GI.shape)
+gausdata.head()
+
+```
+
+```{python}
+GI = np.array(GI)
+xvals = np.array(gausdata['Xpos'])
+yvals = np.array(gausdata['Ypos'])
+```
+
+```{python}
+print(gausdata['Xpos'].shape, GI.shape)
+print(xvals, xvals.shape)
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+
+# plt.plot(pts[:,0][np.where(pts[:,1] == 0)], ampXvar[np.where(pts[:,1] == 0)]/max(ampXvar), color='#ff7f0e', 
+#          linewidth=3, label=r'Scatter 0$\degree$ cut')
+plt.plot(aziGAUSS, zinGAUSS, label="Gaussian Cut", lw=4)
+plt.plot(azi, zi, label="Gaussian Cut with abberated cut", lw=4)
+
+#plt.plot(xvals[np.where(yvals == 0)], GI[np.where(yvals == 0)]/max(GI), label='Horn 113 Gaussian')
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Logarithmic Normalised Intensity (W)')
+plt.title('Aperture Field Models on Focal Plane')
+plt.grid(True)
+#plt.yscale('log')
+"""okay this is not so simple because of the odd aberated radial cut for the synthetic image, 
+must redo for horn"""
+
+```
+
+```{python}
+"""probably should make a function of this abberated cut plot"""
+
+def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_height, norm=True, rpeaks=False):
+    """it x and y dat should be same shape, points for cuts, meshsize"""
+
+    mesh = np.zeros([1, meshsize, meshsize])
+    mesh = makemeshgrid(np.array([xdat, ydat, itdat]), meshsize)
+
+    azmin = min(xdat)
+    azmax = max(xdat)
+    elmin = min(ydat)
+    elmax = max(ydat)
+    
+    gridlength = azmax - azmin
+
+    X = np.linspace(azmin, azmax, meshsize)
+    Y = np.linspace(elmax, elmin, meshsize)
+
+
+    plt.figure(figsize=(16,12))
+    plt.subplot(1,2,1)
+    plt.imshow(mesh, aspect='equal')
+    plt.grid(True)
+    plt.plot([x0, x1], [y0, y1], 'ro-')
+    plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+    #x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+    xr = np.linspace(x0, x2, x2-x0)
+    #xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+    yi = np.linspace(y0, y1, x1-x0)
+    yj = np.linspace(y1, y2, x2-x1)
+
+    #xr = np.append(x, xa)
+    yr = np.append(yi, yj)
+
+    plt.subplot(1,2,2)
+    plt.imshow(mesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+    plt.grid(True)
+    plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+    plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+
+    zi = mesh[xr.astype(np.int), yr.astype(np.int)]
+    zi = scipy.ndimage.map_coordinates(np.transpose(mesh), np.vstack((xr,yr)))
+
+    if norm == True:
+        zi = zi/max(zi)
+        
+    #this version does a radial calculation for cut
+    azi = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(zi))
+    peaks, _ = find_peaks(zi, prominence=prom)
+    results_half = peak_widths(zi, peaks, rel_height=rel_height)
+
+
+    plt.figure(figsize=(16,8))
+    plt.plot(azi, zi, label="Cut", lw=4)
+    plt.legend(loc='upper left', fontsize=15)
+    plt.xlabel('Focal Plane Cut (Radial) (m)')
+    plt.ylabel('Normalised Intensity (W)')
+    plt.title('blah (blah)')
+    
+    if rpeaks == True:
+        plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
+        plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
+             label="fwhm label {:3.3}".format(results_half[0][1]*gridlength/meshsize))
+        plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
+             label="Peak Sep {:3.3}, {:3.3}".
+                 format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
+        return azi, zi, peaks, results_half
+    else:
+        return azi, zi
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+azi, zi = AbberatedCut(xvals, yvals, GI, x0, y0, x1, y1, x2, y2, 
+                                            301, 0.2, 0.5, True, False)
+```
+
+```{python}
+# """pretest data"""
+# print(it.shape, itDAVE.shape)
+
+# """load the MODAL files for daves Model"""
+# qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+# filesDAVE = sorted(glob.glob(qbrepDAVE+'*.qb'))
+# print('read', len(filesDAVE), 'DAVE files')
+
+# """load the MODAL files"""
+# qbrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+# files = sorted(glob.glob(qbrep+'*.qb'))
+# print('read', len(files), 'My files')
+
+# """load Donnys SCATTER version"""
+# qbrepDONNY = '/media/james/DATA/LaptopFiles/FIgraspFiles/MODALversions/'
+# filesDONNY = sorted(glob.glob(qbrepDONNY+'*.qb'))
+# print('read', len(filesDONNY), 'Donny files')
+# donnydat = pd.read_csv(filesDONNY[0], sep='\t')
+# print(donnydat.shape)
+# donnydat.head()
+```
+
+```{python}
+"""now do for all models for horn 113 then a central horn"""
+
+mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+horn = 113
+
+# print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+# file = mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+# gausdata = pd.read_csv(file, sep='\t')
+
+# GIx, GIy, GI = IntensityCalcRAW(file)
+
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+reps = [mrep, qbrep, qbrepDAVE, qbrepDONNY]
+aziA = np.zeros(194)
+ziA = np.zeros(194)
+
+for rep in reps:
+    
+    file = rep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    print(file)
+
+    dat = pd.read_csv(file, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(file)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, True, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+print(aziA.shape, ziA.shape)
+
+horn2 = 190
+
+for rep in reps:
+    
+    file = rep+'FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb'
+    print(file)
+
+    dat = pd.read_csv(file, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(file)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, True, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+#keep blue for gaussian...
+plt.plot(aziGAUSS, zinGAUSS, label="Gaussian Cut", lw=4)
+#MINE
+plt.plot(azi, zin, color='#ff7f0e', label="Frequency Model Cut", lw=4)
+
+#DAVE
+plt.plot(aziDAVE, zinDAVE, ':', color='#2ca02c', label="MODAL Model Cut", lw=3)
+
+#donny
+plt.plot(aziDONNY, zinDONNY, '-.', color='#d62728', label="SCATTER Model Cut", lw=2)
+
+"""now plot single horn envelopes h113"""
+plt.plot(aziA[1], ziA[1], '-.', color='k', label="Gaussian Envelope Horn 113", lw=2)
+plt.plot(aziA[2], ziA[2], '-.', color='tab:green', label="Freq Model Envelope Horn 113", lw=2)
+plt.plot(aziA[3], ziA[3], '-.', color='slateblue', label="MODAL Model Envelope Horn 113", lw=2)
+plt.plot(aziA[4], ziA[4], '-.', color='tomato', label="SCATTER Model Envelope Horn 113", lw=2)
+
+"""now plot single horn envelopes h190"""
+plt.plot(aziA[5], ziA[5], '-.', label="Gaussian Envelope Horn 190", lw=2)
+plt.plot(aziA[6], ziA[6], '-.', label="Freq Model Envelope Horn 190", lw=2)
+plt.plot(aziA[7], ziA[7], '-.', label="MODAL Model Envelope Horn 190", lw=2)
+plt.plot(aziA[8], ziA[8], '-.', label="SCATTER Model Envelope Horn 190", lw=2)
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.title('Aperture Field Models on Focal Plane')
+plt.grid(True)
+plt.yscale('log')
+plt.ylim([1e-2, 0])
 ```
 
 ```{python}

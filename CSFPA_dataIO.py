@@ -527,3 +527,74 @@ def makemeshgrid(psfdata, meshsize):
     Z = griddata((psfdata[0,:], psfdata[1,:]), psfdata[2,:], (X,Y), method='nearest')
     
     return Z
+
+def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_height, norm=True, rpeaks=False):
+    """it x and y dat should be same shape, points for cuts, meshsize"""
+
+    mesh = np.zeros([1, meshsize, meshsize])
+    mesh = makemeshgrid(np.array([xdat, ydat, itdat]), meshsize)
+
+    azmin = min(xdat)
+    azmax = max(xdat)
+    elmin = min(ydat)
+    elmax = max(ydat)
+    
+    gridlength = azmax - azmin
+
+    X = np.linspace(azmin, azmax, meshsize)
+    Y = np.linspace(elmax, elmin, meshsize)
+
+
+    plt.figure(figsize=(16,12))
+    plt.subplot(1,2,1)
+    plt.imshow(mesh, aspect='equal')
+    plt.grid(True)
+    plt.plot([x0, x1], [y0, y1], 'ro-')
+    plt.plot([x1, x2], [y1, y2], 'bo-')
+
+
+    #x, y = np.linspace(x0, x1, 40), np.linspace(y0, y1, 40)
+    xr = np.linspace(x0, x2, x2-x0)
+    #xa, ya = np.linspace(x1, x2, 20), np.linspace(y1, y2, 20)
+    yi = np.linspace(y0, y1, x1-x0)
+    yj = np.linspace(y1, y2, x2-x1)
+
+    #xr = np.append(x, xa)
+    yr = np.append(yi, yj)
+
+    plt.subplot(1,2,2)
+    plt.imshow(mesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+    plt.grid(True)
+    plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+    plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+
+    zi = mesh[xr.astype(np.int), yr.astype(np.int)]
+    zi = scipy.ndimage.map_coordinates(np.transpose(mesh), np.vstack((xr,yr)))
+
+    if norm == True:
+        zi = zi/max(zi)
+        
+    #this version does a radial calculation for cut
+    azi = np.linspace(-1*np.sqrt(X[x0]**2+(Y[y0])**2), np.sqrt(X[x2]**2+(Y[y2])**2), len(zi))
+    peaks, _ = find_peaks(zi, prominence=prom)
+    results_half = peak_widths(zi, peaks, rel_height=rel_height)
+
+
+    plt.figure(figsize=(16,8))
+    plt.plot(azi, zi, label="Cut", lw=4)
+    plt.legend(loc='upper left', fontsize=15)
+    plt.xlabel('Focal Plane Cut (Radial) (m)')
+    plt.ylabel('Normalised Intensity (W)')
+    plt.title('blah (blah)')
+    
+    if rpeaks == True:
+        plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
+        plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
+             label="fwhm label {:3.3}".format(results_half[0][1]*gridlength/meshsize))
+        plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
+             label="Peak Sep {:3.3}, {:3.3}".
+                 format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))
+        return azi, zi, peaks, results_half
+    else:
+        return azi, zi
