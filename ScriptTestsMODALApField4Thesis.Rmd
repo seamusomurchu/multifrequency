@@ -369,6 +369,66 @@ plt.tight_layout()
 ```
 
 ```{python}
+"""try this plot in a 3x1 arrangement"""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,18))
+
+plt.subplot(3,1,1 )
+
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:], label='Gaussian model', linewidth=3)
+#0deg
+plt.plot(scat0deg[0,:], scat0deg[1,:], label=r'Scatter 0$\degree$ cut', linewidth=3)
+plt.plot(modal0deg[0,:], modal0deg[1,:], label=r'MODAL 0$\degree$ cut', linewidth=3)
+plt.plot(mymodal0deg[0,:], mymodal0deg[1,:], label=r'MODAL 0$\degree$ cut (frequency model)', linewidth=3)
+
+plt.legend(loc='upper right')
+plt.grid(True)
+plt.ylabel("Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+plt.title('Source Comparison 200 mm Spherical 0$\degree$ Cut')
+plt.xlim(0,12)
+plt.ylim(-45, -31)
+
+plt.subplot(3,1,2)
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:], label='Gaussian model', linewidth=3)
+#45deg
+plt.plot(scat45deg[0,:], scat45deg[1,:], label=r'Scatter 45$\degree$ cut', linewidth=3)
+plt.plot(modal45deg[0,:], modal45deg[1,:], label=r'MODAL 45$\degree$ cut', linewidth=3)
+plt.plot(mymodal45deg[0,:], mymodal45deg[1,:], label=r'MODAL 45$\degree$ cut (frequency model)', linewidth=3)
+plt.legend(loc='upper right')
+plt.grid(True)
+plt.ylabel("Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+plt.title('Source Comparison 200 mm Spherical 45$\degree$ Cut')
+plt.xlim(0,12)
+plt.ylim(-45, -31)
+
+plt.subplot(3,1,3)
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:], label='Gaussian model', linewidth=3)
+#ycuts
+#90deg
+plt.plot(scat90deg[0,:], scat90deg[1,:], label=r'Scatter 90$\degree$ cut', linewidth=3)
+plt.plot(modal45deg[0,:], modal45deg[1,:],label=r'MODAL 90$\degree$ cut', linewidth=3)
+plt.plot(mymodal90deg[0,:], mymodal90deg[1,:], label=r'MODAL 90$\degree$ cut (frequency model)', linewidth=3)
+plt.legend(loc='upper right')
+plt.grid(True)
+plt.ylabel("Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+plt.title('Source Comparison 200 mm Spherical 90$\degree$ Cut')
+plt.xlim(0,12)
+plt.ylim(-45, -31)
+
+plt.tight_layout()
+#plt.savefig("/home/james/OneDrive/ThesisPlots/spherical3x1zoom.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
 """here show the aperture field from MODAL"""
 
 plt.figure(figsize=(14,11))
@@ -1439,7 +1499,7 @@ for rep in reps:
     GIx, GIy, GI = IntensityCalcRAW(file)
     
     azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
-                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, True, False);
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
     
     aziA = np.vstack((aziA, azi))
     ziA = np.vstack((ziA, zi))
@@ -1457,44 +1517,130 @@ for rep in reps:
     GIx, GIy, GI = IntensityCalcRAW(file)
     
     azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
-                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, True, False);
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+horn3 = 288
+
+for rep in reps:
+    
+    file = rep+'FP_planar_grid_horn'+str(horn3)+'_150_GHz_Mstyle.qb'
+    print(file)
+
+    dat = pd.read_csv(file, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(file)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+horn4 = 36
+
+for rep in reps:
+    
+    file = rep+'FP_planar_grid_horn'+str(horn4)+'_150_GHz_Mstyle.qb'
+    print(file)
+
+    dat = pd.read_csv(file, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(file)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+horn5 = 127
+
+for rep in reps:
+    
+    file = rep+'FP_planar_grid_horn'+str(horn5)+'_150_GHz_Mstyle.qb'
+    print(file)
+
+    dat = pd.read_csv(file, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(file)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
     
     aziA = np.vstack((aziA, azi))
     ziA = np.vstack((ziA, zi))
 ```
 
 ```{python}
-plt.figure(figsize=(16,8))
-#keep blue for gaussian...
-plt.plot(aziGAUSS, zinGAUSS, label="Gaussian Cut", lw=4)
-#MINE
-plt.plot(azi, zin, color='#ff7f0e', label="Frequency Model Cut", lw=4)
+print(colors)
 
-#DAVE
-plt.plot(aziDAVE, zinDAVE, ':', color='#2ca02c', label="MODAL Model Cut", lw=3)
+plt.figure(figsize=(16,12))
+#keep blue for gaussian...
+plt.plot(aziGAUSS, zinGAUSS/(400*4*np.pi), label="Gaussian Cut", lw=4)
+#MINE
+plt.plot(azi, zin/(400*4*np.pi), color='#ff7f0e', label="Frequency Model Cut", lw=4)
+
+# #DAVE
+plt.plot(aziDAVE, zinDAVE/(400*4*np.pi), ':', color='#2ca02c', label="MODAL Model Cut", lw=3)
 
 #donny
-plt.plot(aziDONNY, zinDONNY, '-.', color='#d62728', label="SCATTER Model Cut", lw=2)
+plt.plot(aziDONNY, zinDONNY/(400*4*np.pi), '-.', color='#d62728', label="SCATTER Model Cut", lw=2)
 
 """now plot single horn envelopes h113"""
-plt.plot(aziA[1], ziA[1], '-.', color='k', label="Gaussian Envelope Horn 113", lw=2)
-plt.plot(aziA[2], ziA[2], '-.', color='tab:green', label="Freq Model Envelope Horn 113", lw=2)
-plt.plot(aziA[3], ziA[3], '-.', color='slateblue', label="MODAL Model Envelope Horn 113", lw=2)
-plt.plot(aziA[4], ziA[4], '-.', color='tomato', label="SCATTER Model Envelope Horn 113", lw=2)
+plt.plot(aziA[1], ziA[1], label="Gaussian Envelope Horn 113", lw=2)
+plt.plot(aziA[2], ziA[2], label="Freq Model Envelope Horn 113", lw=2)
+plt.plot(aziA[3], ziA[3], ':', label="MODAL Model Envelope Horn 113", lw=2)
+plt.plot(aziA[4], ziA[4], '-.', label="SCATTER Model Envelope Horn 113", lw=2)
 
 """now plot single horn envelopes h190"""
-plt.plot(aziA[5], ziA[5], '-.', label="Gaussian Envelope Horn 190", lw=2)
-plt.plot(aziA[6], ziA[6], '-.', label="Freq Model Envelope Horn 190", lw=2)
-plt.plot(aziA[7], ziA[7], '-.', label="MODAL Model Envelope Horn 190", lw=2)
+plt.plot(aziA[5], ziA[5], label="Gaussian Envelope Horn 190", lw=2)
+plt.plot(aziA[6], ziA[6], label="Freq Model Envelope Horn 190", lw=2)
+plt.plot(aziA[7], ziA[7], ':', label="MODAL Model Envelope Horn 190", lw=2)
 plt.plot(aziA[8], ziA[8], '-.', label="SCATTER Model Envelope Horn 190", lw=2)
+
+# """now plot single horn envelopes h288"""
+# # plt.plot(aziA[9], ziA[9], label="Gaussian Envelope Horn h288", lw=2)
+# plt.plot(aziA[10], ziA[10], label="Freq Model Envelope Horn h288", lw=2)
+# # plt.plot(aziA[11], ziA[11], ':', label="MODAL Model Envelope Horn h288", lw=2)
+# # plt.plot(aziA[12], ziA[12], '-.', label="SCATTER Model Envelope Horn h288", lw=2)
+
+# """now plot single horn envelopes h36"""
+# # plt.plot(aziA[13], ziA[13], label="Gaussian Envelope Horn 36", lw=2)
+# plt.plot(aziA[14], ziA[14], label="Freq Model Envelope Horn 36", lw=2)
+# plt.plot(aziA[15], ziA[15], ':', label="MODAL Model Envelope Horn 36", lw=2)
+# plt.plot(aziA[16], ziA[16], '-.', label="SCATTER Model Envelope Horn 36", lw=2)
+
+# """now plot single horn envelopes 127"""
+# # plt.plot(aziA[17], ziA[17], label="Gaussian Envelope Horn 127", lw=2)
+# plt.plot(aziA[14], ziA[14], label="Freq Model Envelope Horn 127", lw=2)
+# plt.plot(aziA[15], ziA[15], ':', label="MODAL Model Envelope Horn 127", lw=2)
+# plt.plot(aziA[16], ziA[16], '-.', label="SCATTER Model Envelope Horn 127", lw=2)
 
 plt.legend(loc='upper left', fontsize=15)
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Normalised Intensity (W)')
 plt.title('Aperture Field Models on Focal Plane')
 plt.grid(True)
-plt.yscale('log')
-plt.ylim([1e-2, 0])
+
+```
+
+```{python}
+mesh = np.zeros([1, meshsize, meshsize])
+mesh = makemeshgrid(np.array([dat['Xpos'], dat['Ypos'], GI]), meshsize)
+
+plt.figure(figsize=(12,16))
+plt.imshow(mesh, aspect='equal', extent=[azmin, azmax, elmin, elmax])
+plt.grid(True)
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('Cut Example')
+#plt.axis('equal')
+
+plt.tight_layout()
+#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/singlehorncutexample.png", bbox_inches='tight', facecolor='white')
 ```
 
 ```{python}
