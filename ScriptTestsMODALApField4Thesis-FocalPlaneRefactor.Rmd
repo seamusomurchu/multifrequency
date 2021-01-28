@@ -1,0 +1,395 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import pandas as pd
+import glob
+from CSFPA_dataIO import IntensityCalcRAW, AbberatedCut
+import matplotlib.pyplot as plt
+```
+
+```{python}
+"""load the qb data for the diff models"""
+```
+
+```{python}
+myrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+qbrepDONNY = '/media/james/DATA/LaptopFiles/FIgraspFiles/MODALversions/'
+mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+print(myrep)
+print(qbrepDAVE)
+print(qbrepDONNY)
+print(mrep)
+reps = np.array([myrep, qbrepDAVE, qbrepDONNY, mrep])
+```
+
+```{python}
+#define the TD and FI - remember the weird solution to TD numbers 1-64!
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+cnt = 0
+for horn in FIhorns:
+    
+    print(myrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = myrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+myit = itx[:] + ity[:]
+print("it shape: ", myit.shape, cnt)
+print("sum myit like a checksum of intensity power", sum(myit)/400*4*np.pi)
+```
+
+```{python}
+print("sum myit like a checksum of intensity power", sum(myit)/400*4*np.pi)
+```
+
+```{python}
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(mrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+cnt = 0
+for horn in FIhorns:
+    
+    print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+gaussit = itx[:] + ity[:]
+print("gaussian it shape: ", gaussit.shape, cnt)
+print("sum gaussit like a checksum of intensity power", sum(gaussit)/400*4*np.pi)
+```
+
+```{python}
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(qbrepDAVE+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+cnt = 0
+for horn in FIhorns:
+    
+    print(qbrepDAVE+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrepDAVE+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+daveit = itx[:] + ity[:]
+print("daveit it shape: ", daveit.shape, cnt)
+print("sum daveit like a checksum of intensity power", sum(daveit)/400*4*np.pi)
+```
+
+```{python}
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(qbrepDONNY+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+cnt = 0
+for horn in FIhorns:
+    
+    print(qbrepDONNY+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrepDONNY+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+donnyit = itx[:] + ity[:]
+print("donnyit it shape: ", donnyit.shape, cnt)
+print("sum donnyit like a checksum of intensity power", sum(donnyit)/400*4*np.pi)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer
+This is for MY Model..."""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 10}
+
+plt.rc('font', **font)
+plt.figure(figsize=(14,11))
+plt.subplot(2,2,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=gaussit, cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,2)
+plt.scatter(data['Xpos'], data['Ypos'], c=gaussit-myit, cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-myit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,3)
+plt.scatter(data['Xpos'], data['Ypos'], c=gaussit-daveit, cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-daveit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,4)
+plt.scatter(data['Xpos'], data['Ypos'], c=gaussit-donnyit, cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-donnyit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+aziA = np.zeros(194)
+ziA = np.zeros(194)
+
+ints = np.array([myit, daveit, donnyit, gaussit])
+#print(reps, ints.shape)
+
+for i, rep in enumerate(reps):
+    print(i, rep, reps[i])
+    azi, zi = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), ints[i], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+print(aziA.shape, ziA.shape)
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:], label='Model {}'.format(reps[i]))
+plt.plot(aziA[3,:], ziA[3,:], label='Model {}'.format(reps[3]))
+plt.legend()    
+#plt.yscale('log')
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:], label='Model {}'.format(reps[i]))
+plt.ylim([0, 5])
+plt.xlim([-0.06, -0.04])
+plt.legend()
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:], label='Model {}'.format(reps[i]))
+plt.ylim([20, 27])
+plt.xlim([0, 0.01])
+plt.legend()
+```
+
+```{python}
+"""try with norm"""
+plt.figure(figsize=(16,8))
+
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.legend()    
+#plt.yscale('log')
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.ylim([0, 0.2])
+plt.xlim([-0.06, -0.04])
+plt.legend()
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.ylim([0.8, 1])
+plt.xlim([0, 0.01])
+plt.legend()
+```
+
+```{python}
+"""try with norm and log scale"""
+plt.figure(figsize=(16,8))
+
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.legend()    
+plt.yscale('log')
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.yscale('log')
+plt.ylim([0, 0.2])
+plt.xlim([-0.06, -0.04])
+plt.legend()
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), label='Model {}'.format(reps[i]))
+plt.yscale('log')
+plt.ylim([0.8, 1])
+plt.xlim([0, 0.01])
+plt.legend()
+```
+
+```{python}
+
+```

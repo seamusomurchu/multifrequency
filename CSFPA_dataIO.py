@@ -3,6 +3,10 @@ import pickle
 import math
 import pandas as pd
 from scipy.interpolate import griddata
+#doesn'treally make sense to have abberated cuts but okay
+import matplotlib.pyplot as plt
+from scipy.signal import chirp, find_peaks, peak_widths
+import scipy
 
 def getXYcoords(f, vtxs):
 
