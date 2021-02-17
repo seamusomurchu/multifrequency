@@ -34,8 +34,11 @@ import matplotlib.pyplot as plt
 # inrep = '/home/james/FIgraspFiles/testinfiles/'
 # outrep = '/home/james/FIgraspFiles/testoutfiles/'
 
-inrep = '/home/james/GRASPdata/DavesTabSourceFIModel/GRASPfiles/'
-outrep = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+# inrep = '/home/james/GRASPdata/DavesTabSourceFIModel/GRASPfiles/'
+# outrep = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+
+inrep = '/home/james/GRASPdata/DonnysScatFIModel/GRASPfiles/'
+outrep = '/home/james/GRASPdata/DonnysScatFIModel/MODALfiles/'
 
 MultiHornMain(inrep, outrep)
 ```
