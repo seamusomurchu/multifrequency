@@ -1,0 +1,52 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""convert frequency files to qb and analyse"""
+```
+
+```{python}
+import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from qbdataio import MultiHornMain
+from CSFPA_dataIO import *
+```
+
+```{python}
+#modalrep150 = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+grep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/GRASPfiles/'
+grep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/GRASPfiles/'
+grep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/GRASPfiles/'
+grep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
+mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
+mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
+mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
+
+inreps = np.array([grep130, grep140, grep160])
+outreps = np.array([mrep130, mrep140, mrep160])
+```
+
+```{python}
+for i, rep in enumerate(inreps):
+    print(i, rep, outreps[i])
+
+    MultiHornMain(rep, outreps[i])
+```
+
+```{python}
+
+```
