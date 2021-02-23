@@ -33,18 +33,218 @@ grep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/GRASPfiles/'
 
 mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
 mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
+mrep150  = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
 mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
 
-inreps = np.array([grep130, grep140, grep160])
-outreps = np.array([mrep130, mrep140, mrep160])
+inreps = np.array([grep130, grep140, grep160, grep170])
+outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 ```
 
 ```{python}
-for i, rep in enumerate(inreps):
-    print(i, rep, outreps[i])
+# for i, rep in enumerate(inreps):
+#     print(i, rep, outreps[i])
 
-    MultiHornMain(rep, outreps[i])
+#     MultiHornMain(rep, outreps[i])
+#MultiHornMain(grep170, mrep170)
+
+"""only need to run once for new grasp data"""
+```
+
+```{python}
+#define the TD and FI - remember the weird solution to TD numbers 1-64!
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+"""load with data frame to used headers"""
+#data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+def QB_add_intensity_400horns(filepath):
+    
+    FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    #print(data)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in FIhorns:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(file, data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit
+```
+
+```{python}
+# test = QB_add_intensity_400horns(mrep130)
+# print(test.shape)
+```
+
+```{python}
+data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+freqint = np.zeros([len(outreps), len(data['Rex'])])
+
+for i, rep in enumerate(outreps):
+    print(i, rep)
+    #test = QB_add_intensity_400horns(rep)
+    freqint[i,:] = QB_add_intensity_400horns(rep)
+    
+```
+
+```{python}
+print(freqint.shape)
+"""an RGB composite image like JC might be interesting"""
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+aziA = np.zeros(194)
+ziA = np.zeros(194)
+
+for i, rep in enumerate(outreps):
+    print(i, rep, outreps[i])
+    azi, zi = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+print(aziA.shape, ziA.shape)
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziA[i,:], ziA[i,:], lw=4-i)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer
+This is for MY Model..."""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 10}
+
+plt.rc('font', **font)
+plt.figure(figsize=(14,11))
+plt.subplot(2,2,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=freqint[0, :], cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-donnyit2")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,2)
+plt.scatter(data['Xpos'], data['Ypos'], c=freqint[1, :], cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-myit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,3)
+plt.scatter(data['Xpos'], data['Ypos'], c=freqint[2, :], cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-daveit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+plt.subplot(2,2,4)
+plt.scatter(data['Xpos'], data['Ypos'], c=freqint[4, :]-freqint[0, :], cmap='gnuplot', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("gaussit-donnyit")
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+```
+
+```{python}
+datah190f130 = pd.read_csv(mrep130+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+datah190f170 = pd.read_csv(mrep170+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+datah190f170.head()
+```
+
+```{python}
+plt.figure(figsize=(14,11))
+plt.subplot(2,2,1)
+plt.scatter(datah190f130['Xpos'], datah190f130['Ypos'], c=datah190f130['Xamp'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.subplot(2,2,2)
+plt.scatter(datah190f130['Xpos'], datah190f130['Ypos'], c=datah190f170['Xamp'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.subplot(2,2,3)
+plt.scatter(datah190f130['Xpos'], datah190f130['Ypos'], c=datah190f170['Xamp']-datah190f130['Xamp'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+```
+
+```{python}
+"""okay this is a problem... fuack
+need to go back and look at horn aperture fields fuck"""
 ```
 
 ```{python}

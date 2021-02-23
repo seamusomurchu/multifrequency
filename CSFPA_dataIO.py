@@ -602,3 +602,52 @@ def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_
         return azi, zi, peaks, results_half
     else:
         return azi, zi
+    
+def QB_add_intensity_400horns(filepath):
+    """take the rep with qb files, add intensity array for 400 horns return an array with intensity for 400 horns
+    this code could/should be generalised/I think its already somewhere in my libraries, think i even added
+    to qubicsoft already"""
+    
+    FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    #print(data)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in FIhorns:
+
+        print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    #print(myit.shape, type(myit))
+    
+    return myit
