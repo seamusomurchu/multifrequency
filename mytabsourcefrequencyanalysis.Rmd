@@ -37,8 +37,25 @@ mrep150  = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
 mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
 
+#v2grep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# v2mrep130  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/130GHz/MODALfiles/'
+# v2mrep140  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/140GHz/MODALfiles/'
+# v2mrep150  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/150GHz/MODALfiles/'
+# v2mrep160  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/160GHz/MODALfiles/'
+#v2mrep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+# v3grep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/GRASPfiles/'
+# v3mrep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+v4grep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
+v4mrep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+v4grep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
+v4mrep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+
 inreps = np.array([grep130, grep140, grep160, grep170])
-outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+#outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([v4mrep130, mrep150, v4mrep170])
 ```
 
 ```{python}
@@ -47,6 +64,9 @@ outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 
 #     MultiHornMain(rep, outreps[i])
 #MultiHornMain(grep170, mrep170)
+#MultiHornMain(v4grep170, v4mrep170)
+MultiHornMain(v4grep130, v4mrep130)
+
 
 """only need to run once for new grasp data"""
 ```
@@ -76,11 +96,11 @@ print(baseline)
 """load with data frame to used headers"""
 #data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
 
-def QB_add_intensity_400horns(filepath):
+def QB_add_intensity_400horns(filepath, freq):
     
     FIhorns = np.linspace(1,400,400, dtype=int)
     
-    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_'+str(freq)+'_GHz_Mstyle.qb', sep='\t')
     #print(data)
 
     addimx = np.zeros(len(data['Rex']))
@@ -92,7 +112,7 @@ def QB_add_intensity_400horns(filepath):
     for horn in FIhorns:
 
         #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
-        file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
         data = pd.read_csv(file, sep='\t')
         print(file, data.shape)
 
@@ -131,12 +151,14 @@ def QB_add_intensity_400horns(filepath):
 ```{python}
 data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
 
+freqs = ['130', '150', '170']
+
 freqint = np.zeros([len(outreps), len(data['Rex'])])
 
 for i, rep in enumerate(outreps):
-    print(i, rep)
+    print(i, rep, freqs[i])
     #test = QB_add_intensity_400horns(rep)
-    freqint[i,:] = QB_add_intensity_400horns(rep)
+    freqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
     
 ```
 
@@ -171,9 +193,16 @@ font = {'family' : 'normal',
 plt.rc('font', **font)
 plt.figure(figsize=(16,8))
 
+markers = ['','-','--','-.']
+
 for i, rep in enumerate(outreps):
-    #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:], lw=4-i)
+    print(rep)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], markers[i+1], label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqs.png", bbox_inches='tight', facecolor='white')
 ```
 
 ```{python}
