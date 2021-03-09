@@ -44,6 +44,18 @@ print(array.shape)
 ```
 
 ```{python}
+plt.figure(figsize=(16,16))
+
+
+plt.scatter(df['xpos'], df['ypos'], c=abs(array[2,:])/4*np.pi, cmap='copper')
+plt.title('150 GHz')
+plt.xlabel('Aperture Field X (mm)')
+plt.ylabel('Aperture Field Y (mm)')
+plt.colorbar(label='dB')
+plt.axis('equal')
+```
+
+```{python}
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 22}
