@@ -494,7 +494,7 @@ def IntegrateHornCombOnFP(it, xycoords, vtxs):
             x2 = i[2,0]
             y2 = i[2,1]
             
-            if x >= x2 and x <= x1 and y >= y2 and y <= y1:
+            if x >= x2 and x <= x1 and y >= y1 and y <= y2:
                 #print(x,y, x1, y1, x2, y2)
                 #if the point is inside the bolometer area, add to array
                 intbol = np.append(intbol, it[cntj])
@@ -624,7 +624,7 @@ def QB_add_intensity_400horns(filepath):
         print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
         file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
         data = pd.read_csv(file, sep='\t')
-        print(data.shape)
+        #print(data.shape)
 
         #add the relevant compnents to an array
         addrex = np.vstack((addrex, data['Rex']))

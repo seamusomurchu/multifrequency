@@ -13,7 +13,11 @@ jupyter:
 ---
 
 ```{python}
-"""convert frequency files to qb and analyse"""
+
+```
+
+```{python}
+#convert frequency files to qb and analyse
 ```
 
 ```{python}
@@ -52,10 +56,14 @@ v4grep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
 v4mrep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
 v4grep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
 v4mrep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+v4grep140  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/140GHz/GRASPfiles/'
+v4mrep140  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
+v4grep160  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/160GHz/GRASPfiles/'
+v4mrep160  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
 
 inreps = np.array([grep130, grep140, grep160, grep170])
 #outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
-outreps = np.array([v4mrep130, mrep150, v4mrep170])
+outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
 ```
 
 ```{python}
@@ -65,10 +73,10 @@ outreps = np.array([v4mrep130, mrep150, v4mrep170])
 #     MultiHornMain(rep, outreps[i])
 #MultiHornMain(grep170, mrep170)
 #MultiHornMain(v4grep170, v4mrep170)
-MultiHornMain(v4grep130, v4mrep130)
+MultiHornMain(v4grep160, v4mrep160)
 
 
-"""only need to run once for new grasp data"""
+#"""only need to run once for new grasp data"""
 ```
 
 ```{python}
@@ -151,7 +159,7 @@ def QB_add_intensity_400horns(filepath, freq):
 ```{python}
 data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
 
-freqs = ['130', '150', '170']
+freqs = ['130', '140', '150', '160', '170']
 
 freqint = np.zeros([len(outreps), len(data['Rex'])])
 
@@ -193,16 +201,94 @@ font = {'family' : 'normal',
 plt.rc('font', **font)
 plt.figure(figsize=(16,8))
 
-markers = ['','-','--','-.']
+markers = ['','-','--','-.', '', '-']
 
 for i, rep in enumerate(outreps):
-    print(rep)
-    plt.plot(aziA[i+1,:], ziA[i+1,:], markers[i+1], label=str(freqs[i])+' GHz', lw=3)
+    #print(rep)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], '', label=str(freqs[i])+' GHz', lw=3)
     
-plt.legend(loc='upper left')
+plt.legend(loc='lower left')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Intensity (W)')
-plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqs.png", bbox_inches='tight', facecolor='white')
+#plt.yscale('log')
+#plt.ylim(1e-3, 0)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqs.png", bbox_inches='tight', facecolor='white')
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziA[i+1,:], ziA[i+1,:]/max(ziA[i+1,:]), '', label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='lower left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], '', label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='lower left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.yscale('log')
+plt.ylim(1e-3, 0)
+```
+
+```{python}
+"""try RGB style image"""
+from astropy.visualization import make_lupton_rgb
+#import cv2
+print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[0,:]]), 201)
+g = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[2,:]]), 201)
+b = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[4,:]]), 201)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergb.png")
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+```
+
+```{python}
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[i, :]/max(freqint[i, :]), 
+                cmap='nipy_spectral')
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(3,2,6)
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgrids.png", bbox_inches='tight', facecolor='white')
+
 ```
 
 ```{python}
