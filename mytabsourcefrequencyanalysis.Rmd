@@ -244,7 +244,8 @@ r = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqi
 g = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[2,:]]), 201)
 b = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[4,:]]), 201)
 print(r.shape, g.shape, b.shape)
-rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergb.png")
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergb.png",
+                             stretch=0.5)
 print(rgb_default.shape, rgb_default[0,:,:].shape)
 # alpha = 1.5 # Contrast control (1.0-3.0)
 # beta = 0 # Brightness control (0-100)
@@ -289,6 +290,57 @@ plt.tight_layout()
 
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgrids.png", bbox_inches='tight', facecolor='white')
 
+```
+
+```{python}
+"""load daves data and try to compare"""
+TES93 = '/home/james/TESonSky/psf93.dat'
+daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
+# TES93 = '/home/james/TESonSky/psf76.dat'
+# daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
+print(daves.shape)
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(17,14))
+plt.scatter(daves[0,:], daves[1,:], c=(daves[2,:]/max(daves[2,:]))**2)
+
+plt.axis('equal')
+plt.colorbar(label='Intensity (W)')
+# plt.ylim(-11.31, 11.31) #since focal length=300
+# plt.xlim(-11.31, 11.31)
+plt.ylim(min(daves[0,:]), max(daves[0,:])) #since focal length=300
+plt.xlim(min(daves[1,:]), max(daves[1,:]))
+# plt.grid(True)
+# plt.xticks(np.arange(-12, 12, step=1));
+# plt.yticks(np.arange(-12, 12, step=1));
+plt.xlabel(r'Azimuth$^\circ$');
+plt.ylabel(r'Elevation$^\circ$');
+
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc6/samplesynth96.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+x0, y0 = 50, 260
+x1, y1 = 170, 142
+x2, y2 = 250, 60
+
+deg2x = 0.3 * np.arctan(np.deg2rad(daves[0,:])) #0.3 for meters
+deg2y = 0.3 * np.arctan(np.deg2rad(daves[1,:]))
+
+azi, zi = AbberatedCut(deg2x, deg2y, daves[2,:]**2, 
+                       x0, y0, x1, y1, x2, y2, 301, 0.1, 0.5, False, False)
+
+plt.figure(figsize=(16,8))
+plt.plot(aziA[3,:], ziA[3,:]/max(ziA[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(azi, zi/max(zi), '', label='MODAL Synthetic 150 GHz', lw=3, alpha=0.2)
+plt.plot(azi+0.0125, zi/max(zi), '', label='MODAL Synthetic Peak Shift Match', lw=3)
+#+0.0125
+
+plt.xlim([-0.06, 0.06])
+plt.legend(loc='upper left')
 ```
 
 ```{python}

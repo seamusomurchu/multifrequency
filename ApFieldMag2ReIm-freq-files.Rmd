@@ -1,0 +1,154 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""A script for converting aperture fields in mag and phase to Re and Im. Also will test a function to add to CSFPA_datIO"""
+```
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import glob
+from CSFPA_dataIO import ApFieldMag2ReIm
+```
+
+```{python}
+
+keyword = '*output1123.dat*'
+#data_dir = '/media/james/DATA/MODALhorn/'
+data_dir = '/media/james/DATA/MODALhorn2/'
+dirs = np.sort(glob.glob(data_dir+keyword))
+print(dirs)
+
+
+```
+
+```{python}
+
+data = np.loadtxt(dirs[2], skiprows=1)
+df = pd.DataFrame(data, columns=['xind', 'yindx', 'xpos', 'ypos', 'xmag', 'xpha', 'ymag', 'ypha', 'poynz'])
+
+```
+
+```{python}
+df.head()
+
+```
+
+```{python}
+rex = df.xmag * np.cos(df.xpha)
+imx = df.xmag * np.sin(df.xpha)
+rey = df.ymag * np.cos(df.ypha)
+imy = df.ymag * np.sin(df.ypha)
+
+ix = rex**2+imx**2
+iy = rey**2 + imy**2
+ii = ix + iy
+print(rex.shape, imx.shape)
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+plt.figure(figsize=(12,10))
+
+plt.subplot(2,2,1)
+plt.scatter(df.xpos, df.ypos, c=df.xmag)
+plt.title('Xmag')
+plt.colorbar()
+
+plt.subplot(2,2,2)
+plt.scatter(df.xpos, df.ypos, c=df.xpha)
+plt.title('Xpha')
+plt.colorbar()
+
+plt.subplot(2,2,3)
+plt.scatter(df.xpos, df.ypos, c=df.ymag)
+plt.title('ymag')
+plt.colorbar()
+
+plt.subplot(2,2,4)
+plt.scatter(df.xpos, df.ypos, c=df.ypha)
+plt.title('ImX')
+plt.colorbar()
+
+plt.figure()
+plt.scatter(df.xpos, df.ypos, c=ii)
+plt.title('IntX')
+plt.colorbar()
+```
+
+```{python}
+"""build 6x array"""
+savedat = np.array([rex, imx])
+print(rex.shape, imx.shape, savedat.shape)
+redu2 = np.append(savedat, np.zeros([4, len(rex)]), axis=0)
+print(redu2.shape)
+```
+
+```{python}
+"""testsave the file"""
+output = "/media/james/DATA/MODALhorn/grasp_format/130blah.grd"
+# f = open(output + '.grd','w+')
+# f.write('Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im' + '\n' +
+#        'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n')
+# f.write('++++' + '\n')
+# f.write('   1' + '\n')
+# f.write('   1   3   3   3' + '\n')
+# f.write('   0   0' + '\n')
+# f.write('-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n')
+# f.write('101 101 0' + '\n')
+np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f')
+```
+
+```{python}
+"""test the multifreq change to CSFPA_dataIO"""
+```
+
+```{python}
+
+output2 = "/media/james/DATA/MODALhorn2/grasp_format/130blah.grd"
+ApFieldMag2ReIm(dirs[0], output2)
+```
+
+```{python}
+print(data.shape, redu2.shape)
+```
+
+```{python}
+# header = 'Aperture field converted output from SCATTER/MODAL mag phase to GRASP format Re Im'+'\n'+'This is an ignorantly hardcoded header. See grasp manuals for you own header'+'\n'+'++++' + '\n'+'   1' + '\n'+'   1   3   3   3' + '\n'+'   0   0' + '\n'+'-6.167E-00 -6.167E-00 6.167E-00 6.167E-00' + '\n'+'101 101 0'
+
+# print(header)
+
+# np.savetxt(output, redu2.T, delimiter=' ',fmt='%5.6f', header=header, comments='')
+```
+
+```{python}
+freqs = np.linspace(130, 170, 5)
+
+for i, f, in enumerate(dirs):
+    print(i, f, freqs[i])
+    outstring = "/media/james/DATA/MODALhorn2/grasp_format/"+str(int(freqs[i]))+'GHz_M2G_v2.grd'
+    print(outstring)
+    
+    ApFieldMag2ReIm(f, outstring)
+```
+
+```{python}
+
+```

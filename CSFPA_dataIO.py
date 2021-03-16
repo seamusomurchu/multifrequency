@@ -533,7 +533,11 @@ def makemeshgrid(psfdata, meshsize):
     return Z
 
 def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_height, norm=True, rpeaks=False):
-    """it x and y dat should be same shape, points for cuts, meshsize"""
+    """it x and y dat should be same shape, points for cuts, meshsize
+    prom should be greater than side lobe height
+    rel height = 0.5 for fwhm
+    normalise to 1?
+    calculate peaks and fwhm?"""
 
     mesh = np.zeros([1, meshsize, meshsize])
     mesh = makemeshgrid(np.array([xdat, ydat, itdat]), meshsize)
