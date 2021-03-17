@@ -207,7 +207,7 @@ for i, rep in enumerate(outreps):
     #print(rep)
     plt.plot(aziA[i+1,:], ziA[i+1,:], '', label=str(freqs[i])+' GHz', lw=3)
     
-plt.legend(loc='lower left')
+plt.legend(loc='upper left')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Intensity (W)')
 #plt.yscale('log')
@@ -233,6 +233,8 @@ plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Intensity (W)')
 plt.yscale('log')
 plt.ylim(1e-3, 0)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqsLog.png", bbox_inches='tight', facecolor='white')
+
 ```
 
 ```{python}
@@ -341,6 +343,44 @@ plt.plot(azi+0.0125, zi/max(zi), '', label='MODAL Synthetic Peak Shift Match', l
 
 plt.xlim([-0.06, 0.06])
 plt.legend(loc='upper left')
+```
+
+```{python}
+"""must load vertex"""
+import qubic
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+    
+#use the focal plane positions loaded before
+xycoords = np.array([data['Xpos'], data['Ypos']])
+```
+
+```{python}
+#ibols = np.zeros((5,992))
+print(freqint.shape, ibols.shape)
+
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    
+    x, y, bi = IntegrateHornCombOnFP(freqint[i,:], xycoords, vtxs)
+    print("bi shape", bi.shape)
+    ibols[i,:] = bi
+    
+    plt.subplot(3,2,i+1)
+    plt.scatter(x, y, c=ibols[i,:], 
+                cmap='plasma')
+print(ibols.shape)
 ```
 
 ```{python}

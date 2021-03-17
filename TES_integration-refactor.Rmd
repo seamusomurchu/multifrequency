@@ -112,6 +112,36 @@ print(buildar.shape, buildar[79799])
 ```
 
 ```{python}
+"""here i try another idea
+make a loop to save all the horn comb data for  buildar 80000"""
+bolarray = np.zeros((len(buildar[:,0]), 992))
+print(bolarray.shape)
+
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#change to moddded dictionary
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+
+
+data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#use the focal plane positions loaded before
+xycoords = np.array([data['Xpos'], data['Ypos']])
+
+for i, pair in enumerate(buildar):
+    bolarray[i,:] = 
+```
+
+```{python}
 """this cell essentially does the opposite of what i want"""
 print(buildar.shape)
 matchcount=0
