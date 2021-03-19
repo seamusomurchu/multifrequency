@@ -67,13 +67,51 @@ outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
 ```
 
 ```{python}
+#modalrep150 = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+# grep130  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/GRASPfiles/'
+# grep140  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/GRASPfiles/'
+# grep160  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/GRASPfiles/'
+# grep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
+# mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
+# mrep150  = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+# mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
+# mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
+
+#v2grep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# v2mrep130  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/130GHz/MODALfiles/'
+# v2mrep140  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/140GHz/MODALfiles/'
+# v2mrep150  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/150GHz/MODALfiles/'
+# v2mrep160  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/160GHz/MODALfiles/'
+#v2mrep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+# v3grep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/GRASPfiles/'
+# v3mrep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+v4grep170  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
+v4mrep170  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+v4grep130  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
+v4mrep130  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+v4grep140  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/140GHz/GRASPfiles/'
+v4mrep140  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
+v4grep160  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/GRASPfiles/'
+v4mrep160  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
+
+inreps = np.array([grep130, grep140, grep160, grep170])
+#outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
+```
+
+```{python}
 # for i, rep in enumerate(inreps):
 #     print(i, rep, outreps[i])
 
 #     MultiHornMain(rep, outreps[i])
 #MultiHornMain(grep170, mrep170)
 #MultiHornMain(v4grep170, v4mrep170)
-MultiHornMain(v4grep160, v4mrep160)
+#MultiHornMain(v4grep160, v4mrep160)
 
 
 #"""only need to run once for new grasp data"""
