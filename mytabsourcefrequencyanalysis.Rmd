@@ -75,7 +75,7 @@ outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
 
 # mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
 # mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
-# mrep150  = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+mrep150  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 # mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
 # mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
 
@@ -333,32 +333,150 @@ plt.tight_layout()
 ```
 
 ```{python}
+"""must load vertex"""
+import qubic
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+xycoords = np.array([data['Xpos'], data['Ypos']])
+#use the focal plane positions loaded before
+
+bola = np.zeros([5, 992])
+
+for i, freq in enumerate(freqint):
+    print(i, freq.shape, freqs[i])
+    px, py, bola[i,:] = IntegrateHornCombOnFP(freq, xycoords,vtxs)
+    
+print(bola.shape)
+```
+
+```{python}
+"""make rgb for bols"""
+"""try RGB style image"""
+
+import cv2
+#print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([px, py, bola[0,:]]), 34)
+g = makemeshgrid(np.array([px, py, bola[2,:]]), 34)
+b = makemeshgrid(np.array([px, py, bola[4,:]]), 34)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergbBOLS.png",
+                             stretch=1)
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+print(np.min(px), np.max(px), np.min(py), np.max(py))
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+# draw filled circle in white on black background as mask
+mask = np.zeros_like(rgb_default)
+mask = cv2.circle(mask, (17,17), 17, (255,255,255), -1)
+
+# apply mask to image
+result = cv2.bitwise_and(rgb_default, mask)
+
+plt.imshow( result, extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+
+
+#another method
+# plt.figure(figsize=(14,14))
+# plt.rcParams['axes.facecolor'] = 'grey'
+
+
+# plt.scatter(px, py, c=bola[4, :]/max(bola[4, :]), cmap='Blues_r', marker='s', alpha=0.8)
+# plt.scatter(px, py, c=bola[2, :]/max(bola[2, :]), cmap='Greens_r', marker='s', alpha=0.8)
+# plt.scatter(px, py, c=bola[0, :]/max(bola[0, :]), cmap='Reds_r', marker='s', alpha=0.2)
+# #plt.colorbar(label='Normalised Intensity (W)')
+# plt.axis('equal')
+# plt.title('RGB')
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+
+# plt.rcParams['axes.facecolor'] = 'white'
+```
+
+```{python}
+"""multi plot for BOLS"""
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(px, py, c=bola[i, :]/max(bola[i, :]), 
+                cmap='nipy_spectral', marker='s')
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(3,2,6)
+plt.imshow(result, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgridsBOLS.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
 """load daves data and try to compare"""
 TES93 = '/home/james/TESonSky/psf93.dat'
 daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
-# TES93 = '/home/james/TESonSky/psf76.dat'
-# daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
+TES93 = '/home/james/TESonSky/psf76.dat'
+daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
 print(daves.shape)
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
-plt.figure(figsize=(17,14))
+
+plt.figure(figsize=(16,8))
 plt.scatter(daves[0,:], daves[1,:], c=(daves[2,:]/max(daves[2,:]))**2)
 
-plt.axis('equal')
+#plt.axis('equal')
 plt.colorbar(label='Intensity (W)')
-# plt.ylim(-11.31, 11.31) #since focal length=300
-# plt.xlim(-11.31, 11.31)
-plt.ylim(min(daves[0,:]), max(daves[0,:])) #since focal length=300
-plt.xlim(min(daves[1,:]), max(daves[1,:]))
+plt.ylim(-10, 10) #since focal length=300 area 11.31
+plt.xlim(-13, 13)
+# plt.ylim(min(daves[0,:]), max(daves[0,:])) #since focal length=300
+# plt.xlim(min(daves[1,:]), max(daves[1,:]))
+
 # plt.grid(True)
 # plt.xticks(np.arange(-12, 12, step=1));
 # plt.yticks(np.arange(-12, 12, step=1));
-plt.xlabel(r'Azimuth$^\circ$');
-plt.ylabel(r'Elevation$^\circ$');
+plt.xlabel(r'Azimuth$^\circ$')
+plt.ylabel(r'Elevation$^\circ$')
+#plt.axis('equal')
+# plt.ylim((-10, 10)) 
+# plt.xlim(min(daves[1,:]), max(daves[1,:]))
 
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc6/samplesynth96.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc6/samplesynth76.png", bbox_inches='tight', facecolor='white')
 
 ```
 
