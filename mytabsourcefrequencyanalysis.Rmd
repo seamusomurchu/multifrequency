@@ -441,7 +441,7 @@ plt.ylabel('Focal Plane Y (m)')
 plt.title('RGB Composite')
 plt.tight_layout()
 
-plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgridsBOLS.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgridsBOLS.png", bbox_inches='tight', facecolor='white')
 
 ```
 
@@ -519,6 +519,122 @@ print("vertexes shape: ", vtxs.shape)
     
 #use the focal plane positions loaded before
 xycoords = np.array([data['Xpos'], data['Ypos']])
+```
+
+```{python}
+
+
+def QB_add_intensity_400hornsMODAL(files, freq):
+    
+    #FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(files[0], sep='\t')
+    #print(data)
+
+    addrex = np.zeros(len(data['X']))
+    addimx = np.zeros(len(data['X']))
+    addrey = np.zeros(len(data['X']))
+    addimy = np.zeros(len(data['X']))
+
+    cnt = 0
+    for datfile in files:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
+        data = pd.read_csv(datfile, sep='\t')
+        print(datfile, data.shape)
+
+        #add the relevant compnents to an array
+        rex = data['MagX'] * np.cos(data['PhaseX'])
+        imx = data['MagX'] * np.sin(data['PhaseX'])
+        rey = data['MagY'] * np.cos(data['PhaseY'])
+        imy = data['MagY'] * np.sin(data['PhaseY'])
+        
+        addrex = np.vstack((addrex, rex))
+        addimx = np.vstack((addimx, imy))
+        addrey = np.vstack((addrey, rey))
+        addimy = np.vstack((addimy, imy))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+#     #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit, data['X'], data['Y']
+```
+
+```{python}
+"""load daves new FI files, convert, integrate, blah etc. BORING"""
+drep150 = '/media/james/DATA/DaveFIMODAL/150_FI/'
+
+test = glob.glob(drep150+'*.dat')
+print(len(test))
+
+dint, dx, dy = QB_add_intensity_400hornsMODAL(test, 150)
+
+print(dint.shape)
+```
+
+```{python}
+print(dint.shape)
+plt.figure(figsize=(17, 14))
+plt.scatter(dx, dy, c=dint)
+plt.colorbar()
+
+theta = np.linspace(0, 2*np.pi, 100)
+radius = max(dx)
+a = radius*np.cos(theta)
+b = radius*np.sin(theta)
+plt.plot(a,b, 'k')
+```
+
+```{python}
+x0, y0 = 20, 256
+x1, y1 = 174, 127
+x2, y2 = 240, 30
+
+azi, zi = AbberatedCut(dx/1000, dy/1000, dint, 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.051e10, 0.5, False, False);
+    
+
+
+```
+
+```{python}
+"""check radius of dave FP and plot on My FP"""
+
+plt.figure(figsize=(16,8))
+plt.plot(aziA[3,:], ziA[3,:]/max(ziA[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(azi, zi/max(zi), '', label='DAVE FI 150 GHz', lw=3, alpha=0.8)
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3)
+plt.vlines(max(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, label='MODAL Data Radius')
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='r', lw=3)
+plt.legend(loc='upper left')
+
+plt.figure(figsize=(16,8))
+plt.plot(aziA[3,:], ziA[3,:]/max(ziA[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(azi, zi/max(zi), '', label='DAVE FI 150 GHz', lw=3, alpha=0.8)
+plt.legend(loc='upper left')
+plt.xlim([0, max(dx)/1000])
+plt.grid(b=True, which='major', color='#666666', linestyle='-')
+plt.minorticks_on()
+plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+
+#plt.xticks(np.arange(0, np.arctan2(max(dx)/300), steps=10))
+
 ```
 
 ```{python}
