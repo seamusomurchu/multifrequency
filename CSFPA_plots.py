@@ -775,3 +775,112 @@ def MultiFIntensityRAWPlot(multifraw, xycoords):
     plt.show()
     os.system('spd-say "BING! BING! BING!"')
     return
+
+def beamsplotter(qdatpath, mdatpath, horn):
+    """fancy horn comparison plot on focal plane for comparing qb data to dat data
+    give paths and horn number
+    note odd reversal of pattern data due to grasp and modal source setup differences"""
+    
+    qdat = pd.read_csv(qdatpath, sep='\t')
+    mdat = pd.read_csv(mdatpath, sep='\t')
+    
+    plt.figure(figsize=(30,30))
+
+    #plot mag x from grasp data, think y and X are mixed up
+    plt.subplot(4,3,1)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Yamp'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.title('GRASP Model Horn {}'.format(str(horn)))
+    #plot mag X from modal data
+    plt.subplot(4,3,2)
+    plt.scatter(mdat['X']/1000, mdat['Y']/1000, c=mdat['MagX'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y']/1000)[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.title('MODAL Model Horn {}'.format(str(horn)))
+    #plot 45 deg cut
+    plt.subplot(4,3,3)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Yamp']/max(qdat['Yamp']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['MagX'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['MagX'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.legend(loc='lower right')
+    plt.ylabel('Normalised Magnitude (dB)')
+    plt.title(r'45$^\circ$ Cut')
+    #plot y dat
+    plt.subplot(4,3,4)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Xamp'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+
+    plt.subplot(4,3,5)
+    plt.scatter(mdat['X'], mdat['Y'], c=np.array(mdat['MagY'])[::-1], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+             
+    plt.subplot(4,3,6)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Xamp']/max(qdat['Xamp']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[::-1][np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['MagY'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['MagY'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    #Xphase
+    plt.subplot(4,3,7)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Ypha'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.ylabel('Focal Plane Y (m)', loc=('top'))
+
+    plt.subplot(4,3,8)
+    plt.scatter(mdat['X'], mdat['Y'], c=mdat['PhaseX'], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+
+    plt.subplot(4,3,9)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Ypha']/max(qdat['Ypha']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['PhaseX'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['PhaseX'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    #plot y phase
+    plt.subplot(4,3,10)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Xpha'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+
+    plt.subplot(4,3,11)
+    plt.scatter(mdat['X'], mdat['Y'], c=mdat['PhaseY'], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+    plt.xlabel('Focal Plane X (m)')
+        
+    plt.subplot(4,3,12)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Xpha']/max(qdat['Xpha']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['PhaseY'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['PhaseY'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    
+    plt.tight_layout()
+
+    return
