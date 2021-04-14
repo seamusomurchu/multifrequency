@@ -36,7 +36,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 ```{python}
 # tesdatrep = '/home/james/GRASPdata/DavesTabSourceFIModel/TESdat/'
 # pklrep = '/home/james/GRASPdata/DavesTabSourceFIModel/PKLfiles/'
-qbrep = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+#qbrep = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+qbrep = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
 files = sorted(glob.glob(qbrep+'*.qb'))
 print('read', len(files), 'files')
 ```
@@ -86,114 +87,114 @@ print(baseline)
 ```
 
 ```{python}
-from itertools import combinations, permutations
-import scipy.special
+# from itertools import combinations, permutations
+# import scipy.special
 
-print(scipy.special.factorial(150))
+# print(scipy.special.factorial(150))
 
-testar = np.linspace(1,100,100, dtype=int)
-#https://stackoverflow.com/questions/18859430/how-do-i-get-the-total-number-of-unique-pairs-of-a-set-in-the-database/18860862
-#arsize = scipy.special.factorial(len(FIhorns)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(FIhorns) - 2))
-arsize = 400*(399)/2
-print(arsize, "expected number", type(arsize))
-# Get all combinations of [1, 2, 3] 
-# and length 2 
-buildar = np.zeros([int(arsize), 2])
-print(buildar.shape)
+# testar = np.linspace(1,100,100, dtype=int)
+# #https://stackoverflow.com/questions/18859430/how-do-i-get-the-total-number-of-unique-pairs-of-a-set-in-the-database/18860862
+# #arsize = scipy.special.factorial(len(FIhorns)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(FIhorns) - 2))
+# arsize = 400*(399)/2
+# print(arsize, "expected number", type(arsize))
+# # Get all combinations of [1, 2, 3] 
+# # and length 2 
+# buildar = np.zeros([int(arsize), 2])
+# print(buildar.shape)
 
-comb = combinations(FIhorns, 2) 
+# comb = combinations(FIhorns, 2) 
   
-# Print the obtained combinations 
-for i, pair in enumerate(list(comb)): 
-    print(i, pair)
-    buildar[i] = pair
+# # Print the obtained combinations 
+# for i, pair in enumerate(list(comb)): 
+#     print(i, pair)
+#     buildar[i] = pair
     
-print(buildar.shape, buildar[79799])
+# print(buildar.shape, buildar[79799])
 ```
 
 ```{python}
-"""here i try another idea
-make a loop to save all the horn comb data for  buildar 80000"""
-bolarray = np.zeros((len(buildar[:,0]), 992))
-print(bolarray.shape)
+# """here i try another idea
+# make a loop to save all the horn comb data for  buildar 80000"""
+# bolarray = np.zeros((len(buildar[:,0]), 992))
+# print(bolarray.shape)
 
-basedir='/home/james/libraries/qubic/qubic'
-#basedir = Qubic_DataDir(datafile='instrument.py', ) 
-print('basedir : ', basedir)
-dictfilename = basedir + '/dicts/global_source_oneDet.dict'
-d = qubic.qubicdict.qubicDict()
-#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
-#change to moddded dictionary
-d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
-d['config'] = 'FI'
-q = qubic.QubicMultibandInstrument(d)
+# basedir='/home/james/libraries/qubic/qubic'
+# #basedir = Qubic_DataDir(datafile='instrument.py', ) 
+# print('basedir : ', basedir)
+# dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+# d = qubic.qubicdict.qubicDict()
+# #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+# #change to moddded dictionary
+# d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+# d['config'] = 'FI'
+# q = qubic.QubicMultibandInstrument(d)
 
-vtxs = q[0].detector.vertex
-vtxcounter = np.zeros(992)
-print("vertexes shape: ", vtxs.shape)
+# vtxs = q[0].detector.vertex
+# vtxcounter = np.zeros(992)
+# print("vertexes shape: ", vtxs.shape)
 
 
-data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
-#use the focal plane positions loaded before
-xycoords = np.array([data['Xpos'], data['Ypos']])
+# data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+# #use the focal plane positions loaded before
+# xycoords = np.array([data['Xpos'], data['Ypos']])
 
-for i, pair in enumerate(buildar):
-    bolarray[i,:] = 
+# for i, pair in enumerate(buildar):
+#     bolarray[i,:] = 
 ```
 
 ```{python}
-"""this cell essentially does the opposite of what i want"""
-print(buildar.shape)
-matchcount=0
-for i, pair1 in enumerate(buildar):
-    #print(i, pair1, pair1.shape, pair1[0], pair1[1])
-    for j, pair2 in enumerate(buildar):
+# """this cell essentially does the opposite of what i want"""
+# print(buildar.shape)
+# matchcount=0
+# for i, pair1 in enumerate(buildar):
+#     #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+#     for j, pair2 in enumerate(buildar):
         
-        if pair1[0] == pair2[0] and pair1[1] == pair2[1]:
-            matchcount += 1
-            print("pair match, skip", i, j, pair1, pair2)
+#         if pair1[0] == pair2[0] and pair1[1] == pair2[1]:
+#             matchcount += 1
+#             print("pair match, skip", i, j, pair1, pair2)
             
+# #         else:
+# #             pairs
+# print("matchcount", matchcount)
+
+
+
+# # uniques = [list(zip(x,buildar)) for x in permutations(buildar,len(buildar))]
+# # print(uniques.shape)
+```
+
+```{python}
+# subset = buildar[0:400]
+# #subset.reshape(6,2)
+# print(subset.shape, subset[:,0].shape)
+# #pairs = np.zeros([6, 4])
+# pairs=np.array([])
+# print(pairs.shape)
+
+# matchcount=0
+# for i, pair1 in enumerate(subset):
+#     #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+#     for j, pair2 in enumerate(subset):
+        
+#         temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
+        
+#         if (pair1[0] == pair2[0]) and (pair1[1] == pair2[1]):
+#             matchcount += 1
+#             print("pair match, skip", i, j, pair1, pair2)
+        
 #         else:
-#             pairs
-print("matchcount", matchcount)
-
-
-
-# uniques = [list(zip(x,buildar)) for x in permutations(buildar,len(buildar))]
-# print(uniques.shape)
-```
-
-```{python}
-subset = buildar[0:400]
-#subset.reshape(6,2)
-print(subset.shape, subset[:,0].shape)
-#pairs = np.zeros([6, 4])
-pairs=np.array([])
-print(pairs.shape)
-
-matchcount=0
-for i, pair1 in enumerate(subset):
-    #print(i, pair1, pair1.shape, pair1[0], pair1[1])
-    for j, pair2 in enumerate(subset):
-        
-        temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
-        
-        if (pair1[0] == pair2[0]) and (pair1[1] == pair2[1]):
-            matchcount += 1
-            print("pair match, skip", i, j, pair1, pair2)
-        
-        else:
             
-            temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
-            print("No match, keep pair", i, j, pair1, pair2, temp)
-            pairs = np.append(pairs, temp)
-            #print(pairs[i])
-print("matchcount", matchcount)
-print("pairs shape", pairs.shape)
-print(temp.shape)
-print(pairs)
-print(pairs[0])
-print(pairs.reshape(30,4))
+#             temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
+#             print("No match, keep pair", i, j, pair1, pair2, temp)
+#             pairs = np.append(pairs, temp)
+#             #print(pairs[i])
+# print("matchcount", matchcount)
+# print("pairs shape", pairs.shape)
+# print(temp.shape)
+# print(pairs)
+# print(pairs[0])
+# print(pairs.reshape(30,4))
 ```
 
 ```{python}
