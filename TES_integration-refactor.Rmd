@@ -1004,7 +1004,7 @@ plt.show()
 
 ```{python}
 
-def calculate_intensity(baseline, datadir):
+def calculate_intensity_4_baseline(baseline, datadir):
     
     #initial load to setup arrays, could be improved!
     data = pd.read_csv(datadir+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')

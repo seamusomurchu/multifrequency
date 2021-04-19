@@ -655,3 +655,49 @@ def QB_add_intensity_400horns(filepath):
     #print(myit.shape, type(myit))
     
     return myit
+
+def calculate_intensity_4_baseline(baseline, datadir):
+    
+    #initial load to setup arrays, could be improved!
+    data = pd.read_csv(datadir+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    #here we loop through the chosen config, baseline, load the 'qb' files
+    #and add the instensities
+
+    #baseline, TDhorns, FIhorns all interchangeable here
+    cnt = 0
+    for horn in baseline:
+
+        print(datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    it = itx[:] + ity[:]
+    print("it shape: ", it.shape, cnt)
+    return data['Xpos'], data['Ypos'], it
