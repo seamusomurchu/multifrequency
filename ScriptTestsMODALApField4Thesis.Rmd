@@ -206,7 +206,8 @@ plt.grid(True)
 plt.ylabel("Normalised Intenisty (dB)")
 plt.xlabel('Aperture Field (mm)')
 plt.title('Corrugated Horn Aperture Field 0$\degree$ Cut')
-plt.xlim(0,6.5)
+plt.xlim(5,6.5)
+plt.ylim(0,0.2)
 plt.legend(loc='lower left')
 
 plt.subplot(3,1,2)
@@ -222,7 +223,8 @@ plt.grid(True)
 plt.ylabel("Normalised Intenisty (dB)")
 plt.xlabel('Aperture Field (mm)')
 plt.title('Corrugated Horn Aperture Field 45$\degree$ Cut')
-plt.xlim(0,6.5)
+plt.xlim(0,2)
+plt.ylim(0.8,1)
 plt.legend(loc='lower left')
 
 plt.subplot(3,1,3)
@@ -431,7 +433,7 @@ plt.tight_layout()
 ```{python}
 """here show the aperture field from MODAL"""
 
-plt.figure(figsize=(14,11))
+plt.figure(figsize=(14,10))
 
 plt.subplot(2,2,1)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[4,:])
@@ -439,6 +441,8 @@ plt.title('Amplitude (X)')
 plt.colorbar(label='dB')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
+plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
+plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,2)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[5,:])
@@ -446,6 +450,8 @@ plt.title('Phase (X)')
 plt.colorbar(label='Hz')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
+plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
+plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,3)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[6,:])
@@ -453,6 +459,8 @@ plt.title('Amplitude (Y)')
 plt.colorbar(label='dB')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
+plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
+plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,4)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
@@ -460,12 +468,15 @@ plt.title('Phase (Y)')
 plt.colorbar(label='Hz')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
+plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
+plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
-plt.axis('equal')
+#
 
 plt.tight_layout()
+#plt.axis('equal')
 #plt.savefig("/home/james/OneDrive/ThesisPlots/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
-#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/modalapfieldexample2.png", bbox_inches='tight', facecolor='white')
 ```
 
 ```{python}
@@ -483,6 +494,7 @@ outrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 ```{python}
 """load the MODAL files"""
 qbrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+qbrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 files = sorted(glob.glob(qbrep+'*.qb'))
 print('read', len(files), 'files')
 
