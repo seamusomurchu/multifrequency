@@ -24,6 +24,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import qubic
 from CSFPA_dataIO import calculate_intensity_4_baseline
+from itertools import combinations, permutations
+import scipy.special
 ```
 
 ```{python}
@@ -112,8 +114,8 @@ plt.show()
 ```{python}
 tdpair1 = [41,59]
 tdpair2 = [34,52]
-tdpair1 = [2,6]
-tdpair2 = [10,14]
+# tdpair1 = [2,6]
+# tdpair2 = [10,14]
 print(FIhorns[np.where(TDhornsFIconf == tdpair1[0])], type(tdpair1))
 print(TDhornsFIconf)
 
@@ -134,7 +136,7 @@ print(testhornsFI)
 
 ```{python}
 """here is a plotter to show the TD baseline horns, pair 1 green"""
-plt.figure(figsize=(10,10))
+plt.figure(figsize=(14,14))
 #q.horn.plot()
 cnt = 1
 for i in range(len(centers)):
@@ -165,12 +167,12 @@ plt.show()
 #calculate_intensity_4_baseline
 my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/'
 
-# tdpair1 = [41,59]
-# tdpair2 = [34,52]
+tdpair1 = [41,59]
+tdpair2 = [34,52]
 # tdpair1 = [2,6]
 # tdpair2 = [10,14]
-tdpair1 = [49,53]
-tdpair2 = [17,21]
+# tdpair1 = [49,53]
+# tdpair2 = [17,21]
 
 print(FIhorns[np.where(TDhornsFIconf == tdpair1[0])])
 fipair1 = [int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])])]
@@ -185,17 +187,325 @@ diff = p1i-p2i
 ```
 
 ```{python}
-plt.figure(figsize=(10,2))
+def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=False):
+    """elaborate baseline comparison plot"""
+    
+    
+    plt.figure(figsize=(10,8))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(int(tdpair1[0]), int(tdpair1[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(int(tdpair2[0]), int(tdpair2[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,4)
+    
+    if virtual_diff is True:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+    if virtual_diff is False:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        
+    plt.title('Residual Difference')
+    plt.colorbar(label='Normalised Intensity Difference (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,3)
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
 
-plt.subplot(1,3,1)
-plt.scatter(x, y, c=p1i/max(p1i))
-plt.colorbar()
-plt.subplot(1,3,2)
-plt.scatter(x, y, c=p2i/max(p2i))
-plt.colorbar()
-plt.subplot(1,3,3)
-plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-1, vmax=1,) #vmin=0, vmax=1,
-plt.colorbar()
+    plt.tight_layout()
+    
+tdpair1 = [1,17]
+tdpair2 = [2,18]
+
+fipair1 = [int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])])]
+fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
+
+print(tdpair1, fipair1)
+
+x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep)
+#print(p1i.shape, p2i.shape)
+diff = p1i-p2i
+    
+baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=True)
+```
+
+```{python}
+print(centers[np.where(TDhornsFIconf == tdpair1[0])])
+```
+
+```{python}
+"""here is a plotter to show the TD baseline horns, TYPE 2"""
+# tdpair1 = [62,48]
+# tdpair2 = [53,39]
+# tdpair1 = [57,59]
+# tdpair2 = [49,51]
+tdpair1 = [1,17]
+tdpair2 = [2,18]
+
+plt.figure(figsize=(14,14))
+#q.horn.plot()
+cnt = 1
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        cnt+=1
+    
+    #print(FIhorns[i], FIhorns[np.where(TDhornsFIconf == tdpair1[0])])
+    #if FIhorns[i] == FIhorns[np.where(TDhornsFIconf == tdpair1[0])]:
+    if TDhornsFIconf[i] in tdpair1:
+        plt.plot(centers[i,0]-0.0005, centers[i,1]+0.0005, 'D', color='xkcd:burnt orange',  
+                 markersize=29, alpha=0.4, mfc = None)
+        
+    if TDhornsFIconf[i] in tdpair2:
+        plt.plot(centers[i,0]-0.0005, centers[i,1]+0.0005, 'D', color='xkcd:sea green',  
+                 markersize=29, alpha=0.4, mfc = None)
+        
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+```
+
+```{python}
+
+bi = np.array([0,1,2,3,4,5])
+comb = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print(arsize)
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_type1.txt', skiprows=1, delimiter=',', dtype=int)
+print(btype.shape, btype[0,:])
+print(btype)
+```
+
+```{python}
+buildar = np.zeros([int(arsize), 2], dtype=int)
+
+for i, pair in enumerate(list(comb)): 
+    #print(i, pair) #btype[pair,1], btype[i,2])
+    buildar[i] = pair
+    #print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3])
+    print(buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3],
+          btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+          btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2])
+    
+    fipair1 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1])]), 
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2])])]
+    fipair2 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1])]),
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
+
+    
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep)
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep)
+    print(p1i.shape, p2i.shape)
+    diff = p1i-p2i
+    
+    plt.figure(figsize=(10,2))
+    plt.subplot(1,3,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(int(tdpair1[0]), int(tdpair1[1])))
+    plt.colorbar()
+    plt.subplot(1,3,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(int(tdpair2[0]), int(tdpair2[1])))
+    plt.colorbar()
+    plt.subplot(1,3,3)
+    plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+    plt.title('Residual Difference')
+    plt.colorbar()
+```
+
+```{python}
+tdar = np.linspace(1,64, 64, dtype=int)
+print(tdar.shape)
+arsize = scipy.special.factorial(len(tdar)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(tdar) - 2))
+print(arsize)
+```
+
+```{python}
+"""do for baseline type 2"""
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type2.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+print("baseline type 2 file shapes, ", btype.shape, btype[0,:])
+print(btype)
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
+print(bi)
+comb = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print("arsize", arsize)
+
+buildar = np.zeros([int(arsize), 2], dtype=int)
+
+for i, pair in enumerate(list(comb)): 
+    print(i, pair) #btype[pair,1], btype[i,2])
+    buildar[i] = pair
+    #print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3])
+    print(buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3],
+          btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+          btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2])
+    
+    fipair1 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1])]), 
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2])])]
+    fipair2 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1])]),
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
+
+    
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    #print(p1i.shape, p2i.shape)
+    diff = p1i-p2i
+
+    plt.figure(figsize=(10,10))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,4)
+    plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+    plt.title('Residual Difference')
+    plt.colorbar()
+    
+    plt.subplot(2,2,3)
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+
+```
+
+```{python}
+"""do for baseline type 2"""
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type2.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+print("baseline type 2 file shapes, ", btype.shape, btype[0,:])
+print(btype)
+print("btype len  test... ", len(btype[:,0]))
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int) #fixed issue with -1 here. ah
+print("bi", bi)
+comb = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print("arsize", arsize)
+
+buildar = np.zeros([int(arsize), 2], dtype=int)
+print("buildar shape, ", buildar.shape)
+
+for i, pair in enumerate(list(comb)): 
+    print(i, pair) #btype[pair,1], btype[i,2])
+    buildar[i] = pair
+    print(i, pair, buildar[i, 0], buildar[i, 1],"to horns, ",  btype[buildar[i, 0], 1], btype[buildar[i, 0], 2],
+         btype[buildar[i, 1], 1], btype[buildar[i, 1], 2])
+    
+    
+    #print(i, pair, buildar[i, 0], buildar[i,1], btype[buildar[i, 0], 1], btype[buildar[i, 0], 2],
+         #btype[buildar[i,1], 1], btype[buildar[i,1], 2])
+    #print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3])
+#     print(buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3],
+#           btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+#           btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2])
+```
+
+```{python}
+"""do for baseline type 3"""
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type3.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+print("baseline type 2 file shapes, ", btype.shape, btype[0,:])
+print(btype)
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
+print(bi)
+comb = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print("arsize", arsize)
+
+buildar = np.zeros([int(arsize), 2], dtype=int)
+
+for i, pair in enumerate(list(comb)): 
+    print(i, pair) #btype[pair,1], btype[i,2])
+    buildar[i] = pair
+    #print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3])
+    print(buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3],
+          btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+          btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2])
+    
+    fipair1 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1])]), 
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2])])]
+    fipair2 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1])]),
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
+
+    
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    #print(p1i.shape, p2i.shape)
+    diff = p1i-p2i
+
+    plt.figure(figsize=(10,10))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,4)
+    plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+    plt.title('Residual Difference')
+    plt.colorbar()
+    
+    plt.subplot(2,2,3)
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+
 ```
 
 ```{python}
