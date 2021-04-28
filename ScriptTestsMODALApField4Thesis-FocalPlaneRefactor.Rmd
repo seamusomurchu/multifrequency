@@ -25,11 +25,11 @@ import matplotlib.pyplot as plt
 ```
 
 ```{python}
-myrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
-qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+myrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+qbrepDAVE = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
 qbrepDONNY = '/media/james/DATA/LaptopFiles/FIgraspFiles/MODALversions/'
-qbrepDONNY2 = '/home/james/GRASPdata/DonnysScatFIModel/MODALfiles/'
-mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+qbrepDONNY2 = '/media/james/DATA/GRASPdata/DonnysScatFIModel/MODALfiles/'
+mrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
 # print(myrep)
 # print(qbrepDAVE)
 # print(qbrepDONNY)
@@ -348,8 +348,11 @@ x2, y2 = 219, 50
 aziA = np.zeros(194)
 ziA = np.zeros(194)
 
-#ints = np.array([myit, daveit, donnyit, gaussit, donnyit2])
-#print(reps, ints.shape)
+reps = np.array([mrep, qbrepDONNY, qbrepDAVE, myrep, qbrepDONNY2])
+
+ints = np.array([myit, daveit, donnyit, gaussit, donnyit2])
+ints = np.array([gaussit, donnyit, daveit, myit, donnyit2])
+print(reps, ints.shape)
 
 for i, rep in enumerate(reps):
     print(i, rep, reps[i])
@@ -360,6 +363,64 @@ for i, rep in enumerate(reps):
     ziA = np.vstack((ziA, zi))
     
 print(aziA.shape, ziA.shape)
+```
+
+```{python}
+plt.figure(figsize=(16,18))
+plt.subplot(3,1,1 )
+for i, rep in enumerate(reps):
+    #print(rep)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
+#plt.plot(aziA[3,:], ziA[3,:], label='Model {}'.format(reps[3]))
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.legend() 
+# #box1
+plt.plot([-0.06, -0.04],[-100, -100], 'k', markersize=5)
+plt.plot([-0.06, -0.04],[3, 3], 'k', markersize=5)
+plt.plot([-0.06, -0.06],[-100, 3], 'k', markersize=5)
+plt.plot([-0.04, -0.04],[-100, 3], 'k', markersize=5)
+#box2
+plt.plot([0, 0.01],[0, 0], 'k', markersize=5)
+plt.plot([0, 0.01],[28, 28], 'k', markersize=5)
+plt.plot([0, 0],[0, 28], 'k', markersize=5)
+plt.plot([0.01, 0.01],[0, 28], 'k', markersize=5)
+# #text
+plt.text(-0.04, 4, r'Box 1', fontdict=font)
+plt.text(0.0105, 26.5, r'Box 2', fontdict=font)
+plt.title('Aperture Field Models on Focal Plane - No Normalisation')
+plt.tight_layout()
+plt.grid('True')
+plt.yscale('log')
+
+#plt.yscale('log')
+plt.subplot(3,1,2)
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
+#plt.ylim([-100, 3])
+plt.xlim([-0.06, -0.04])
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.legend()
+plt.title('Box 1')
+plt.tight_layout()
+plt.grid('True')
+plt.yscale('log')
+
+plt.subplot(3,1,3)
+for i, rep in enumerate(reps):
+    #print(i)
+    plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
+#plt.ylim([-100, 28])
+plt.xlim([0, 0.01])
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.legend()
+plt.title('Box 2')
+plt.tight_layout()
+plt.grid('True')
+plt.yscale('log')
 ```
 
 ```{python}
@@ -375,7 +436,7 @@ ints = np.array([gaussit, donnyit, daveit, myit, donnyit2])
 print(reps)
 
 plt.subplot(3,1,1 )
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(rep)
     plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
 #plt.plot(aziA[3,:], ziA[3,:], label='Model {}'.format(reps[3]))
@@ -401,7 +462,7 @@ plt.grid('True')
 
 #plt.yscale('log')
 plt.subplot(3,1,2)
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(i)
     plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
 plt.ylim([0, 3])
@@ -414,7 +475,7 @@ plt.tight_layout()
 plt.grid('True')
 
 plt.subplot(3,1,3)
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(i)
     plt.plot(aziA[i+1,:], ziA[i+1,:], linestyle=markers[i], label=labels[i], lw=3)
 plt.ylim([0, 28])
@@ -425,7 +486,7 @@ plt.legend()
 plt.title('Box 2')
 plt.tight_layout()
 plt.grid('True')
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/basicnorm.png", bbox_inches='tight', facecolor='white')
+plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/basicnormv2.png", bbox_inches='tight', facecolor='white')
 print(max(ziA[1,:]), max(ziA[2,:]), max(ziA[1,:])- max(ziA[3,:]))
 ```
 

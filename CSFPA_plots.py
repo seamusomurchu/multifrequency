@@ -884,3 +884,95 @@ def beamsplotter(qdatpath, mdatpath, horn):
     plt.tight_layout()
 
     return
+
+def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=False):
+    """elaborate baseline comparison plot
+    use show_baseline_types script to use this function"""
+    
+    plt.figure(figsize=(10,8))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(int(tdpair1[0]), int(tdpair1[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(int(tdpair2[0]), int(tdpair2[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,4)
+    
+    if virtual_diff is True:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+    if virtual_diff is False:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        
+    plt.title('Residual Difference')
+    plt.colorbar(label='Normalised Intensity Difference (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,3)
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
+
+    plt.tight_layout()
+    
+def simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers):
+    """elaborate baseline comparison plot
+    requires you have qubic inst loaded e.g.
+    instFI = qubic.QubicInstrument(d)
+    hornsFI = instFI.horn.open
+    hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+    ### Now create First Instrument and TD monochromatic
+    instTD = qubic.QubicInstrument(d)
+    instTD.horn.open[~hornsTD] = False"""
+    import qubic
+    d = qubic.qubicdict.qubicDict()
+    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+    d['config'] = 'FI'
+    q = qubic.QubicInstrument(d)
+    centers = q.horn.center[:, 0:2]
+    col = q.horn.column
+    row = q.horn.row
+    instFI = qubic.QubicInstrument(d)
+    hornsFI = instFI.horn.open
+    hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+    instTD = qubic.QubicInstrument(d)
+    instTD.horn.open[~hornsTD] = False
+    
+    plt.figure(figsize=(14,14))
+
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
+
+    plt.tight_layout()

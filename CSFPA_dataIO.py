@@ -672,10 +672,10 @@ def calculate_intensity_4_baseline(baseline, datadir):
     cnt = 0
     for horn in baseline:
 
-        print(datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #print(datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
         file = datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
         data = pd.read_csv(file, sep='\t')
-        print(data.shape)
+        #print(data.shape)
 
         #add the relevant compnents to an array
         addrex = np.vstack((addrex, data['Rex']))
@@ -699,5 +699,5 @@ def calculate_intensity_4_baseline(baseline, datadir):
     itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
     ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
     it = itx[:] + ity[:]
-    print("it shape: ", it.shape, cnt)
+    #print("it shape: ", it.shape, cnt)
     return data['Xpos'], data['Ypos'], it

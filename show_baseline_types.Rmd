@@ -1,0 +1,831 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import matplotlib.pyplot as plt
+import qubic
+from CSFPA_dataIO import calculate_intensity_4_baseline
+from CSFPA_plots import simple_baseline_plotter
+from itertools import combinations
+import scipy.special
+```
+
+```{python}
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+
+centers = q.horn.center[:, 0:2]
+col = q.horn.column
+row = q.horn.row
+
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+```
+
+```{python}
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/hornarray.png')
+```
+
+```{python}
+"""make correlation arrays"""
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+
+
+tdpair1 = [41,59]
+tdpair2 = [34,52]
+# tdpair1 = [2,6]
+# tdpair2 = [10,14]
+print(FIhorns[np.where(TDhornsFIconf == tdpair1[0])], type(tdpair1))
+print(TDhornsFIconf)
+
+testhorns = np.append(tdpair1, tdpair2)
+testhornsFI = np.zeros(4)
+print(testhorns.shape, type(testhorns), testhorns[0:2], testhorns[0:2])
+
+kk=0
+for i, j in enumerate(FIhorns):
+    
+    if TDhornsFIconf[i] in testhorns:
+        print(j, TDhornsFIconf[i])
+        testhornsFI[kk] = j
+        kk+=1
+        
+print(testhornsFI)
+```
+
+```{python}
+simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers)
+```
+
+```{python}
+# instFI = qubic.QubicInstrument(d)
+# hornsFI = instFI.horn.open
+
+
+# hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+# #print(hornsTD)
+
+# ### Now create First Instrument and TD monochromatic
+# instTD = qubic.QubicInstrument(d)
+# instTD.horn.open[~hornsTD] = False
+
+
+# TDhornsFIconf = np.zeros(400)
+
+"""type 1 range"""
+tdpair1 = [41,59]
+tdpair2 = [6,24]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type 1 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/type1.png')
+```
+
+```{python}
+print([centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 0]])
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+print(x1,y1, x2, y2)
+```
+
+```{python}
+"""type 2 range"""
+tdpair1 = [62, 48]
+tdpair2 = [17, 3]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type 2 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/type2.png')
+```
+
+```{python}
+"""type 3 range"""
+tdpair1 = [57, 59]
+tdpair2 = [1, 3]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type 3 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/type3.png')
+```
+
+```{python}
+"""type 4 range"""
+tdpair1 = [1, 17]
+tdpair2 = [8, 24]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type 4 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/type4.png')
+```
+
+```{python}
+"""type JCL 1 range"""
+tdpair1 = [2, 6]
+tdpair2 = [58, 62]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type JCL Type Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/typeJCL1.png')
+```
+
+```{python}
+"""type JCL 1 (Type = 0) range"""
+tdpair1 = [49, 53]
+tdpair2 = [17,21]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type JCL 1 (Type = 0) Baseline')
+
+plt.show()
+#plt.savefig('/media/james/DATA/baseline_figures/typeJCL1.png')
+```
+
+```{python}
+"""type JCL 2 (Type = 1) range"""
+tdpair1 = [17,49]
+tdpair2 = [21,53]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+# plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+# plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type JCL (Type = 1) Baseline')
+
+plt.show()
+#plt.savefig('/media/james/DATA/baseline_figures/typeJCL2.png')
+```
+
+```{python}
+"""type JCL 3 Type = 2 range"""
+tdpair1 = [9,11]
+tdpair2 = [49,51]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+# plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+# plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type JCL (Type = 2) Baseline')
+
+plt.show()
+#plt.savefig('/media/james/DATA/baseline_figures/typeJCL3.png')
+```
+
+```{python}
+"""type JCL 3 range"""
+tdpair1 = [9,11]
+tdpair2 = [49,51]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+# plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+# plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Type JCL 3 Baseline')
+
+plt.show()
+#plt.savefig('/media/james/DATA/baseline_figures/typeJCL3.png')
+```
+
+```{python}
+
+```
+
+```{python}
+"""here maybe make a full list of combinations from all horns to be tested"""
+"""do for baseline type 1"""
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type1.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+print("baseline type 2 file shapes, ", btype.shape, btype[0,:])
+print(btype)
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
+print(bi)
+comb1 = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print("arsize", arsize)
+
+#buildar = np.zeros([int(arsize), 2], dtype=int)
+
+"""do for baseline type 2"""
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type2.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+print("baseline type 2 file shapes, ", btype.shape, btype[0,:])
+print(btype)
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
+print(bi)
+comb2 = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+print("arsize", arsize)
+```
+
+```{python}
+combt = [comb1, comb2]
+print(len(combt))
+```
+
+```{python}
+"""type JCL 1 range"""
+tdpair1 = [57, 61]
+tdpair2 = [42, 46]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+tdpair1 = [60, 64]
+tdpair2 = [1, 5]
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Less Good Type 1 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/lg1.png')
+```
+
+```{python}
+"""type lg 2range"""
+tdpair1 = [57, 60]
+tdpair2 = [58, 61]
+
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+
+cnt = 1
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+#q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+        
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+#test plot line
+tdpair1 = [1, 4]
+tdpair2 = [11, 14]
+x1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 0])
+y1=float(centers[np.where(TDhornsFIconf == tdpair1[0]), 1])
+x2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 0])
+y2=float(centers[np.where(TDhornsFIconf == tdpair2[0]), 1])
+x3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 0])
+y3=float(centers[np.where(TDhornsFIconf == tdpair1[1]), 1])
+x4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 0])
+y4=float(centers[np.where(TDhornsFIconf == tdpair2[1]), 1])
+plt.plot([x1,x2],[y1,y2], c='xkcd:blue grey', linewidth=4)
+plt.plot([x3,x4],[y3,y4], c='xkcd:blue grey', linewidth=4)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+         'o', color='xkcd:powder blue', markersize=25, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+         'o', color='xkcd:powder blue', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+         'o', color='xkcd:sea green', markersize=25, alpha=1, mfc = None)
+
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+plt.title('Less Good Type 2 Baseline')
+
+plt.show()
+plt.savefig('/media/james/DATA/baseline_figures/lg2.png')
+```
+
+```{python}
+
+```

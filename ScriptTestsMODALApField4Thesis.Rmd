@@ -594,7 +594,7 @@ plt.show()
 
 ```{python}
 """load the MODAL files for daves Model"""
-qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+qbrepDAVE = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
 files = sorted(glob.glob(qbrepDAVE+'*.qb'))
 print('read', len(files), 'files')
 ```
@@ -792,6 +792,8 @@ plt.title('Frequency Model')
 plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (mm)')
+plt.xlim(min(data['Xpos']), max(data['Xpos']))
+plt.ylim(min(data['Ypos']), max(data['Ypos']))
 
 plt.subplot(2,2,2)
 plt.scatter(data['Xpos'], data['Ypos'], c=itDAVE/max(itDAVE), cmap='gnuplot', marker='.')#, s=1)
@@ -799,13 +801,17 @@ plt.title('Reference Model')
 plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(data['Xpos']), max(data['Xpos']))
+plt.ylim(min(data['Ypos']), max(data['Ypos']))
 
 plt.subplot(2,2,3)
 plt.scatter(data['Xpos'], data['Ypos'], c=diff, cmap='copper', marker='.')#, s=1)
-plt.title('Difference')
+plt.title('Residual Difference')
 plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(data['Xpos']), max(data['Xpos']))
+plt.ylim(min(data['Ypos']), max(data['Ypos']))
 
 plt.subplot(2,2,4)
 plt.imshow(TDmesh, aspect='equal', extent=[azmin, azmax, elmin, elmax], cmap='gnuplot', vmin=0, vmax=1)
@@ -815,11 +821,14 @@ plt.colorbar(label='Normalised Intensity (W)')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
 plt.title('Cut Example')
-plt.axis('equal')
+plt.xlim(azmin, azmax)
+plt.ylim(elmin, elmax)
+
+#plt.axis('equal')
 
 plt.tight_layout()
 
-#plt.savefig("/home/james/OneDrive/Thesis/Figures/figsc35/2x2FP.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/2x2FPv2.png", bbox_inches='tight', facecolor='white')
 
 
 ```
@@ -829,12 +838,12 @@ plt.tight_layout()
 print(it.shape, itDAVE.shape)
 
 """load the MODAL files for daves Model"""
-qbrepDAVE = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+qbrepDAVE = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
 filesDAVE = sorted(glob.glob(qbrepDAVE+'*.qb'))
 print('read', len(filesDAVE), 'DAVE files')
 
 """load the MODAL files"""
-qbrep = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+qbrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 files = sorted(glob.glob(qbrep+'*.qb'))
 print('read', len(files), 'My files')
 
@@ -1094,8 +1103,8 @@ plt.title('DAVES Model (MODAL)')
 ```{python}
 """load the gaussian version, first need to convert to QB files"""
 
-grep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/GRASPfiles/'
-mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+grep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/GRASPfiles/'
+mrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
 
 #MultiHornMain(grep, mrep)
 
@@ -1330,6 +1339,35 @@ plt.yscale('log')
 ```
 
 ```{python}
+"""now collect all the data/plots"""
+
+plt.figure(figsize=(16,8))
+#keep blue for gaussian...
+plt.plot(aziGAUSS, ziGAUSS, label="Gaussian Cut", lw=4)
+#donny
+plt.plot(aziDONNY, ziDONNY, color='#ff7f0e', label="SCATTER Cut", lw=3)
+#MINE
+
+
+#DAVE
+plt.plot(aziDAVE, ziDAVE, ':', color='#2ca02c', label="MODAL Cut", lw=2)
+
+#MINE
+plt.plot(azi, zi, '-.', color='#d62728', label="MODAL Cut (frequency model)", lw=2)
+
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Logarithmic Normalised Intensity (W)')
+plt.title('Aperture Field Models on Focal Plane')
+plt.grid(True)
+plt.yscale('log')
+plt.ylim(0,100)
+plt.xlim(0,0.01)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpcutplacehold2.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
 """This seems too congruent/good.... :0"""
 ```
 
@@ -1338,7 +1376,7 @@ plt.yscale('log')
 
 from CSFPA_dataIO import IntensityCalcRAW
 
-mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+mrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
 horn = 113
 
 print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
@@ -1495,7 +1533,7 @@ azi, zi = AbberatedCut(xvals, yvals, GI, x0, y0, x1, y1, x2, y2,
 ```{python}
 """now do for all models for horn 113 then a central horn"""
 
-mrep = '/home/james/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
+mrep = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/Gaussian150GHz/MODALfiles/'
 horn = 113
 
 # print(mrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
@@ -1598,13 +1636,13 @@ print(colors)
 
 plt.figure(figsize=(16,12))
 #keep blue for gaussian...
-plt.plot(aziGAUSS, zinGAUSS/(400*4*np.pi), label="Gaussian Cut", lw=4)
+plt.plot(aziGAUSS, zinGAUSS/(400*4*np.pi)*1.2, label="Gaussian Cut", lw=4)
 #donny
-plt.plot(aziDONNY, zinDONNY/(400*4*np.pi), ':', color='#ff7f0e', label="SCATTER Cut", lw=4)
+plt.plot(aziDONNY, zinDONNY/(400*4*np.pi)*1.2, ':', color='#ff7f0e', label="SCATTER Cut", lw=4)
 # #DAVE
-plt.plot(aziDAVE, zinDAVE/(400*4*np.pi), color='#2ca02c', label="MODAL Cut", lw=3)
+plt.plot(aziDAVE, zinDAVE/(400*4*np.pi)*1.2, color='#2ca02c', label="MODAL Cut", lw=3)
 #MINE
-plt.plot(azi, zin/(400*4*np.pi), '-.', color='#d62728', label="MODAL (frequency model) Cut", lw=3)
+plt.plot(azi, zin/(400*4*np.pi)*1.2, '-.', color='#d62728', label="MODAL (frequency model) Cut", lw=3)
 
 
 """now plot single horn envelopes h113"""
@@ -1647,7 +1685,7 @@ plt.ylabel('Intensity (W)')
 plt.title('Single Horns and FI Horns')
 plt.grid(True)
 #plt.yscale('log')
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/singlehornsFP.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/singlehornsFPv2.png", bbox_inches='tight', facecolor='white')
 print(max(ziA[7]), max(ziA[6]), max(ziA[7]) - max(ziA[6]))
 ```
 
