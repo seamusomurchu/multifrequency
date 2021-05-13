@@ -30,7 +30,8 @@ import scipy.special
 
 ```{python}
 qbrep = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
-files = sorted(glob.glob(qbrep+'*.qb'))
+my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+files = sorted(glob.glob(my150dat+'*.qb'))
 print('read', len(files), 'files')
 ```
 
@@ -165,7 +166,7 @@ plt.show()
 
 ```{python}
 #calculate_intensity_4_baseline
-my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/'
+my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
 
 tdpair1 = [41,59]
 tdpair2 = [34,52]
@@ -180,8 +181,8 @@ fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.w
 
 print(fipair1)
 
-x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep)
-x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep)
+x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
 print(p1i.shape, p2i.shape)
 diff = p1i-p2i
 ```
@@ -211,9 +212,9 @@ def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, cent
     plt.subplot(2,2,4)
     
     if virtual_diff is True:
-        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+        plt.scatter(x, y, c=diff,  cmap='PiYG', vmin=-0.1, vmax=0.1)
     if virtual_diff is False:
-        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
         
     plt.title('Residual Difference')
     plt.colorbar(label='Normalised Intensity Difference (W)')
@@ -238,20 +239,88 @@ def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, cent
 
     plt.tight_layout()
     
-tdpair1 = [1,17]
-tdpair2 = [2,18]
+# tdpair1 = [1,17]
+# tdpair2 = [2,18]
+# tdpair1 = [3,17]
+# tdpair2 = [62,48]
+# tdpair1 = [44,30]
+# tdpair2 = [35,21]
+tdpair1 = [59,62]
+tdpair2 = [11, 14]
 
 fipair1 = [int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])])]
 fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
 
 print(tdpair1, fipair1)
 
-x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep)
-x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep)
+x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
 #print(p1i.shape, p2i.shape)
+p1i = p1i/max(p1i)
+p2i = p2i/max(p2i)
 diff = p1i-p2i
+
+# # %matplotlib notebook
+# # %matplotlib notebook
     
-baseline_plotter(x, y, p1i, p2i, abs(diff), TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=True)
+baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=False)
+```
+
+```{python}
+from scipy.stats import norm
+# %matplotlib inline
+
+
+maxd = max(abs(diff))
+
+# x= np.linspace(-maxd, maxd, len(diff)+1)
+# y=norm.pdf(diff)
+# plt.figure()
+# plt.plot(y)
+
+
+# Sample from a normal distribution using numpy's random number generator
+#samples = np.random.normal(size=10000)
+
+# Compute a histogram of the sample
+#bins = np.linspace(-5, 5, 30)
+histogram, bins = np.histogram(diff, bins='auto', range=(-maxd, maxd), density=True)
+
+# bin_centers = 0.5*(bins[1:] + bins[:-1])
+
+# # Compute the PDF on the bin centers from scipy distribution object
+# from scipy import stats
+# pdf = stats.norm.pdf(bin_centers)
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+plt.plot(bins[0:240],histogram, label="Distribution of residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
+#plt.plot(bins,histogram, label="Distribution of residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
+
+#plt.plot(bin_centers, pdf, label="PDF")
+plt.xlabel('Residual')
+plt.ylabel('Frequency')
+plt.legend(loc='upper right')
+plt.show()
+```
+
+```{python}
+
+
+# %matplotlib inline
+plt.figure(figsize=(16,8))
+plt.plot(p1i, label='Baseline 1')
+plt.plot(diff, label='Resdiual')
+plt.plot(diff**2, label='Residual Squared')
+#plt.plot(abs(diff))
+plt.legend(loc='upper left')
+
+print(sum(abs(diff))/len(diff))
+
+print("r squared val = ", np.sqrt(sum(diff**2)/(len(diff)-1)))
 ```
 
 ```{python}
@@ -356,6 +425,10 @@ print(arsize)
 ```
 
 ```{python}
+
+```
+
+```{python}
 """do for baseline type 1"""
 btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type1.txt', 
                    skiprows=1, delimiter=',', dtype=int)
@@ -371,8 +444,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_type1_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type1_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -388,48 +461,57 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-    plt.figure(figsize=(14,10))
-    plt.subplot(2,2,1)
-    plt.scatter(x, y, c=p1i/max(p1i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,2)
-    plt.scatter(x, y, c=p2i/max(p2i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,4)
-    plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
-    plt.title('Residual Difference')
-    plt.colorbar()
+#     plt.figure(figsize=(12,10))
+#     plt.subplot(2,2,1)
+#     plt.scatter(x, y, c=p1i/max(p1i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,2)
+#     plt.scatter(x, y, c=p2i/max(p2i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,4)
+#     plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+#     plt.title('Residual Difference')
+#     plt.colorbar()
     
-    plt.subplot(2,2,3)
-    instTD.horn.plot()
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.subplot(2,2,3)
+#     instTD.horn.plot()
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
     
-    plt.savefig('/media/james/DATA/baseline_figures/TYPE1/'+str(pair)+'.png')
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
+          "r2, ", r2)
+file.close()    
+```
+
+```{python}
+print(diff.shape, diff[np.where(diff > 0.01)].shape)
 ```
 
 ```{python}
@@ -448,8 +530,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_type2_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type2_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -465,48 +547,53 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-    plt.figure(figsize=(12,10))
-    plt.subplot(2,2,1)
-    plt.scatter(x, y, c=p1i/max(p1i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,2)
-    plt.scatter(x, y, c=p2i/max(p2i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,4)
-    plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
-    plt.title('Residual Difference')
-    plt.colorbar()
+#     plt.figure(figsize=(12,10))
+#     plt.subplot(2,2,1)
+#     plt.scatter(x, y, c=p1i/max(p1i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,2)
+#     plt.scatter(x, y, c=p2i/max(p2i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,4)
+#     plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+#     plt.title('Residual Difference')
+#     plt.colorbar()
     
-    plt.subplot(2,2,3)
-    instTD.horn.plot()
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.subplot(2,2,3)
+#     instTD.horn.plot()
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
     
-    plt.savefig('/media/james/DATA/baseline_figures/TYPE2/'+str(pair)+'.png')
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
+          "r2, ", r2)
+file.close() 
 ```
 
 ```{python}
@@ -544,7 +631,7 @@ for i, pair in enumerate(list(comb)):
 """do for baseline type 3"""
 btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type3.txt', 
                    skiprows=1, delimiter=',', dtype=int)
-print("baseline type 1 file shapes, ", btype.shape, btype[0,:])
+print("baseline type 3 file shapes, ", btype.shape, btype[0,:])
 print(btype)
 bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
 print(bi)
@@ -556,8 +643,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_type3_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type3_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -573,46 +660,53 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-    plt.figure(figsize=(10,10))
-    plt.subplot(2,2,1)
-    plt.scatter(x, y, c=p1i/max(p1i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,2)
-    plt.scatter(x, y, c=p2i/max(p2i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,4)
-    plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
-    plt.title('Residual Difference')
-    plt.colorbar()
+#     plt.figure(figsize=(12,10))
+#     plt.subplot(2,2,1)
+#     plt.scatter(x, y, c=p1i/max(p1i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,2)
+#     plt.scatter(x, y, c=p2i/max(p2i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,4)
+#     plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+#     plt.title('Residual Difference')
+#     plt.colorbar()
     
-    plt.subplot(2,2,3)
-    instTD.horn.plot()
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.subplot(2,2,3)
+#     instTD.horn.plot()
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
+          "r2, ", r2)
+file.close() 
 ```
 
 ```{python}
@@ -631,8 +725,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_type4_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type4_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -648,12 +742,16 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-#     plt.figure(figsize=(10,10))
+#     plt.figure(figsize=(12,10))
 #     plt.subplot(2,2,1)
 #     plt.scatter(x, y, c=p1i/max(p1i))
 #     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
@@ -681,20 +779,23 @@ for i, pair in enumerate(list(comb)):
 #     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
 #              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
 #              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
+          "r2, ", r2)
+file.close() 
 ```
 
 ```{python}
 """do for baseline type JCLtype1"""
 btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_JCLtype1.txt', 
                    skiprows=1, delimiter=',', dtype=int)
-print("baseline tJCLtype1 file shapes, ", btype.shape, btype[0,:])
+print("baseline JCLtype1 file shapes, ", btype.shape, btype[0,:])
 print(btype)
 bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
 print(bi)
@@ -706,8 +807,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_JCLtype1_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_JCLtype1_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -723,12 +824,16 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-#     plt.figure(figsize=(10,10))
+#     plt.figure(figsize=(12,10))
 #     plt.subplot(2,2,1)
 #     plt.scatter(x, y, c=p1i/max(p1i))
 #     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
@@ -756,13 +861,16 @@ for i, pair in enumerate(list(comb)):
 #     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
 #              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
 #              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
+          "r2, ", r2)
+file.close() 
 ```
 
 ```{python}
@@ -781,8 +889,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_lessgood_type1_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_lessgood_type1_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -798,12 +906,16 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-#     plt.figure(figsize=(10,10))
+#     plt.figure(figsize=(12,10))
 #     plt.subplot(2,2,1)
 #     plt.scatter(x, y, c=p1i/max(p1i))
 #     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
@@ -831,14 +943,16 @@ for i, pair in enumerate(list(comb)):
 #     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
 #              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
 #              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
-file.close()
+          "r2, ", r2)
+file.close() 
     
 ```
 
@@ -858,8 +972,8 @@ buildar = np.zeros([int(arsize), 2], dtype=int)
 
 
 #initialise file
-file = open("/home/james/mylibs/multifrequency/baseline_files/baseline_lessgood_type2_OUT.txt", "w")
-file.write("index, pair1, pair2, sum(abs(diff))"+'\n')
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_lessgood_type2_OUT.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
 
 for i, pair in enumerate(list(comb)): 
     #print(i, pair) #btype[pair,1], btype[i,2])
@@ -875,54 +989,58 @@ for i, pair in enumerate(list(comb)):
                int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
 
     
-    x, y, p1i = calculate_intensity_4_baseline(fipair1, qbrep);
-    x, y, p2i = calculate_intensity_4_baseline(fipair2, qbrep);
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
     #print(p1i.shape, p2i.shape)
-    diff = (p1i/max(p1i)) - (p2i/max(p2i))
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
 
-    plt.figure(figsize=(12,10))
-    plt.subplot(2,2,1)
-    plt.scatter(x, y, c=p1i/max(p1i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,2)
-    plt.scatter(x, y, c=p2i/max(p2i))
-    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
-    plt.colorbar()
-    plt.subplot(2,2,4)
-    plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
-    plt.title('Residual Difference')
-    plt.colorbar()
+#     plt.figure(figsize=(12,10))
+#     plt.subplot(2,2,1)
+#     plt.scatter(x, y, c=p1i/max(p1i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,2)
+#     plt.scatter(x, y, c=p2i/max(p2i))
+#     plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+#     plt.colorbar()
+#     plt.subplot(2,2,4)
+#     plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+#     plt.title('Residual Difference')
+#     plt.colorbar()
     
-    plt.subplot(2,2,3)
-    instTD.horn.plot()
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
-             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
-    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
-             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
-             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.subplot(2,2,3)
+#     instTD.horn.plot()
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+#              'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+#     plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+#              centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+#              'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
     
-    plt.savefig('/media/james/DATA/baseline_figures/LG2/'+str(pair)+'.png')
+#     plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'.png')
 
     file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
-               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(sum(abs(diff))/len(diff))+'\n')
+               btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+    
     
     print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
-          "diff, ", sum(abs(diff))/len(diff))
-    
-file.close()
+          "r2, ", r2)
+file.close() 
     
 ```
 
 ```{python}
-rep = '/home/james/mylibs/multifrequency/baseline_files/'
+rep = '/home/james/mylibs/multifrequency/Residuals/baseline_files/'
 files = sorted(glob.glob(rep+'*OUT.*'))
 print('read', len(files), 'files')
 
@@ -936,19 +1054,19 @@ for i, file in enumerate(files):
     
 #print(bigdat.shape)
 
-cjltype1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_JCLtype1_OUT.txt',
+cjltype1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_JCLtype1_OUT.txt',
                          delimiter=', ', skiprows=1).T
-LG1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_lessgood_type1_OUT.txt',
+LG1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_lessgood_type1_OUT.txt',
                          delimiter=', ', skiprows=1).T
-LG2dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_lessgood_type2_OUT.txt',
+LG2dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_lessgood_type2_OUT.txt',
                          delimiter=', ', skiprows=1).T
-t1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type1_OUT.txt',
+t1dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type1_OUT.txt',
                          delimiter=', ', skiprows=1).T
-t2dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type2_OUT.txt',
+t2dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type2_OUT.txt',
                          delimiter=', ', skiprows=1).T
-t3dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type3_OUT.txt',
+t3dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type3_OUT.txt',
                          delimiter=', ', skiprows=1).T
-t4dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type4_OUT.txt',
+t4dat = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type4_OUT.txt',
                          delimiter=', ', skiprows=1).T
 ```
 
@@ -964,6 +1082,7 @@ font = {'family' : 'normal',
 plt.rc('font', **font)
 
 # %matplotlib inline
+plt.rc('font', **font)
 plt.figure(figsize=(16, 8))
 
 plt.plot(t1dat[0,:], 
@@ -1011,15 +1130,84 @@ plt.plot(np.mean(cjltype1dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:]
 
 plt.legend(loc='upper right', fontsize=12)
 plt.xlabel('Baseline Comparison Index')
-plt.ylabel('Residual Difference Between Baselines')
+plt.ylabel('RMSE')
 
-plt.savefig('/media/james/DATA/baseline_figures/results.png')
+#plt.savefig('/media/james/DATA/baseline_figures/results_r2.png')
 
 # plt.plot(cjltype1dat[0,:]+36, cjltype1dat[5,:], '.',  ms=15)
 # plt.plot(LG2dat[0,:]+81, LG2dat[5,:], '.',  ms=15)
 ```
 
 ```{python}
+# #%matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+plt.plot(t1dat[0,:], 
+         t1dat[6,:], '.',  ms=15, label='Type 1')
+plt.plot(t2dat[0,:]+len(t1dat[0,:]), 
+         t2dat[6,:], '.',  ms=15, label='Type 2')
+plt.plot(t3dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:]), 
+         t3dat[6,:], '.',  ms=15, label='Type 3')
+plt.plot(t4dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:]), 
+         t4dat[6,:], '.',  ms=15, label='Type 4')
+plt.plot(LG1dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:]), 
+         LG1dat[6,:], '.',  ms=15, label='Less Good 1')
+plt.plot(LG2dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:])+len(LG1dat[0,:]), 
+         LG2dat[6,:], '.',  ms=15, label='Less Good 2')
+plt.plot(cjltype1dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:])+len(LG1dat[0,:])+len(LG2dat[0,:]), 
+         cjltype1dat[6,:], '.',  ms=15, label='JCL Type')
+
+plt.plot(np.mean(t1dat[0,:]), 
+         np.mean(t1dat[6,:]), '*',  ms=15, label='Mean Type 1 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(t1dat[6,:]), np.std(t1dat[6,:])))
+
+plt.plot(np.mean(t2dat[0,:]+len(t1dat[0,:])), 
+         np.mean(t2dat[6,:]), '*',  ms=15, label='Mean Type 2 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(t2dat[6,:]), np.std(t2dat[6,:])))
+
+plt.plot(np.mean(t3dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])), 
+         np.mean(t3dat[6,:]), '*',  ms=15, label='Mean Type 3 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(t3dat[6,:]), np.std(t3dat[6,:])))
+
+plt.plot(np.mean(t4dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])), 
+         np.mean(t4dat[6,:]), '*',  ms=15, label='Mean Type 4 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(t4dat[6,:]), np.std(t4dat[6,:])))
+
+plt.plot(np.mean(LG1dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:])), 
+         np.mean(LG1dat[6,:]), '*',  ms=15, label='Mean Less Good Type 1 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(LG1dat[6,:]), np.std(LG1dat[6,:])))
+
+plt.plot(np.mean(LG2dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:])+len(LG1dat[0,:])), 
+         np.mean(LG2dat[6,:]), '*',  ms=15, label='Mean Less Good Type 2 {:.3f}, Sdev {:.3f}'.format(
+             np.mean(LG2dat[6,:]), np.std(LG2dat[6,:])))
+
+plt.plot(np.mean(cjltype1dat[0,:]+len(t1dat[0,:])+len(t2dat[0,:])+len(t3dat[0,:])+len(t4dat[0,:])+len(LG1dat[0,:])+len(LG2dat[0,:])), 
+         np.mean(cjltype1dat[6,:]), '*',  ms=15, label='Mean JCL Type {:.3f}, Sdev {:.3f}'.format(
+             np.mean(cjltype1dat[6,:]), np.std(cjltype1dat[6,:])))
+
+plt.legend(loc='upper right', fontsize=12)
+plt.xlabel('Baseline Comparison Index')
+plt.ylabel('Mean Criterion')
+
+plt.savefig('/media/james/DATA/baseline_figures/results_cmeancrit.png')
+
+# plt.plot(cjltype1dat[0,:]+36, cjltype1dat[5,:], '.',  ms=15)
+# plt.plot(LG2dat[0,:]+81, LG2dat[5,:], '.',  ms=15)
+```
+
+```{python}
+import numpy as np
+
+from itertools import combinations, permutations
+import scipy.special
+
 testar = np.linspace(1,100,100, dtype=int)
 arsize = scipy.special.factorial(len(testar)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(testar) - 2))
 print(arsize, 100*99/2)
@@ -1036,6 +1224,214 @@ print(arsize, 400*(399)/2)
 """now all possible combinations"""
 print("tdcombs ", 2016*2015/2)
 print("tdcombs ", 79800*79799/2)
+```
+
+```{python}
+"""try the giuseppe method for parrallel"""
+```
+
+```{python}
+import multiprocessing
+from joblib import Parallel, delayed
+from tqdm import tqdm
+
+import time
+from timeit import default_timer as timer
+import numpy as np
+```
+
+```{python}
+#print("Number of processors: ", mp.cpu_count())
+num_cores=16
+
+array_input = np.linspace(1,1e6,1e6)
+inputs=tqdm(array_input)
+
+def squared(n):
+    #print(n**2)
+    return n**2
+```
+
+```{python}
+#you need to define the "array_input" on which your main function works: 
+#it can be also a simple index that goes from 1 to 64. Or it could be an array of pairs. Basically, it is the input of your main calculation.
+
+
+startm = timer()
+
+if __name__ == '__main__':
+        proces=Parallel(n_jobs=num_cores)(delayed(squared)(i) for i in inputs)
+        
+#print(proces)
+
+endm = timer()
+print("time taken", endm - startm, "s")
+```
+
+```{python}
+ls = []
+start = timer()
+for i in range(len(array_input)):
+    #print(i)
+    ls.append(squared(array_input[i]))
+end = timer()
+print("time taken", end - start, "s")
+#print(ls)
+```
+
+```{python}
+import time
+import numpy as np
+from joblib import Parallel, delayed
+
+def square_int(i):
+    return i * i
+
+def square_int_batch(a,b):
+    results=[]
+    for i in range(a,b):
+        results.append(square_int(i))
+    return results
+
+ndata = 1000000
+ti = time.time()
+results = []    
+for i in range(ndata):
+    results.append(square_int(i))
+
+# results = [square_int(i) for i in range(ndata)]
+
+duration = np.round(time.time() - ti,4)
+print(f"standard computation: {duration} s" )
+
+batch_num = 2
+batch_size=int(ndata/batch_num)
+
+for njobs in [1,4,16] :
+    ti = time.time()  
+    results = []
+    a = list(range(ndata))
+#     results = Parallel(n_jobs=njobs, )(delayed(square_int)(i) for i in range(ndata))
+#     results = Parallel(n_jobs=njobs, backend="multiprocessing")(delayed(
+    results = Parallel(n_jobs=njobs)(delayed(
+        square_int_batch)(i*batch_size,(i+1)*batch_size) for i in range(batch_num))
+    duration = np.round(time.time() - ti,4)
+    print(f"{njobs} jobs computation: {duration} s" )
+```
+
+```{python}
+"""test complex function"""
+"""do for baseline type 1"""
+def complex_plotter_writer(pair):
+
+        #print(i, pair) #btype[pair,1], btype[i,2])
+    buildar = pair
+    #print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3])
+#     print(buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3],
+#           btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+#           btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2])
+
+    fipair1 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1])]), 
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2])])]
+    fipair2 = [int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1])]),
+               int(FIhorns[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2])])]
+
+
+    x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat);
+    x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat);
+    p1i = p1i/max(p1i)
+    p2i = p2i/max(p2i)
+    #print(p1i.shape, p2i.shape)
+    diff = p1i - p2i
+    r2 = np.sqrt(sum(diff**2)/(len(diff)-1))
+    md = np.mean(diff[np.where(diff > 0.01)])
+
+    plt.figure(figsize=(12,10))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]))
+    plt.colorbar()
+    plt.subplot(2,2,4)
+    plt.scatter(x, y, c=diff,  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+    plt.title('Residual Difference')
+    plt.colorbar()
+
+    plt.subplot(2,2,3)
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),1]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 0], 
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,0]),2]), 1],
+             'D', color='xkcd:burnt orange', markersize=5, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),1]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 0],
+             centers[np.where(TDhornsFIconf == btype[int(buildar[i,1]),2]), 1],
+             'D', color='xkcd:sea green', markersize=5, alpha=1, mfc = None)
+
+    #plt.savefig('/media/james/DATA/baseline_figures/residuals/TYPE1/'+str(pair)+'TEST.png')
+
+    #file.write("{}, {}, {}, {}, {}".format(i, btype[int(buildar[i,0]),1], btype[int(buildar[i,0]),2], 
+               #btype[int(buildar[i,1]),1], btype[int(buildar[i,1]),2]) +', '+str(r2)+', '+str(md)+'\n')
+
+
+    print(buildar[i,0], buildar[i,1], btype[int(buildar[i,0]),1:3], btype[int(buildar[i,1]),1:3], 
+          "r2, ", r2)
+    #file.close()    
+    return
+    
+btype = np.loadtxt('/home/james/mylibs/multifrequency/baseline_files/baseline_type1.txt', 
+                   skiprows=1, delimiter=',', dtype=int)
+#print("baseline type 1 file shapes, ", btype.shape, btype[0,:])
+#print(btype)
+bi = np.linspace(0, len(btype[:,0])-1, len(btype[:,0]), dtype=int)
+#print(bi)
+comb = combinations(bi, 2)
+arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+#print("arsize", arsize)
+
+buildar = np.zeros([int(arsize), 2], dtype=int)
+
+
+#initialise file
+file = open("/home/james/mylibs/multifrequency/baseline_files/Residuals/baseline_type1_OUT_TEST.txt", "w")
+file.write("index, pair1, pair2, r2, mean>val"+'\n')
+
+for i, pair in enumerate(list(comb)): 
+    buildar[i] = pair
+    
+    
+print(buildar.shape) 
+
+import dill as pickle
+inputs=tqdm(np.array(ll))  
+print(comb, inputs)
+
+startm = timer()
+
+if __name__ == '__main__':
+        proces=Parallel(n_jobs=num_cores)(delayed(complex_plotter_writer)(i) for i in inputs)
+        
+#print(proces)
+
+endm = timer()
+print("time taken", endm - startm, "s")
+```
+
+```{python}
+for i in inputs:
+    print(buildar[i])
+```
+
+```{python}
+ll = list(combinations(bi, 2))
+print(ll, type(ll), type(np.array(ll)), np.array(ll).shape)
 ```
 
 ```{python}

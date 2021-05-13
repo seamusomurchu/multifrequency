@@ -547,7 +547,93 @@ plt.legend()
 ```{python}
 print(reps)
 #print(ints)
-print(labels)
+#print(labels)
+```
+
+```{python}
+#load the files in the rep 
+#load a sample file just to grab headers for later
+horn = 112
+
+data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+#cnt = 0
+#for horn in FIhorns:
+    
+print(myrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+file = myrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+data = pd.read_csv(file, sep='\t')
+print(data.shape)
+
+#add the relevant compnents to an array
+addrex = np.vstack((addrex, data['Rex']))
+addimx = np.vstack((addimx, data['Imx']))
+addrey = np.vstack((addrey, data['Rey']))
+addimy = np.vstack((addimy, data['Imy']))
+    
+    #cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+myit = itx[:] + ity[:]
+print("it shape: ", myit.shape, cnt)
+print("sum myit like a checksum of intensity power", sum(myit)/400*4*np.pi)
+```
+
+```{python}
+horn = 112
+ha = np.zeros([5, 58081])
+for i, rep in enumerate(reps):
+    print(rep)
+    ix, iy, ii = IntensityCalcRAW(rep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    ha[i,:] = ii
+    #print(ii.shape)
+```
+
+```{python}
+print(ha.shape)
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+aziA = np.zeros(194)
+ziA = np.zeros(194)
+
+# reps = np.array([mrep, qbrepDONNY, qbrepDAVE, myrep, qbrepDONNY2])
+
+# ints = np.array([myit, daveit, donnyit, gaussit, donnyit2])
+# ints = np.array([gaussit, donnyit, daveit, myit, donnyit2])
+#print(reps, ints.shape)
+
+for i, rep in enumerate(reps):
+    print(i, rep, reps[i])
+    azi, zi = AbberatedCut(ix, iy, ha[i,:], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    aziA = np.vstack((aziA, azi))
+    ziA = np.vstack((ziA, zi))
+    
+print(aziA.shape, ziA.shape)
 ```
 
 ```{python}
