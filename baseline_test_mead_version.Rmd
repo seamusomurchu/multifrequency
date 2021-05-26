@@ -1196,7 +1196,7 @@ plt.legend(loc='upper right', fontsize=12)
 plt.xlabel('Baseline Comparison Index')
 plt.ylabel('Mean Criterion')
 
-plt.savefig('/media/james/DATA/baseline_figures/results_cmeancrit.png')
+#plt.savefig('/media/james/DATA/baseline_figures/results_cmeancrit.png')
 
 # plt.plot(cjltype1dat[0,:]+36, cjltype1dat[5,:], '.',  ms=15)
 # plt.plot(LG2dat[0,:]+81, LG2dat[5,:], '.',  ms=15)

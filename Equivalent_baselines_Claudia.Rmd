@@ -23,6 +23,12 @@ Let's work in a square array of $N=n \times n$ horns (for example, $n=8$ horns i
 ```{python}
 import numpy as np
 import matplotlib.pyplot as plt
+import glob
+from itertools import combinations
+import scipy.special
+import qubic
+from CSFPA_dataIO import calculate_intensity_4_baseline, IntegrateHornCombOnFP
+
 ```
 
 ```{python}
@@ -321,7 +327,7 @@ for i in range(len(partitioned_baselines)):
         N_eq = len(partitioned_baselines[i][j])
 
         print(" Number of equivalent baselines for this particular baseline: ", N_eq)
-        print(" ")
+        #print(" Shape of equivalent baseline set", partitioned_baselines[i][j].shape)
         print(" ")
         
         N_unique += 1
@@ -335,6 +341,633 @@ print("Number of unique baselines: ", N_unique)
 
 ```{python active="", eval=FALSE}
 
+```
+
+```{python}
+"""for each one of claudias baseline types
+save for a file
+produce auxilliary file"""
+
+claudiasbaselinerep = "/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/"
+```
+
+```{python}
+fmt = '%d', '%d', '%1.4f', '%1.4f'
+
+N_unique = 0
+
+for i in range(len(partitioned_baselines)):
+
+    n_angles  = len(partitioned_baselines[i])
+    
+    for j in range(n_angles):
+
+        print(partitioned_baselines[i][j])
+         
+        print(" ")
+        
+        N_eq = len(partitioned_baselines[i][j])
+
+        print(" Number of equivalent baselines for this particular baseline: ", N_eq)
+        print(" Shape of equivalent baseline set", partitioned_baselines[i][j].shape)
+        print(" ")
+        
+        N_unique += 1
+        
+        index1_partitioned_baselines = partitioned_baselines[i][j][:,0:2] + 1
+        index2_partitioned_baselines = np.hstack((index1_partitioned_baselines, partitioned_baselines[i][j][:,2:4]))
+        print(index1_partitioned_baselines.shape, index2_partitioned_baselines)
+        file = open(claudiasbaselinerep+"CBtype_"+str(N_unique)+".txt", "w")
+        file.write("pairTDh1, pairTDh2, L2, angle"+'\n')
+        np.savetxt(file, index2_partitioned_baselines, delimiter=', ', fmt=fmt)
+        file.close()
+```
+
+```{python}
+cbfiles = glob.glob(claudiasbaselinerep+'*.txt')
+#print(len(cbfiles))
+
+for file in cbfiles:
+    print(file)
+    dat = np.loadtxt(file, delimiter=',', skiprows=1)
+    #print(len(dat.shape))
+    
+    if len(dat.shape) == 1:
+        print("break for baseline of 1")
+        continue
+    
+    bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+    arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+    #print("file, dat, bi, arsize, ", file, dat.shape, bi, arsize)
+    comb = np.array(list(combinations(bi, 2)))
+    #print(comb[0])
+    
+    for i in range(len(comb[:,0])):
+        print(i, comb[i], comb[i,0], comb[i,1], 
+              dat[comb[i,0], 0], dat[comb[i,0], 1], dat[comb[i,1], 0], dat[comb[i,1], 1])
+```
+
+```{python}
+"""above relates TD unique combinations
+now setup FI numeric conversion"""
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+
+centers = q.horn.center[:, 0:2]
+col = q.horn.column
+row = q.horn.row
+
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+```
+
+```{python}
+"""now convert TD to FI and check"""
+for file in cbfiles:
+    print(file)
+    dat = np.loadtxt(file, delimiter=',', skiprows=1)
+    #print(len(dat.shape))
+    
+    if len(dat.shape) == 1:
+        print("break for baseline of 1")
+        continue
+    
+    bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+    arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+    #print("file, dat, bi, arsize, ", file, dat.shape, bi, arsize)
+    comb = np.array(list(combinations(bi, 2)))
+    print(comb.shape)
+    
+    for i in range(len(comb[:,0])):
+        print(i, comb[i], comb[i,0], comb[i,1], 
+              dat[comb[i,0], 0], dat[comb[i,0], 1], dat[comb[i,1], 0], dat[comb[i,1], 1],
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])]))
+```
+
+```{python}
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#change to moddded dictionary
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+
+def RMSEtested(v1,v2):
+    return np.sqrt(np.mean((v1-v2)**2)), mean_squared_error(v1, v2, squared=False)
+
+def RMSE(v1,v2):
+    return np.sqrt(np.mean((v1-v2)**2))
+
+from sklearn.metrics import mean_squared_error
+#just to check...
+#MSE = mean_squared_error(y_actual, y_predicted, squared=False)
+ 
+#RMSE = math.sqrt(MSE)
+```
+
+```{python}
+"""now calc RMSE for each baseline in combination
+use in loop above"""
+my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+#also need vtxs
+
+def RMSEcalc(file):
+
+    #print(i)
+    x, y, i1 = calculate_intensity_4_baseline((120, 146), my150dat)
+    x, y, i2 = calculate_intensity_4_baseline((121, 147), my150dat)
+    
+    rmse = RMSE(i1,i2)
+    print(rmse)
+    #px, py, pi = IntegrateHornCombOnFP(i, np.array([x, y]), vtxs)
+    #print(x.shape, i.shape, px.shape, pi.shape)
+    return rmse
+```
+
+```{python}
+"""time to calc 1 horn pair as FP baseline and then integrat on dets = 37 seconds \n
+lets say 378 pair combs in baseline = 37 * 2 * 378 \n
+approx 8 hours
+for that baseline type
+
+I should probably try this parrallel function again...!
+"""
+```
+
+```{python}
+import multiprocessing
+from joblib import Parallel, delayed
+from tqdm import tqdm
+from timeit import default_timer as timer
+
+num_cores=16
+inputs=tqdm(cbfiles)
+```
+
+```{python}
+# startm = timer()
+
+# if __name__ == '__main__':
+#         process=Parallel(n_jobs=num_cores)(delayed(RMSEcalc)(file) for file in inputs)
+        
+# endm = timer()
+# print("time taken parrallel", endm - startm, "s")
+
+
+```
+
+```{python}
+#print(len(process), len(cbfiles))
+
+#cbfilesshort = cbfiles[:57]
+
+#print(cbfilesshort)
+
+import os
+import re
+
+
+cbfiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+print(cbfiles[95:108])
+
+cbfilesshort = cbfiles[103:108]
+
+# print(cbfilesshort[90:100])
+
+# file = open(claudiasbaselinerep+"RMSEs/"+"CBtypeRMSE_"+str(N_unique)+".txt", "w")
+# file.write("h1, h2, h3, h4, FPRMSE, pixRMSE"+'\n')
+# np.savetxt(file, index2_partitioned_baselines, delimiter=', ', fmt=fmt)
+# file.close()
+
+#16 files started approx 17:30 
+#for all combs, 2 fps, 2 pix calcs
+```
+
+```{python}
+import os
+#os.path.basename('/folderA/folderB/folderC/folderD')
+rmsepath = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/RMSEs/'
+rmseApath = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/RMSEs/analysisdata/'
+
+def RMSEcalc(file):
+    #load file
+    dat = np.loadtxt(file, delimiter=',', skiprows=1)
+    
+    if len(dat.shape) == 1:
+        print("break for baseline of 1")
+        return
+
+    bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+    comb = np.array(list(combinations(bi, 2)))
+    
+    #open a file here and file orginal file
+    fname = os.path.basename(file)  
+    sfile = open(rmsepath+'RMSE_'+fname, "w")
+    sfile.write("Orginal CB type file -> "+file+'\n')
+    sfile.write("tdh1, tdh2, tdh3, tdh4, h1, h2, h3, h4, rmse"+'\n')
+    
+    for i in range(len(comb[:,0])):
+        print(i, comb[i], comb[i,0], comb[i,1], 
+              dat[comb[i,0], 0], dat[comb[i,0], 1], dat[comb[i,1], 0], dat[comb[i,1], 1],
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])]),
+             int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])]))
+    
+    #print(i)
+        x, y, i1 = calculate_intensity_4_baseline((int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])]), int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])])), my150dat)
+        x, y, i2 = calculate_intensity_4_baseline((int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])]), int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])])), my150dat)
+        rmse1 = RMSE(i1/max(i1), i2/max(i2))
+#         px, py, pi1 = IntegrateHornCombOnFP(i1, np.array([x, y]), vtxs)
+#         px, py, pi2 = IntegrateHornCombOnFP(i2, np.array([x, y]), vtxs)
+#         rmse2 = RMSE(pi1, pi2)
+        sfile.write("{}, {}, {}, {}, {}, {}, {}, {}, {:.5e} \n".format(
+            int(dat[comb[i,0], 0]),
+            int(dat[comb[i,0], 1]),
+            int(dat[comb[i,1], 0]),
+            int(dat[comb[i,1], 1]),
+            int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])]),
+            int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])]),
+            int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])]),
+            int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])]),
+            rmse1))
+        
+    #close file here
+    sfile.close()
+    
+    return 
+
+
+```
+
+```{python}
+num_cores=16
+inputs=tqdm(cbfiles)
+
+startm = timer()
+
+if __name__ == '__main__':
+        process=Parallel(n_jobs=num_cores)(delayed(RMSEcalc)(file) for file in inputs)
+        
+endm = timer()
+print("time taken parrallel", endm - startm, "s")
+```
+
+```{python}
+"""95 - 108 10 seconds with no TES
+85 - 108 24 seconds with no TES
+85 - 108 with TES calc = 
+55 mins for all combs and files with no TES rmse calc
+"""
+```
+
+```{python}
+
+rmsepath = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/RMSEs/'
+jet= plt.get_cmap('jet')
+colors = iter(jet(np.linspace(0,10,11)))
+
+rmsefiles = glob.glob(rmsepath+'*.txt')
+rmsefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+#print(rmsefiles)
+
+typelist = np.array([])
+rmses = np.array([])
+rmsesm = np.array([])
+rmsesSTD = np.array([])
+ind = np.array([])
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+temp=0
+#106 since only one baseline for these types
+for i, file in enumerate(rmsefiles[0:106]):
+    
+    num = re.findall(r'\d+', file)
+    #print(file, num, i)
+    
+    dat = np.loadtxt(file, delimiter = ',', skiprows=2)
+    
+    temp = len(dat[:,8].shape) + temp
+    
+    index = index+temp
+        
+    nums = np.full(dat[:,8].shape, num)
+    
+    #print(dat.shape, i, dat[:,8].shape, nums.shape)
+    
+    
+    rmses = np.append(rmses, dat[:,8])
+    rmsesm = np.append(rmsesm, np.mean(dat[:,8]))
+    rmsesSTD = np.append(rmsesSTD, np.std(dat[:,8]))
+    typelist = np.append(typelist, nums)
+    ind = np.append(ind, index)
+
+    plt.plot(nums, dat[:,8], '.', markersize=10)
+
+plt.legend(loc='upper right', fontsize=12)
+plt.xlabel('Baseline Type')
+plt.ylabel('RMSE')
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all.png', facecolor='white')
+
+plt.figure(figsize=(16, 8))
+for i, file in enumerate(rmsefiles[0:106]):
+    plt.plot(i+1, rmsesm[i], 's', markersize=5)
+    
+plt.gca().set_prop_cycle(None)
+for i, file in enumerate(rmsefiles[0:106]):
+    plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
+    
+plt.xlabel('Baseline Type')
+plt.ylabel('Mean RMSE with Standard Deviation')
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_meanstd.png', facecolor='white')
+```
+
+```{python}
+print(len(typelist), len(rmses), len(ind))
+
+
+```
+
+```{python}
+from matplotlib.pyplot import cm
+import seaborn as sns
+color=iter(cm.rainbow(np.linspace(0,len(typelist),len(typelist))))
+colors = iter(plt.cm.Spectral(np.linspace(0,len(typelist),len(typelist))))
+#print(colors.shape)
+
+colors = sns.palplot(sns.color_palette("hls", len(typelist)))
+
+color=iter(cm.rainbow(np.linspace(0,1,len(typelist))))
+# for i in range(n):
+#    cn = next(color)
+#    plt.plot(x, y,c=c)
+
+
+plt.figure(figsize=(16, 8))
+
+plt.scatter(typelist, rmses, '.', color=colors)
+
+#for i in range(len(typelist)):
+    
+
+# # # #     plt.plot(typelist[i], rmses[i], '.', 
+# # # #              color=(0, typelist[i] / max(typelist), typelist[i] / max(typelist), typelist[i] / max(typelist)))
+#     plt.plot(typelist[i], rmses[i], color=c)
+
+#     if typelist[i] > typelist[i-1]:
+#         c=next(color)
+    
+```
+
+```{python}
+# startm = timer()
+# ls = []
+# for file in cbfiles:
+#     ls.append(RMSEcalc(file))
+
+# endm = timer()
+# print("time taken cpu loop", endm - startm, "s")
+```
+
+```{python}
+"""okay great so parrallel is faster this time!"""
+```
+
+```{python}
+# def RMSEcalc2(horns):
+#     #print(horns)
+
+#     #print(i)
+#     x, y, i1 = calculate_intensity_4_baseline((121, 147), my150dat)
+#     x, y, i2 = calculate_intensity_4_baseline((120, 146), my150dat)
+#     rmse = RMSE(i1,i2)
+#     print(rmse)
+#     #px, py, pi = IntegrateHornCombOnFP(i, np.array([x, y]), vtxs)
+#     #print(x.shape, i.shape, px.shape, pi.shape)
+#     return rmse
+```
+
+```{python}
+# """now try with file as main loop but combs as parrallel"""
+
+# """now convert TD to FI and check 50, 51 has a problem type 97"""
+# for file in cbfiles[0:1]:
+#     print(file)
+#     dat = np.loadtxt(file, delimiter=',', skiprows=1)
+#     #print(len(dat.shape))
+    
+#     if len(dat.shape) == 1:
+#         print("break for baseline of 1")
+#         continue
+    
+#     bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+#     arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+#     #print("file, dat, bi, arsize, ", file, dat.shape, bi, arsize)
+#     comb = np.array(list(combinations(bi, 2)))
+#     print(comb.shape)
+    
+#     h1 = []
+#     h2 = []
+#     h3 = []
+#     h4 = []
+    
+#     for i in range(len(comb[:,0])):
+    
+#         h1.append(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])])
+#         h2.append(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])])
+#         h3.append(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])])
+#         h4.append(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])])
+    
+#     ha = np.hstack([h1, h2, h3, h4])
+#     print(ha.shape)
+
+# #     num_cores = 16
+
+# #     if len(ha[:,0]) <= 16:
+# #         num_cores=1
+# #         continue
+#     inputs=tqdm(ha)
+    
+    
+#     if __name__ == '__main__':
+#         process=Parallel(n_jobs=num_cores)(delayed(RMSEcalc2)(i) for i in inputs)
+        
+#     #RMSE for these combinations
+#     RMSE = np.array(process)
+#     print("RMSE shape, ", RMSE.shape)
+    
+#     tosave = np.hstack([ha, RMSE])
+#     print("to save shape,  ", tosave.shape)
+```
+
+```{python}
+# #print(len(inputs))
+# print(ha.shape)
+```
+
+```{python}
+# for i in ha:
+#     print(i)
+```
+
+```{python}
+# inputs=tqdm(ha)
+
+# startm = timer()
+    
+# if __name__ == '__main__':
+#     proces=Parallel(n_jobs=num_cores)(delayed(RMSEcalc2)(i) for i in inputs)
+
+        
+# endm = timer()
+# print("time taken parrallel", endm - startm, "s")
+```
+
+```{python}
+# print(len(proces), proces)
+```
+
+```{python}
+"""time to loop over 378 horn combs a calc rmse residual approx 32 seconds"""
+```
+
+```{python}
+# inputs=tqdm(ha)
+```
+
+```{python}
+# print(inputs)
+```
+
+```{python}
+def RMSEcalc3(h1, h2, h3, h4):
+    #print(horns)
+
+    #print(i)
+    x, y, i1 = calculate_intensity_4_baseline((h1, h2), my150dat)
+    x, y, i2 = calculate_intensity_4_baseline((h3, h4), my150dat)
+    rmse1 = RMSE(i1, i2)
+    print(rmse)
+    px, py, pi1 = IntegrateHornCombOnFP(i, np.array([x, y]), vtxs)
+    px, py, pi2 = IntegrateHornCombOnFP(i, np.array([x, y]), vtxs)
+    rmse2 = RMSE(pi1, pi2)
+    #print(x.shape, i.shape, px.shape, pi.shape)
+    return rmse1, rmse2
+```
+
+```{python}
+def RMSEforHornCombs(file):
+    print(file)
+    #load file
+    dat = np.loadtxt(file, delimiter=',', skiprows=1)
+    #print(len(dat.shape))
+    
+    #check to make sure combination exists
+    if len(dat.shape) == 1:
+        print("break for baseline of 1")
+        return
+        
+    #create indexed combinations
+    bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+    #arsize = scipy.special.factorial(len(bi)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(bi) - 2))
+    #print("file, dat, bi, arsize, ", file, dat.shape, bi, arsize)
+    comb = np.array(list(combinations(bi, 2)))
+    print(comb.shape)
+    
+    h1 = np.array(len(comb[:,0]))
+    h2 = np.array(len(comb[:,0]))
+    h3 = np.array(len(comb[:,0]))
+    h4 = np.array(len(comb[:,0]))
+    #set TD horns in FI indexing
+    h1 = np.array(FIhorns[np.where(TDhornsFIconf == dat[int(comb[:,0]),0])])
+    h2 = FIhorns[np.where(TDhornsFIconf == dat[int(comb[:,0]),1])]
+    h3 = FIhorns[np.where(TDhornsFIconf == dat[int(comb[:,1]),0])]
+    h4 = FIhorns[np.where(TDhornsFIconf == dat[int(comb[:,1]),1])]
+    
+    #calculation RMSE for each horn combination
+    RMSE_FP = []
+    RMSE_dets = []
+    for i in range(len(comb[:,0])):
+    
+        rmse1, rmse2 = RMSEcalc3(h1[i], h2[i], h3[i], h4[i])
+        
+        RMSE_FP.append(rmse1)
+        RMSE_dets.append(rmse2)
+        
+    RMSE_FP = np.array(RMSE_FP)
+    RMSE_dets = np.array(RMSE_dets)
+    
+    savear = np.hstack([h1, h2, h3, h4, RMSE_FP, RMSE_dets])
+    print(savear.shape)
+    
+    #now save to file
+    
+    return
+```
+
+```{python}
+num_cores=16
+inputs=tqdm(cbfiles)
+
+startm = timer()
+
+if __name__ == '__main__':
+        process=Parallel(n_jobs=num_cores)(delayed(RMSEforHornCombs)(file) for file in inputs)
+        
+endm = timer()
+print("time taken parrallel", endm - startm, "s")
 ```
 
 ```{python}
