@@ -1,0 +1,1107 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+"""this uses the converted grasp files (.qb) and makes a plot using horn combiations
+the combinations are added in mag and phase, converted to intensity to get the patterns
+also integrates this on the bolometer areas"""
+```
+
+```{python}
+# from CSFPA_main import MainProg
+from CSFPA_dataIO import *
+# from CSFPA_plots import MultiFIntensityTESPlot
+import glob
+# import re
+# import os
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from qubicpack.utilities import Qubic_DataDir
+import qubic
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+```
+
+```{python}
+# tesdatrep = '/home/james/GRASPdata/DavesTabSourceFIModel/TESdat/'
+# pklrep = '/home/james/GRASPdata/DavesTabSourceFIModel/PKLfiles/'
+qbrep = '/home/james/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+files = sorted(glob.glob(qbrep+'*.qb'))
+print('read', len(files), 'files')
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+from itertools import combinations, permutations
+import scipy.special
+
+print(scipy.special.factorial(150))
+
+testar = np.linspace(1,100,100, dtype=int)
+#https://stackoverflow.com/questions/18859430/how-do-i-get-the-total-number-of-unique-pairs-of-a-set-in-the-database/18860862
+#arsize = scipy.special.factorial(len(FIhorns)) / ( scipy.special.factorial(2) * scipy.special.factorial(len(FIhorns) - 2))
+arsize = 400*(399)/2
+print(arsize, "expected number", type(arsize))
+# Get all combinations of [1, 2, 3] 
+# and length 2 
+buildar = np.zeros([int(arsize), 2])
+print(buildar.shape)
+
+comb = combinations(FIhorns, 2) 
+  
+# Print the obtained combinations 
+for i, pair in enumerate(list(comb)): 
+    print(i, pair)
+    buildar[i] = pair
+    
+print(buildar.shape, buildar[79799])
+```
+
+```{python}
+# """this cell essentially does the opposite of what i want"""
+# print(buildar.shape)
+# matchcount=0
+# for i, pair1 in enumerate(buildar):
+#     #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+#     for j, pair2 in enumerate(buildar):
+        
+#         if pair1[0] == pair2[0] and pair1[1] == pair2[1]:
+#             matchcount += 1
+#             print("pair match, skip", i, j, pair1, pair2)
+            
+# #         else:
+# #             pairs
+# print("matchcount", matchcount)
+
+
+
+# uniques = [list(zip(x,buildar)) for x in permutations(buildar,len(buildar))]
+# print(uniques.shape)
+```
+
+```{python}
+#from numba import jit, njit, prange
+
+#@jit(nopython=True)
+def QB_add_intensity_anyhorns(filepath, config='FI', baseline=None):
+    """take the rep with qb files, add intensity array for 400 horns return an array with intensity for 400 horns
+    this code could/should be generalised/I think its already somewhere in my libraries, think i even added
+    to qubicsoft already"""
+    if config == 'FI':
+        horns = np.linspace(1,400,400, dtype=u1)
+    elif config == 'TD':
+        tdrow1 = np.linspace(120, 127, 8, dtype=int)
+        tdrow2 = np.linspace(142, 149, 8, dtype=int)
+        tdrow3 = np.linspace(164, 171, 8, dtype=int)
+        tdrow4 = np.linspace(186, 193, 8, dtype=int)
+        tdrow5 = np.linspace(208, 215, 8, dtype=int)
+        tdrow6 = np.linspace(230, 237, 8, dtype=int)
+        tdrow7 = np.linspace(252, 259, 8, dtype=int)
+        tdrow8 = np.linspace(274, 281, 8, dtype=int)
+        horns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+    elif config == 'baseline':
+        horns = baseline
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    #data = pd.read_csv(filepath, sep='\t')
+    #print(data.shape)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in horns:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(int(horn))+'_150_GHz_Mstyle.qb', sep='\t')
+        #print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    #print(myit.shape, type(myit))
+    
+    return myit
+```
+
+```{python}
+"""do some ugly initialisation"""
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#change to moddded dictionary
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+    
+#use the focal plane positions loaded before
+data = pd.read_csv(files[0], sep='\t')
+xycoords = np.array([data['Xpos'], data['Ypos']])
+```
+
+```{python}
+subset = buildar[0:3]
+#subset.reshape(6,2)
+print(subset.shape, subset[:,0].shape)
+print(qbrep)
+#pairs = np.zeros([6, 4])
+#pairs=np.array([])
+pairs=[]
+#print(pairs.shape)
+
+matchcount=0
+for i, pair1 in enumerate(subset):
+    #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+    for j, pair2 in enumerate(subset):
+        
+        if (pair1[0] == pair2[0]) and (pair1[1] == pair2[1]):
+            matchcount += 1
+            #print("pair match, skip", i, j, pair1, pair2)
+        
+        else:
+            
+            #temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
+            #print("No match, keep pair", i, j, pair1, pair2, temp)
+            
+            for horn in pair1:
+                #file = qbrep+'FP_planar_grid_horn'+str(int(horn))+'_150_GHz_Mstyle.qb'
+                #print(file)
+                #calc intenisty for pair1
+                it1 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=pair1)
+                #intengrate pair1 on fp
+                PixCenX, PixCenY, bolspair1 = IntegrateHornCombOnFP(it1, xycoords, vtxs)
+                #print(file, it.shape)
+                
+            for horn in pair2:
+                #file = qbrep+'FP_planar_grid_horn'+str(int(horn))+'_150_GHz_Mstyle.qb'
+                #print(file)
+                #calc intenisty for pair1
+                it2 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=pair2)
+                #intengrate pair1 on fp
+                PixCenX, PixCenY, bolspair2 = IntegrateHornCombOnFP(it2, xycoords, vtxs)
+                print(pair1, pair2,sum(bolspair2-bolspair1), it2.shape, bolspair2.shape)
+                
+                
+#             plt.figure(figsize=(20,20))
+
+#             plt.subplot(1,3,1)
+
+#             plt.scatter(PixCenX, PixCenY, c=bolspair1, cmap='jet', marker='.')#, s=1)
+#             plt.axis([-60, 60, -60, 60])
+#             plt.axis('equal')
+
+#             plt.subplot(1,3,2)
+
+#             plt.scatter(PixCenX, PixCenY, c=bolspair2, cmap='jet', marker='.')#, s=1)
+#             plt.axis([-60, 60, -60, 60])
+#             plt.axis('equal')
+            
+#             plt.subplot(1,3,3)
+
+#             plt.scatter(PixCenX, PixCenY, c=bolspair2-bolspair1, cmap='jet', marker='.')#, s=1)
+#             plt.axis([-60, 60, -60, 60])
+#             plt.axis('equal')
+            
+            #pairdiff = bolspair2-bolspair1
+            pairs.append([pair1[0], pair1[1], pair2[0], pair2[1], sum(bolspair2-bolspair1)])
+            #pairs.append(sum(bolspair2-bolspair1))
+            
+            #print(pairs[i])
+# print("matchcount", matchcount)
+# print("pairs shape", pairs.shape)
+# print(temp.shape)
+# print(pairs)
+# print(pairs[0])
+# print(pairs.reshape(30,4))
+#print(len(pairs), np.array(pairs).reshape(30,4).shape)
+```
+
+```{python}
+from numba import prange
+"""tes multithread"""
+subset = buildar[0:6]
+#subset.reshape(6,2)
+print(subset.shape, subset[:,0].shape)
+print(qbrep)
+#pairs = np.zeros([6, 4])
+#pairs=np.array([])
+pairs=[]
+#print(pairs.shape)
+
+matchcount=0
+for i in prange(len(subset[:,0])):
+    #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+    
+    #calc intenisty for pair1
+    it1 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=[subset[i,0], subset[i,1]])
+    #intengrate pair1 on fp
+    PixCenX, PixCenY, bolspair1 = IntegrateHornCombOnFP(it1, xycoords, vtxs)
+    
+    for j in prange(len(subset[:,0])):
+        
+        if (subset[i,0] == subset[j,0]) and (subset[i,1] == subset[j,1]):
+            #matchcount += 1
+            print("pair match, skip",subset[i,0], subset[i,1], subset[j,0], subset[j,1])
+        
+        else:
+            print("CALC",subset[i,0], subset[i,1], subset[j,0], subset[j,1])
+            #calc intenisty for pair1
+            it2 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=[subset[j,0], subset[j,1]])
+            #intengrate pair1 on fp
+            PixCenX, PixCenY, bolspair2 = IntegrateHornCombOnFP(it2, xycoords, vtxs)
+            #print(pair1, pair2,sum(bolspair2-bolspair1), it2.shape, bolspair2.shape)
+                
+            pairs.append([subset[i,0], subset[i,1], subset[j,0], subset[j,1], sum(bolspair2-bolspair1)])
+
+#print(len(pairs), np.array(pairs).reshape(30,4).shape)
+```
+
+```{python}
+"""okay so previous algorithim was REALLY BAD"""
+subset = buildar[0:6]
+#subset.reshape(6,2)
+print(subset.shape, subset[:,0].shape)
+print(qbrep)
+#pairs = np.zeros([6, 4])
+#pairs=np.array([])
+pairs=[]
+#print(pairs.shape)
+
+matchcount=0
+for i, pair1 in enumerate(subset):
+    #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+    
+#     #calc intenisty for pair1
+#     it1 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=pair1)
+#     #intengrate pair1 on fp
+#     PixCenX, PixCenY, bolspair1 = IntegrateHornCombOnFP(it1, xycoords, vtxs)
+    
+    for j, pair2 in enumerate(subset):
+        
+        if (pair1[0] == pair2[0]) and (pair1[1] == pair2[1]):
+            #matchcount += 1
+            print("pair match, skip", i, j, pair1, pair2)
+        
+        else:
+            print("CALC", i,j,pair1,pair2)
+            #calc intenisty for pair1
+#             it2 = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=pair2)
+#             #intengrate pair1 on fp
+#             PixCenX, PixCenY, bolspair2 = IntegrateHornCombOnFP(it2, xycoords, vtxs)
+#             #print(pair1, pair2,sum(bolspair2-bolspair1), it2.shape, bolspair2.shape)
+                
+#             pairs.append([pair1[0], pair1[1], pair2[0], pair2[1], sum(bolspair2-bolspair1)])
+
+#print(len(pairs), np.array(pairs).reshape(30,4).shape)
+```
+
+```{python}
+print(len(pairs), np.array(pairs).reshape(2,5).shape)
+print(np.array(pairs).reshape(2,5))
+```
+
+```{python}
+plt.figure(figsize=(20,20))
+
+plt.subplot(1,3,1)
+
+plt.scatter(PixCenX, PixCenY, c=bolspair1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+
+plt.subplot(1,3,2)
+
+plt.scatter(PixCenX, PixCenY, c=bolspair2, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+
+plt.subplot(1,3,3)
+
+plt.scatter(PixCenX, PixCenY, c=bolspair2-bolspair1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+```
+
+```{python}
+# subset = buildar
+# #subset.reshape(6,2)
+# print(subset.shape, subset[:,0].shape)
+# #pairs = np.zeros([6, 4])
+# pairs=np.array([])
+# print(pairs.shape)
+
+# matchcount=0
+# for i, pair1 in enumerate(subset):
+#     #print(i, pair1, pair1.shape, pair1[0], pair1[1])
+#     for j, pair2 in enumerate(subset):
+        
+#         temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
+        
+#         if (pair1[0] == pair2[0]) and (pair1[1] == pair2[1]):
+#             matchcount += 1
+#             print("pair match, skip", i, j, pair1, pair2)
+        
+#         else:
+            
+#             temp = np.array([pair1[0], pair1[1], pair2[0], pair2[1]])
+#             print("No match, keep pair", i, j, pair1, pair2, temp)
+#             pairs = np.append(pairs, temp)
+#             #print(pairs[i])
+# print("matchcount", matchcount)
+# print("pairs shape", pairs.shape)
+# print(temp.shape)
+# print(pairs)
+# print(pairs[0])
+#print(pairs.reshape(30,4))
+```
+
+```{python}
+"""here i try another idea
+make a loop to save all the horn comb data for  buildar 80000"""
+
+bolarray = np.zeros((len(buildar[:,0]), 992))
+print(bolarray.shape)
+
+# basedir='/home/james/libraries/qubic/qubic'
+# #basedir = Qubic_DataDir(datafile='instrument.py', ) 
+# print('basedir : ', basedir)
+# dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+# d = qubic.qubicdict.qubicDict()
+# #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+# #change to moddded dictionary
+# d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+# d['config'] = 'FI'
+# q = qubic.QubicMultibandInstrument(d)
+
+# vtxs = q[0].detector.vertex
+# vtxcounter = np.zeros(992)
+# print("vertexes shape: ", vtxs.shape)
+
+
+# data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+# #use the focal plane positions loaded before
+# xycoords = np.array([data['Xpos'], data['Ypos']])
+
+for i, pair in enumerate(buildar):
+    
+    
+    it = QB_add_intensity_anyhorns(qbrep, config='baseline', baseline=pair)
+    #intengrate pair1 on fp
+    PixCenX, PixCenY, bolspair = IntegrateHornCombOnFP(it, xycoords, vtxs)
+
+    bolarray[i,:] = bolspair
+    
+    print(i, pair)
+    
+print(bolarray.shape)
+```
+
+```{python}
+"""add the relevant horns to be added eventually we could save every possible combination
+can choose, baseline, TD, FI"""
+#load the files in the rep 
+#load a sample file just to grab headers for later
+data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(data)
+
+addimx = np.zeros(len(data['Rex']))
+addrex = np.zeros(len(data['Rex']))
+addrey = np.zeros(len(data['Rex']))
+addimy = np.zeros(len(data['Rex']))
+
+#here we loop through the chosen config, baseline, load the 'qb' files
+#and add the instensities
+
+#baseline, TDhorns, FIhorns all interchangeable here
+cnt = 0
+for horn in baseline:
+    
+    print(qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+    file = qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+    data = pd.read_csv(file, sep='\t')
+    print(data.shape)
+    
+    #add the relevant compnents to an array
+    addrex = np.vstack((addrex, data['Rex']))
+    addimx = np.vstack((addimx, data['Imx']))
+    addrey = np.vstack((addrey, data['Rey']))
+    addimy = np.vstack((addimy, data['Imy']))
+    
+    cnt+=1
+    
+#add / flatten the array
+addrex = np.sum(addrex.T, axis=1, dtype=float)
+addimx = np.sum(addimx.T, axis=1, dtype=float)
+addrey = np.sum(addrey.T, axis=1, dtype=float)
+addimy = np.sum(addimy.T, axis=1, dtype=float)
+#convert to mag and phase... why didn't i just load the mag and phase...?
+MagX = np.sqrt(addrex**2 + addimx**2)
+PhaX = np.arctan2(addimx, addrex)
+MagY = np.sqrt(addrey**2 + addimy**2)
+PhaY = np.arctan2(addimy, addrey)
+#convert mag phase to intensity
+itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+it = itx[:] + ity[:]
+print("it shape: ", it.shape, cnt)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer"""
+plt.figure(figsize=(16,12))
+plt.suptitle('summing')
+plt.scatter(data['Xpos'], data['Ypos'], c=it, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("sample", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+plt.show()
+```
+
+```{python}
+"""must load vertex"""
+#NB i made a dict file set for FI to get all vertexes
+#should work with normal config file with TD, should return the 256 vtxs
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#change to moddded dictionary
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+    
+#use the focal plane positions loaded before
+xycoords = np.array([data['Xpos'], data['Ypos']])
+
+
+#this function does the integration    
+def IntegrateHornCombOnFP(it, xycoords, vtxs):
+    """Pass in focal plane data combined in mag and phase. e.g. intensity array of 58081
+    to integrate over bolometer area of 992 bolometers
+    xycoords is a 2,58081 array of x y points
+    pass in qubic vtxs array"""
+    
+    #bolometer arrays
+    intbol = np.array([])
+    bols= np.array([])
+    #pixel centers
+    PixCenX = np.array([])
+    PixCenY = np.array([])
+    
+    cnti = 0
+    cntj = 0
+    vtxcntarr = ([])
+    #count number of data points per pixel for analysis/normalisation
+    vtxcnt = 0  
+    for i in vtxs:
+        cnti = cnti + 1
+        cntj = 0
+        
+        for j in range(len(xycoords[0,:])):
+            #if f.endswith((".qb")):
+            #careful here about weird Y first thing from MODAL...
+            x = xycoords[0, j]
+            y = xycoords[1, j]
+            #else:                
+                #x = j[0]
+                #y = j[1]
+            x1 = i[0,0]
+            y1 = i[0,1]
+            x2 = i[2,0]
+            y2 = i[2,1]
+            
+            if x >= x2 and x <= x1 and y >= y1 and y <= y2:
+                #print(x,y, x1, y1, x2, y2)
+                #if the point is inside the bolometer area, add to array
+                intbol = np.append(intbol, it[cntj])
+                
+                vtxcnt = vtxcnt + 1
+                
+            cntj = cntj + 1
+            
+        #sum the values in bolometer area and append to the bolometer array
+        bols = np.append(bols, sum(intbol))
+        intbol = np.array([])
+        
+        #data points per pixel counter
+        vtxcntarr = np.append(vtxcntarr,vtxcnt)
+        vtxcnt = 0 
+        #Pixel centers as array
+        pixcenx = (x1 + x2) / 2        
+        pixceny = (y1 + y2) / 2
+        PixCenX = np.append(PixCenX,pixcenx)
+        PixCenY = np.append(PixCenY,pixceny)
+        
+    return PixCenX, PixCenY, bols
+
+PixCenX, PixCenY, bols = IntegrateHornCombOnFP(it, xycoords, vtxs)
+```
+
+```{python}
+plt.figure(figsize=(16,12))
+
+plt.scatter(PixCenX, PixCenY, c=bols, cmap='jet', marker='s', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+
+if cnt == 64:
+    plt.title("TD Configuration", fontsize=16)
+if cnt == 400:
+    plt.title("FI Configuration", fontsize=16)
+if cnt == 2:
+    plt.title('Baseline: '+str(baseline), fontsize=16)
+    
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (1 W per Horn)", shrink=0.9)
+
+plt.show()
+```
+
+```{python}
+print(cnt, len(baseline))
+```
+
+```{python}
+data.head()
+```
+
+```{python}
+"""Okay here i will test what are the equivelent baselines"""
+
+
+
+def calculate_intensity(baseline):
+    data = pd.read_csv(qbrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    #here we loop through the chosen config, baseline, load the 'qb' files
+    #and add the instensities
+
+    #baseline, TDhorns, FIhorns all interchangeable here
+    cnt = 0
+    for horn in baseline:
+
+        print(qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = qbrep+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    it = itx[:] + ity[:]
+    print("it shape: ", it.shape, cnt)
+    return it
+
+
+```
+
+```{python}
+TDindx = np.linspace(1,64, len(TDhorns))
+print(TDhorns)
+print(TDindx)
+#print(type(CBL1))
+```
+
+```{python}
+CBL1 = [int(TDindx[49-1]-1), int(TDindx[53-1]-1)]
+CBL2 = [int(TDindx[17-1]-1), int(TDindx[21-1]-1)]
+EBL1 = [int(TDindx[34-1]-1), int(TDindx[20-1]-1)]
+EBL2 = [int(TDindx[52-1]-1), int(TDindx[38-1]-1)]
+
+
+itcbl1 = calculate_intensity(TDhorns[CBL1])
+itcbl2 = calculate_intensity(TDhorns[CBL2])
+itebl1 = calculate_intensity(TDhorns[EBL1])
+itebl2 = calculate_intensity(TDhorns[EBL2])
+
+PixCenX1, PixCenY1, bolscbl1 = IntegrateHornCombOnFP(itcbl1, xycoords, vtxs)
+PixCenX2, PixCenY2, bolscbl2 = IntegrateHornCombOnFP(itcbl2, xycoords, vtxs)
+PixCenX3, PixCenY3, bolsebl1 = IntegrateHornCombOnFP(itebl1, xycoords, vtxs)
+PixCenX4, PixCenY4, bolsebl2 = IntegrateHornCombOnFP(itebl2, xycoords, vtxs)
+
+```
+
+```{python}
+print(itcbl1.shape)
+#normalise each to 1 for simplicity
+itcbl1 = itcbl1/max(itcbl1)
+itcbl2 = itcbl2/max(itcbl2)
+bolscbl1 = bolscbl1/max(bolscbl1)
+bolscbl2 = bolscbl2/max(bolscbl2)
+
+
+plt.figure(figsize=(20,20))
+
+plt.subplot(2,3,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(CBL1)+1, fontsize=10)
+#plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+#cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+#plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+#plt.show()
+
+plt.subplot(2,3,2)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl2, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(CBL2)+1, fontsize=10)
+#plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+#cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+#plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+plt.subplot(2,3,3)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl1 - itcbl2, cmap='PiYG', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.52, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+
+
+#integrated
+plt.subplot(2,3,4)
+plt.scatter(PixCenX1, PixCenY1, c=bolscbl1, cmap='jet', marker='s', s=20)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate Bols", fontsize=10)
+
+plt.subplot(2,3,5)
+plt.scatter(PixCenX2, PixCenY2, c=bolscbl2, cmap='jet', marker='s', s=20)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate Bols", fontsize=10)
+
+plt.subplot(2,3,6)
+
+plt.scatter(PixCenX1, PixCenY1, c=bolscbl1 - bolscbl2, cmap='PiYG', marker='s', s=20)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.09, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+
+# plt.figure(figsize=(16,12))
+
+
+# plt.scatter(PixCenX2, PixCenY2, c=bolscbl2, cmap='jet', marker='s', s=50)
+# plt.axis([-60, 60, -60, 60])
+# plt.axis('equal')
+# plt.title("integrate CBL2", fontsize=10)
+```
+
+```{python}
+itebl1 = itebl1/max(itebl1)
+itebl2 = itebl2/max(itebl2)
+bolsebl1 = bolsebl1/max(bolsebl1)
+bolsebl2 = bolsebl2/max(bolsebl2)
+
+
+plt.figure(figsize=(20,20))
+
+plt.subplot(2,3,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(EBL1)+1, fontsize=10)
+
+plt.subplot(2,3,2)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl2, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(EBL2)+1, fontsize=10)
+
+plt.subplot(2,3,3)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl1 - itebl2, cmap='PiYG', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.52, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+#integrated
+plt.subplot(2,3,4)
+plt.scatter(PixCenX3, PixCenY3, c=bolsebl1, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate CBL1", fontsize=10)
+
+plt.subplot(2,3,5)
+plt.scatter(PixCenX4, PixCenY4, c=bolsebl2, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate CBL2", fontsize=10)
+
+plt.subplot(2,3,6)
+
+plt.scatter(PixCenX4, PixCenY4, c=bolsebl1 - bolsebl2, cmap='PiYG', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.09, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+```
+
+```{python}
+TDindx = np.linspace(1,64, len(TDhorns))
+bl1 = [int(TDindx[1-1]-1), int(TDindx[57-1]-1)]
+bl2 = [int(TDindx[57-1]-1), int(TDindx[64-1]-1)]
+
+print(TDhorns)
+print(TDindx)
+print(TDhorns[bl2[0]-1], TDhorns[bl2[1]-1])
+#bl2 = [TDhorns[bl2[0]-1], TDhorns[bl2[1]-1]]
+itbl1 = calculate_intensity(TDhorns[bl1])
+itbl2 = calculate_intensity(TDhorns[bl2])
+
+
+PixCenX1, PixCenY1, bolitbl1 = IntegrateHornCombOnFP(itbl1, xycoords, vtxs)
+PixCenX2, PixCenY2, bolitbl2 = IntegrateHornCombOnFP(itbl2, xycoords, vtxs)
+```
+
+```{python}
+plt.figure(figsize=(20,20))
+
+plt.subplot(2,3,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itbl1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(bl1)+1, fontsize=10)
+#plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+#cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+#plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+#plt.show()
+
+plt.subplot(2,3,2)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itbl2, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(bl2)+1, fontsize=10)
+#plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+#cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+#plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+plt.subplot(2,3,3)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itbl2 - itbl1, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+#plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+#cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+#plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+
+
+#integrated
+plt.subplot(2,3,4)
+plt.scatter(PixCenX3, PixCenY3, c=bolitbl1, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate bl1", fontsize=10)
+
+plt.subplot(2,3,5)
+plt.scatter(PixCenX4, PixCenY4, c=bolitbl2, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("integrate bl2", fontsize=10)
+
+plt.subplot(2,3,6)
+
+plt.scatter(PixCenX4, PixCenY4, c=bolitbl2 - bolitbl1, cmap='PiYG', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.1, 0.04, 0.8])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+```
+
+```{python}
+
+
+print(TDhorns)
+print(TDindx)
+
+print(TDhorns[1])
+testbl = [1,57]
+print(TDhorns[testbl]-1)
+```
+
+```{python}
+CBL3 = [int(TDindx[2-1]-1), int(TDindx[6-1]-1)]
+CBL4 = [int(TDindx[10-1]-1), int(TDindx[14-1]-1)]
+EBL3 = [int(TDindx[9-1]-1), int(TDindx[2-1]-1)]
+EBL4 = [int(TDindx[63-1]-1), int(TDindx[56-1]-1)]
+
+
+
+itcbl3 = calculate_intensity(TDhorns[CBL3])
+itcbl4 = calculate_intensity(TDhorns[CBL4])
+itebl3 = calculate_intensity(TDhorns[EBL3])
+itebl4 = calculate_intensity(TDhorns[EBL4])
+
+PixCenX, PixCenY, bolscbl3 = IntegrateHornCombOnFP(itcbl3, xycoords, vtxs)
+PixCenX, PixCenY, bolscbl4 = IntegrateHornCombOnFP(itcbl4, xycoords, vtxs)
+PixCenX, PixCenY, bolsebl3 = IntegrateHornCombOnFP(itebl3, xycoords, vtxs)
+PixCenX, PixCenY, bolsebl4 = IntegrateHornCombOnFP(itebl4, xycoords, vtxs)
+```
+
+```{python}
+bl = [int(TDindx[63-1]-1), int(TDindx[56-1]-1)]
+print(EBL4, TDhorns[EBL4]-1, TDindx[63-1], TDindx[56-1], TDhorns[bl])
+```
+
+```{python}
+itcbl3 = itcbl3/max(itcbl3)
+itcbl4 = itcbl4/max(itcbl4)
+bolscbl3 = bolscbl3/max(bolscbl3)
+bolscbl4 = bolscbl4/max(bolscbl4)
+
+
+plt.figure(figsize=(20,20))
+
+plt.subplot(2,3,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl3, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(CBL3)+1, fontsize=10)
+
+plt.subplot(2,3,2)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl4, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(CBL4)+1, fontsize=10)
+
+plt.subplot(2,3,3)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itcbl3 - itcbl4, cmap='PiYG', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.52, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+#integrated
+plt.subplot(2,3,4)
+plt.scatter(PixCenX3, PixCenY3, c=bolscbl3, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+#plt.title("integrate CBL1", fontsize=10)
+
+plt.subplot(2,3,5)
+plt.scatter(PixCenX4, PixCenY4, c=bolscbl4, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+#plt.title("integrate CBL2", fontsize=10)
+
+plt.subplot(2,3,6)
+
+plt.scatter(PixCenX4, PixCenY4, c=bolscbl3 - bolscbl4, cmap='PiYG', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.09, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+```
+
+```{python}
+itebl3 = itebl3/max(itebl3)
+itebl4 = itebl4/max(itebl4)
+bolsebl3 = bolsebl3/max(bolsebl3)
+bolsebl4 = bolsebl4/max(bolsebl4)
+
+
+plt.figure(figsize=(20,20))
+
+plt.subplot(2,3,1)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl3, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(EBL3)+1, fontsize=10)
+
+plt.subplot(2,3,2)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl4, cmap='jet', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title(np.array(EBL4)+1, fontsize=10)
+
+plt.subplot(2,3,3)
+
+plt.scatter(data['Xpos'], data['Ypos'], c=itebl3 - itebl4, cmap='PiYG', marker='.')#, s=1)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.52, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+
+#integrated
+plt.subplot(2,3,4)
+plt.scatter(PixCenX3, PixCenY3, c=bolsebl3, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+#plt.title("integrate CBL1", fontsize=10)
+
+plt.subplot(2,3,5)
+plt.scatter(PixCenX4, PixCenY4, c=bolsebl4, cmap='jet', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+#plt.title("integrate CBL2", fontsize=10)
+
+plt.subplot(2,3,6)
+
+plt.scatter(PixCenX4, PixCenY4, c=bolsebl3 - bolsebl4, cmap='PiYG', marker='.', s=100)
+plt.axis([-60, 60, -60, 60])
+plt.axis('equal')
+plt.title("difference", fontsize=10)
+plt.subplots_adjust(bottom=0.1, right=0.8, top=0.9)
+cax = plt.axes([0.825, 0.09, 0.04, 0.39])
+plt.colorbar(cax=cax,label="Intensity (W)", shrink=0.9)
+```
+
+```{python}
+
+```
