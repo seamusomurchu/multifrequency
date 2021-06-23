@@ -437,7 +437,7 @@ plt.figure(figsize=(14,10))
 
 plt.subplot(2,2,1)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[4,:])
-plt.title('Amplitude (X)')
+plt.title('Amplitude (co-polar)')
 plt.colorbar(label='dB')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
@@ -446,8 +446,8 @@ plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,2)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[5,:])
-plt.title('Phase (X)')
-plt.colorbar(label='Hz')
+plt.title('Phase (co-polar)')
+plt.colorbar(label='rad')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
 plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
@@ -455,7 +455,7 @@ plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,3)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[6,:])
-plt.title('Amplitude (Y)')
+plt.title('Amplitude (cross-polar)')
 plt.colorbar(label='dB')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
@@ -464,8 +464,8 @@ plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 
 plt.subplot(2,2,4)
 plt.scatter(mysource[2,:], mysource[3,:], c=mysource[7,:])
-plt.title('Phase (Y)')
-plt.colorbar(label='Hz')
+plt.title('Phase (cross-polar)')
+plt.colorbar(label='rad')
 plt.xlabel('Aperture Field X (mm)')
 plt.ylabel('Aperture Field Y (mm)')
 plt.xlim(min(mysource[2,:]), max(mysource[2,:]))
@@ -476,7 +476,7 @@ plt.ylim(min(mysource[3,:]), max(mysource[3,:]))
 plt.tight_layout()
 #plt.axis('equal')
 #plt.savefig("/home/james/OneDrive/ThesisPlots/modalapfieldexample.png", bbox_inches='tight', facecolor='white')
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/modalapfieldexample2.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/modalapfieldexample3.png", bbox_inches='tight', facecolor='white')
 ```
 
 ```{python}
@@ -1726,11 +1726,13 @@ plt.plot(scat0deg[0,:], scat0deg[1,:], label=r'Scatter 0$\degree$ cut', linewidt
 plt.plot(modal0deg[0,:], modal0deg[1,:], label=r'MODAL 0$\degree$ cut', linewidth=3)
 plt.plot(mymodal0deg[0,:], mymodal0deg[1,:], label=r'MODAL 0$\degree$ cut (frequency model)', linewidth=3)
 
+plt.plot([10.8, 10.8], [-50, -30], '--', color='grey')
+
 plt.legend(loc='lower left')
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
-plt.title('Source Comparison 200 mm Spherical 0$\degree$ Cut')
+#plt.title('Source Comparison 200 mm Spherical 0$\degree$ Cut')
 plt.xlim(0,15)
 plt.ylim(-50, -31)
 
@@ -1745,7 +1747,7 @@ plt.legend(loc='lower left')
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
-plt.title('Source Comparison 200 mm Spherical 45$\degree$ Cut')
+#plt.title('Source Comparison 200 mm Spherical 45$\degree$ Cut')
 plt.xlim(0,15)
 plt.ylim(-50, -31)
 
@@ -1761,12 +1763,81 @@ plt.legend(loc='lower left')
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
-plt.title('Source Comparison 200 mm Spherical 90$\degree$ Cut')
+#plt.title('Source Comparison 200 mm Spherical 90$\degree$ Cut')
 plt.xlim(0,15)
 plt.ylim(-50, -31)
 
 plt.tight_layout()
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/spherical3x1ZOOM.png", bbox_inches='tight', facecolor='white')
+```
+
+```{python}
+print(gauscut[1,:], max(gauscut[1,:]), gauscut[1,:]+max(gauscut[1,:])*-1)
+```
+
+```{python}
+"""try this plot in a 3x1 arrangement"""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,18))
+
+plt.subplot(3,1,1 )
+
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:]+max(gauscut[1,:])*-1, label='Gaussian model', linewidth=3)
+#0deg
+plt.plot(scat0deg[0,:], scat0deg[1,:]+max(scat0deg[1,:])*-1, label=r'Scatter 0$\degree$ cut', linewidth=3)
+plt.plot(modal0deg[0,:], modal0deg[1,:]+max(modal0deg[1,:])*-1, label=r'MODAL 0$\degree$ cut', linewidth=3)
+plt.plot(mymodal0deg[0,:], mymodal0deg[1,:]+max(mymodal0deg[1,:])*-1, label=r'MODAL 0$\degree$ cut (frequency model)', linewidth=3)
+
+plt.plot([10.8, 10.8], [1, -20], '--', color='grey', lw=3, label='Focal Plane Limit')
+
+plt.legend(loc='lower left')
+plt.yticks(np.linspace(-10,-5, 11))
+plt.grid(True)
+plt.ylabel("Normalised Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+#plt.title('Source Comparison 200 mm Spherical 0$\degree$ Cut')
+plt.xlim(0,15)
+plt.ylim(-10, -5)
+
+plt.subplot(3,1,2)
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:]+max(gauscut[1,:])*-1, label='Gaussian model', linewidth=3)
+#45deg
+plt.plot(scat45deg[0,:], scat45deg[1,:]+max(scat45deg[1,:])*-1, label=r'Scatter 45$\degree$ cut', linewidth=3)
+plt.plot(modal45deg[0,:], modal45deg[1,:]+max(modal45deg[1,:])*-1, label=r'MODAL 45$\degree$ cut', linewidth=3)
+plt.plot(mymodal45deg[0,:], mymodal45deg[1,:]+max(mymodal45deg[1,:])*-1, label=r'MODAL 45$\degree$ cut (frequency model)', linewidth=3)
+plt.plot([10.8, 10.8], [1, -20], '--', color='grey', lw=3, label='Focal Plane Limit')
+plt.legend(loc='lower left')
+plt.grid(True, which='both')
+plt.ylabel("Normalised Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+#plt.title('Source Comparison 200 mm Spherical 45$\degree$ Cut')
+plt.xlim(0,15)
+plt.ylim(-20, 1)
+
+plt.subplot(3,1,3)
+#gaussian
+plt.plot(gauscut[0,:], gauscut[1,:]+max(gauscut[1,:])*-1, label='Gaussian model', linewidth=3)
+#ycuts
+#90deg
+plt.plot(scat90deg[0,:], scat90deg[1,:]+max(scat90deg[1,:])*-1, label=r'Scatter 90$\degree$ cut', linewidth=3)
+plt.plot(modal45deg[0,:], modal45deg[1,:]+max(modal45deg[1,:])*-1,label=r'MODAL 90$\degree$ cut', linewidth=3)
+plt.plot(mymodal90deg[0,:], mymodal90deg[1,:]+max(mymodal90deg[1,:])*-1, label=r'MODAL 90$\degree$ cut (frequency model)', linewidth=3)
+plt.plot([10.8, 10.8], [1, -20], '--', color='grey', lw=3, label='Focal Plane Limit')
+plt.legend(loc='lower left')
+plt.grid(True)
+plt.ylabel("Normalised Intenisty (dB)")
+plt.xlabel(r'Angle $\theta$ ($^\circ$)')
+#plt.title('Source Comparison 200 mm Spherical 90$\degree$ Cut')
+plt.xlim(0,15)
+plt.ylim(-20, 1)
+
+plt.tight_layout()
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/spherical3x1ZOOMv2.png", bbox_inches='tight', facecolor='white')
 ```
 
 ```{python}
