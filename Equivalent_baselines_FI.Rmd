@@ -89,6 +89,62 @@ plt.xlabel('Horn GRF X (m)')
 plt.show()
 ```
 
+```{python}
+"""thesis [plot]..."""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 22}
+
+plt.rc('font', **font)
+
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+
+centers = q.horn.center[:, 0:2]
+col = q.horn.column
+row = q.horn.row
+
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+# hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+
+# instTD = qubic.QubicInstrument(d)
+# instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+for i in range(len(centers)):
+    #if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+    #plt.text(centers[i,0]-0.005, centers[i,1], '{0:.1f}'.format(centers[i,0]*1000), color='r',fontsize=8)
+    #plt.text(centers[i,0]-0.005, centers[i,1]-0.004, '{0:.1f}'.format(centers[i,1]*1000), color='r',fontsize=8)
+    plt.text(centers[i,0]-0.005, centers[i,1]-0.002, '{0:}'.format(str(i+1)), color='g',fontsize=9)
+    #plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+    
+    if i+1 in [190,113]:
+        plt.plot(centers[i,0], centers[i,1], 'ro', markersize=20, alpha=0.5)
+
+    TDhornsFIconf[i] = cnt
+
+    cnt+=1
+#instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/hornlayout.png", bbox_inches='tight', facecolor='white')
+```
+
 ### Let's define the coordinates of the horns
 
 ```{python}

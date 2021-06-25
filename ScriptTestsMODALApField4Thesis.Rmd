@@ -1841,5 +1841,64 @@ plt.tight_layout()
 ```
 
 ```{python}
+"""redo this strange plot"""
+print(colors)
+
+plt.figure(figsize=(16,12))
+#keep blue for gaussian...
+plt.plot(aziGAUSS, zinGAUSS/max(zinGAUSS), label="Gaussian Cut 400 Beams", lw=4)
+#donny
+plt.plot(aziDONNY, zinDONNY/max(zinDONNY), ':', color='#ff7f0e', label="SCATTER Cut 400 Beams", lw=4)
+# #DAVE
+plt.plot(aziDAVE, zinDAVE/max(zinDAVE), color='#2ca02c', label="MODAL Cut 400 Beams", lw=3)
+#MINE
+plt.plot(azi, zin/max(zin), '-.', color='#d62728', label="MODAL (frequency model) Cut 400 Beams", lw=3)
+
+
+"""now plot single horn envelopes h113"""
+plt.plot(aziA[1], ziA[1]/max(ziA[1]), color='forestgreen', label="Gaussian Envelope Horn 113", lw=3)
+plt.plot(aziA[4], ziA[4]/max(ziA[4]), ':', color='mediumorchid', label="SCATTER Model Envelope Horn 113", lw=4)
+plt.plot(aziA[3], ziA[3]/max(ziA[3]), color='cornflowerblue', label="MODAL Model Envelope Horn 113", lw=3)
+plt.plot(aziA[2], ziA[2]/max(ziA[2]), '-.',  color='springgreen', label="Frequency Model Envelope Horn 113", lw=3)
+
+
+
+"""now plot single horn envelopes h190"""
+plt.plot(aziA[5], ziA[5]/max(ziA[5]), label="Gaussian Envelope Horn 190", lw=3)
+plt.plot(aziA[8], ziA[8]/max(ziA[8]), ':', label="SCATTER Model Envelope Horn 190", lw=3)
+plt.plot(aziA[7], ziA[7]/max(ziA[7]), label="MODAL Model Envelope Horn 190", lw=3)
+plt.plot(aziA[6], ziA[6]/max(ziA[6]), '-.', label="Frequency Model Envelope Horn 190", lw=3)
+
+
+
+# """now plot single horn envelopes h288"""
+# # plt.plot(aziA[9], ziA[9], label="Gaussian Envelope Horn h288", lw=2)
+# plt.plot(aziA[10], ziA[10], label="Freq Model Envelope Horn h288", lw=2)
+# # plt.plot(aziA[11], ziA[11], ':', label="MODAL Model Envelope Horn h288", lw=2)
+# # plt.plot(aziA[12], ziA[12], '-.', label="SCATTER Model Envelope Horn h288", lw=2)
+
+# """now plot single horn envelopes h36"""
+# # plt.plot(aziA[13], ziA[13], label="Gaussian Envelope Horn 36", lw=2)
+# plt.plot(aziA[14], ziA[14], label="Freq Model Envelope Horn 36", lw=2)
+# plt.plot(aziA[15], ziA[15], ':', label="MODAL Model Envelope Horn 36", lw=2)
+# plt.plot(aziA[16], ziA[16], '-.', label="SCATTER Model Envelope Horn 36", lw=2)
+
+# """now plot single horn envelopes 127"""
+# # plt.plot(aziA[17], ziA[17], label="Gaussian Envelope Horn 127", lw=2)
+# plt.plot(aziA[14], ziA[14], label="Freq Model Envelope Horn 127", lw=2)
+# plt.plot(aziA[15], ziA[15], ':', label="MODAL Model Envelope Horn 127", lw=2)
+# plt.plot(aziA[16], ziA[16], '-.', label="SCATTER Model Envelope Horn 127", lw=2)
+
+plt.legend(loc='upper left', fontsize=15)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.title('Single Horns and FI Horns')
+plt.grid(True)
+#plt.yscale('log')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/singlehornsFPv3.png", bbox_inches='tight', facecolor='white')
+print(max(ziA[7]), max(ziA[6]), max(ziA[7]) - max(ziA[6]))
+```
+
+```{python}
 
 ```
