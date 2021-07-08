@@ -30,7 +30,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 # %matplotlib inline
-# %matplotlib notebook
+# #%matplotlib notebook
 
 from matplotlib import rc
 rc('figure',figsize=(10,10))
@@ -280,7 +280,7 @@ q = qubic.QubicInstrument(d)
 open_horns=np.linspace(1,64,64, dtype=int)
 print(open_horns)
 q.horn.open = False
-q.horn.open[open_horns] = True
+#q.horn.open[open_horns] = True
 # q.horn.plot()
 
 # Compute the beam projected on the sky for a given TES
@@ -602,6 +602,14 @@ plt.plot(angles,result.best_fit, label='g')
 plt.plot(angles,result_2g.best_fit,label='2g')
 plt.plot(angles, central_data+idata,label='data')
 plt.legend()
+```
+
+```{python}
+
+```
+
+```{python}
+
 ```
 
 ```{python}

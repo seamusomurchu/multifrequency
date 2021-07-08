@@ -218,12 +218,12 @@ x0, y0 = 25, 247
 x1, y1 = 174, 125
 x2, y2 = 219, 50
 
-aziA = np.zeros((5, 194))
-ziA = np.zeros((5, 194))
+aziT = np.zeros((5, 194))
+ziT = np.zeros((5, 194))
 
 for i, rep in enumerate(outreps):
     print(i, rep, outreps[i])
-    aziA[i, :], ziA[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+    aziT[i, :], ziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
                                     x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
     
 #     aziA = np.vstack((aziA, azi))
@@ -255,7 +255,7 @@ markers = ['','-','--','-.', '', '-']
 
 for i, rep in enumerate(outreps):
     #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
     
 plt.legend(loc='upper left')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
@@ -267,7 +267,7 @@ plt.ylabel('Intensity (W)')
 plt.figure(figsize=(16,8))
 for i, rep in enumerate(outreps):
     #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), '', label=str(freqs[i])+' GHz', lw=3)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3)
     
 plt.legend(loc='upper left')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
@@ -278,7 +278,7 @@ plt.ylabel('Normalised Intensity (W)')
 plt.figure(figsize=(16,8))
 for i, rep in enumerate(outreps):
     #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
     
 plt.legend(loc='lower left')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
@@ -328,10 +328,12 @@ for i, rep in enumerate(outreps):
     plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[i, :]/max(freqint[i, :]), 
                 cmap='nipy_spectral')
     plt.colorbar(label='Normalised Intensity (W)')
-    plt.axis('equal')
+    #plt.axis('equal')
     plt.title('{} GHz'.format(freqs[i]))
     plt.xlabel('Focal Plane X (m)')
     plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(data['Xpos']), max(data['Xpos']))
+    plt.ylim(min(data['Ypos']), max(data['Ypos']))
 
 plt.subplot(3,2,6)
 plt.imshow(rgb_default, 
@@ -343,6 +345,7 @@ plt.title('RGB Composite')
 plt.tight_layout()
 
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgrids.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/fpgridsv2.png", bbox_inches='tight', facecolor='white')
 
 ```
 
@@ -506,7 +509,7 @@ azi, zi = AbberatedCut(deg2x, deg2y, daves[2,:]**2,
                        x0, y0, x1, y1, x2, y2, 301, 0.1, 0.5, False, False)
 
 plt.figure(figsize=(16,8))
-plt.plot(aziA[3,:], ziA[3,:]/max(ziA[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(aziT[3,:], ziT[3,:]/max(ziT[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
 plt.plot(azi, zi/max(zi), '', label='MODAL Synthetic 150 GHz', lw=3, alpha=0.2)
 plt.plot(azi+0.0125, zi/max(zi), '', label='MODAL Synthetic Peak Shift Match', lw=3)
 #+0.0125
@@ -652,7 +655,7 @@ plt.figure(figsize=(16,8))
 
 for i, rep in enumerate(outreps):
     #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
 
 plt.plot(azi, zi/max(zi), marker="v",ls='-', label='DAVE FI 150 GHz', lw=3)
 #plt.plot(aziT, ziT/max(ziT), marker="o",ls='--', label='My Shift Cut 150 GHz', lw=3)
@@ -668,7 +671,7 @@ plt.figure(figsize=(16,8))
 
 for i, rep in enumerate(outreps):
     #print(rep)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
     
 #plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), marker="^", ls='--', label='GRASP PSF 150 GHz', lw=3)
 plt.plot(azi, zi/max(zi), marker="v",ls='-', label='DAVE FI 150 GHz', lw=3)
@@ -686,24 +689,28 @@ plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
 ```
 
 ```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
 plt.figure(figsize=(16,8))
 #plt.subplot(2,1,1)
-plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5)
-plt.vlines(max(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5, label='MODAL Data Radius')
-
-plt.plot(azi, zi/max(zi),ls='-', color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
-plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), '', color='xkcd:bluish green', 
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, linestyles='--', colors='k', lw=3, alpha=0.5)
+plt.vlines(max(dx)/1000, ymin=0, ymax=1, linestyles='--', colors='k', lw=3, alpha=0.5, label='MODAL Data Radius')
+#plt.plot([min(dx)/1000, min(dx)/1000], [0, 1], '--', color='grey', lw=3, label='Focal Plane Limit')
+plt.plot(azi, zi/max(zi),ls='-', color='xkcd:orange red', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), '', color='xkcd:bluish green', 
          label='GRASP FI 150 GHz', lw=3)
 
 plt.legend(loc='upper right')
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Normalised Intensity (W)')
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/150validation.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/150validationv2.png", bbox_inches='tight', facecolor='white')
 
 plt.figure(figsize=(16,8))
 plt.plot(azi, zi/max(zi), marker='x', ls='-', mew=2.5,
-         color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
-plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), marker='x', ls='-', mew=2.5,
+         color='xkcd:orange red', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
          color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
 
 plt.legend(loc='upper right')
@@ -713,7 +720,7 @@ plt.minorticks_on()
 plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Normalised Intensity (W)')
-#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/150validationzoom.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/150validationzoomv2.png", bbox_inches='tight', facecolor='white')
 
 ```
 
@@ -1222,7 +1229,7 @@ plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5)
 plt.vlines(max(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5, label='MODAL Data Radius')
 
 plt.plot(azi, zi/max(zi),ls='-', color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
-plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), '', color='xkcd:bluish green', 
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), '', color='xkcd:bluish green', 
          label='GRASP FI 150 GHz', lw=3)
 plt.plot(aziX, ziX/max(ziX), '', color='xkcd:terracotta', 
          label='GRASP FI 150 GHz X only', lw=3)
@@ -1237,7 +1244,7 @@ plt.ylabel('Normalised Intensity (W)')
 plt.figure(figsize=(16,8))
 plt.plot(azi, zi/max(zi), marker='x', ls='-', mew=2.5,
          color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
-plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), marker='x', ls='-', mew=2.5,
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
          color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
 
 plt.legend(loc='upper right')
@@ -1248,6 +1255,82 @@ plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
 plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Normalised Intensity (W)')
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/150validationzoom.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+horn = 190
+horn2 = 113
+freps = ['/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+        '/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb']
+
+aziA = np.zeros([10, 220])
+ziA = np.zeros([10, 220])
+
+for i, f in enumerate(freps):
+    
+    #data = pd.read_csv(f, sep='\t')
+    print(f, data.shape)
+    dat = pd.read_csv(f, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(f)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    #print(azi, zi)
+    
+#     aziA = np.vstack((aziA, azi))
+#     ziA = np.vstack((ziA, zi))
+    aziA[i,:] = azi
+    ziA[i,:] = zi
+    
+print(aziA.shape, ziA.shape)
+# data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+# freqs = ['130', '140', '150', '160', '170']
+
+# freqint = np.zeros([len(outreps), len(data['Rex'])])
+
+# for i, rep in enumerate(outreps):
+#     print(i, rep, freqs[i])
+#     #test = QB_add_intensity_400horns(rep)
+#     freqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
+```
+
+```{python}
+# %matplotlib inline
+freqs = ['130', '140', '150', '160', '170', '130', '140', '150', '160', '170']
+# print(azi.shape, zi.shape)
+# print(aziA[0,:], ziA[0,:])
+#plt.plot(aziA[0,:], ziA[0,:])
+
+plt.figure(figsize=(16,12))
+#plt.plot(aziA[0,:], ziA[0,:], 'r.')
+#plt.plot(aziA[1,:], ziA[1,:], 'b')
+for i, f in enumerate(freqs):
+    
+    plt.plot(aziA[i,:], ziA[i,:]/ max(ziA[i,:]), label='{}'.format(freqs[i]))
+    print(i, f)
+    
+plt.legend(loc='upper left')
+
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
+         color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
+```
+
+```{python}
+
+```
+
+```{python}
 
 ```
 

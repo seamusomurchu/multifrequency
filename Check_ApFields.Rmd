@@ -268,38 +268,55 @@ plt.figure(figsize=(16,18))
 plt.subplot(3,1,1 )
 for i, file in enumerate(files0):
     plt.plot(test[0,:], deg0dat[i,:], linewidth=3, label=freqs[i])
+plt.plot([10.8, 10.8], [-21, -55], '--', color='grey', lw=3, label='Focal Plane Limit')
 plt.xlim(0,12)
 plt.ylim(-45, -31)
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
 plt.title('200 mm Frequency Cuts at 0$\degree$ (Zoom)')
-plt.legend(loc='upper right')
+plt.legend(loc='lower left')
 
 plt.subplot(3,1,2)
 for i, file in enumerate(files0):
     plt.plot(test[0,:], deg45dat[i,:], linewidth=3, label=freqs[i])
+plt.plot([10.8, 10.8], [-21, -55], '--', color='grey', lw=3, label='Focal Plane Limit')
 plt.xlim(0,12)
 plt.ylim(-45, -31)
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
 plt.title('200 mm Frequency Cuts at 45$\degree$ (Zoom)')
-plt.legend(loc='upper right')
+plt.legend(loc='lower left')
 
 plt.subplot(3,1,3)
 for i, file in enumerate(files0):
     plt.plot(test[0,:], deg90dat[i,:], linewidth=3, label=freqs[i])
+plt.plot([10.8, 10.8], [-21, -55], '--', color='grey', lw=3, label='Focal Plane Limit')
 plt.xlim(0,12)
 plt.ylim(-45, -31)
 plt.grid(True)
 plt.ylabel("Intenisty (dB)")
 plt.xlabel(r'Angle $\theta$ ($^\circ$)')
 plt.title('200 mm Frequency Cuts at 90$\degree$ (Zoom)')
-plt.legend(loc='upper right')
+plt.legend(loc='lower left')
 
 plt.tight_layout()
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/farfieldfreqcutszoom.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/farfieldfreqcutszoomv2.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
 ```
 
 ```{python}

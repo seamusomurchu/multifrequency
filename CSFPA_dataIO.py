@@ -588,6 +588,7 @@ def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_
     peaks, _ = find_peaks(zi, prominence=prom)
     results_half = peak_widths(zi, peaks, rel_height=rel_height)
 
+    degpt = (max(azi) - min(azi)) / len(azi)
 
     plt.figure(figsize=(16,8))
     plt.plot(azi, zi, label="Cut", lw=4)
@@ -599,7 +600,7 @@ def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_
     if rpeaks == True:
         plt.plot(azi[peaks], zi[peaks], "x", label="Peaks", mew=5, ms=10)
         plt.plot(azi[peaks], results_half[1], '_', mew=5, ms=10, 
-             label="fwhm label {:3.3}".format(results_half[0][1]*gridlength/meshsize))
+             label="fwhm label {:3.3}".format(results_half[0][1]*degpt))
         plt.plot(azi[peaks], zi[peaks], "x", mew=5, ms=10,
              label="Peak Sep {:3.3}, {:3.3}".
                  format(azi[peaks][1]-azi[peaks][0], azi[peaks][1]-azi[peaks][2]))

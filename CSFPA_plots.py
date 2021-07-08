@@ -885,7 +885,7 @@ def beamsplotter(qdatpath, mdatpath, horn):
 
     return
 
-def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, centers, virtual_diff=False):
+def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD, tdpair1, tdpair2, centers, virtual_diff=False):
     """elaborate baseline comparison plot
     use show_baseline_types script to use this function"""
     
@@ -920,7 +920,7 @@ def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, tdpair1, tdpair2, cent
     plt.xlim(min(x), max(x))
     plt.ylim(min(y), max(y))
     plt.subplot(2,2,3)
-    instTD.horn.plot()
+    instTD.plot()
     plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
              'o', color='xkcd:burnt orange', markersize=7, mfc = None)
     plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],

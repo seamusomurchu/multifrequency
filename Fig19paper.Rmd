@@ -1,0 +1,306 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+from CSFPA_dataIO import calculate_intensity_4_baseline
+from CSFPA_plots import baseline_plotter
+import numpy as np
+import matplotlib.pyplot as plt
+import glob
+import qubic
+```
+
+```{python}
+"""i beleive this link has the optical data... -> https://maynoothuniversity-my.sharepoint.com/:u:/g/personal/james_murphy_2018_mumail_ie/EWFWx6YTco5ChvdzA1-MWesBTpRqsv30ttpKVwOlI8Ue1w?e=ICYVum"""
+```
+
+```{python}
+def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD, tdpair1, tdpair2, centers, virtual_diff=False):
+    """elaborate baseline comparison plot
+    use show_baseline_types script to use this function"""
+    
+    plt.figure(figsize=(10,8))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(int(tdpair1[0]), int(tdpair1[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(int(tdpair2[0]), int(tdpair2[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,4)
+    
+    if virtual_diff is True:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+    if virtual_diff is False:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        
+    plt.title('Residual Difference')
+    plt.colorbar(label='Normalised Intensity Difference (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,3)
+    instTD.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
+
+    plt.tight_layout()
+    
+def simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers):
+    """elaborate baseline comparison plot
+    requires you have qubic inst loaded e.g.
+    instFI = qubic.QubicInstrument(d)
+    hornsFI = instFI.horn.open
+    hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+    ### Now create First Instrument and TD monochromatic
+    instTD = qubic.QubicInstrument(d)
+    instTD.horn.open[~hornsTD] = False"""
+    import qubic
+    d = qubic.qubicdict.qubicDict()
+    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+    d['config'] = 'FI'
+    q = qubic.QubicInstrument(d)
+    centers = q.horn.center[:, 0:2]
+    col = q.horn.column
+    row = q.horn.row
+    instFI = qubic.QubicInstrument(d)
+    hornsFI = instFI.horn.open
+    hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+    instTD = qubic.QubicInstrument(d)
+    instTD.horn.open[~hornsTD] = False
+    
+    plt.figure(figsize=(14,14))
+
+    instTD.horn.plot()
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[0]), 0], centers[np.where(TDhornsFIconf == tdpair1[0]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair1[1]), 0], centers[np.where(TDhornsFIconf == tdpair1[1]), 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[0]), 0], centers[np.where(TDhornsFIconf == tdpair2[0]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[np.where(TDhornsFIconf == tdpair2[1]), 0], centers[np.where(TDhornsFIconf == tdpair2[1]), 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
+
+    plt.tight_layout()
+    
+def calculate_intensity_4_baseline(baseline, datadir):
+    
+    #initial load to setup arrays, could be improved!
+    data = pd.read_csv(datadir+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    #here we loop through the chosen config, baseline, load the 'qb' files
+    #and add the instensities
+
+    #baseline, TDhorns, FIhorns all interchangeable here
+    cnt = 0
+    for horn in baseline:
+
+        #print(datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = datadir+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        #print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    it = itx[:] + ity[:]
+    #print("it shape: ", it.shape, cnt)
+    return data['Xpos'], data['Ypos'], it
+```
+
+```{python}
+x, y, i1 = calculate_intensity_4_baseline([60,64], '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/')
+x, y, i2 = calculate_intensity_4_baseline([1,5], '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/')
+```
+
+```{python}
+plt.scatter(x, y, c=i1)
+```
+
+```{python}
+qbrep = '/media/james/DATA/GRASPdata/DavesTabSourceFIModel/MODALfiles/'
+my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+files = sorted(glob.glob(my150dat+'*.qb'))
+print('read', len(files), 'files')
+```
+
+```{python}
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+
+centers = q.horn.center[:, 0:2]
+col = q.horn.column
+row = q.horn.row
+
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+```
+
+```{python}
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+```
+
+```{python}
+tdpair1 = [60,64]
+tdpair2 = [1, 5]
+
+# tdpair1 = [1,57]
+# tdpair2 = [57, 64]
+
+fipair1 = [int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])])]
+fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
+
+print(tdpair1, fipair1)
+
+x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
+#print(p1i.shape, p2i.shape)
+p1i = p1i/max(p1i)
+p2i = p2i/max(p2i)
+diff = p1i-p2i
+
+# # %matplotlib notebook
+# # %matplotlib notebook
+
+xr = x*np.cos(np.pi/2) + y*np.sin(np.pi/2)
+yr = y*np.cos(np.pi/2) - x*np.sin(np.pi/2)
+    
+    
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 12}
+plt.rc('font', **font)
+
+
+baseline_plotter(xr, yr, p1i, p2i, diff, TDhornsFIconf, instTD.horn,  tdpair1, tdpair2, centers, virtual_diff=False)
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```

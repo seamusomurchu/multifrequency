@@ -486,34 +486,70 @@ plt.legend()
 plt.title('Box 2')
 plt.tight_layout()
 plt.grid('True')
-plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/basicnormv2.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/basicnormv2.png", bbox_inches='tight', facecolor='white')
 print(max(ziA[1,:]), max(ziA[2,:]), max(ziA[1,:])- max(ziA[3,:]))
 ```
 
 ```{python}
-"""try with norm"""
+
+```
+
+```{python}
+"""try with norm, this is now version 3..."""
 plt.figure(figsize=(16,8))
 
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(i)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), linestyle=markers[i], label=labels[i])
-plt.legend()    
+    plt.plot(aziA[i+1,:], ziA[i+1,:]/max(ziA[i+1,:]), lw=3, linestyle=markers[i], label=labels[i])
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.legend()
+#box1
+plt.plot([-0.06, -0.04],[0, 0], 'k', markersize=5)
+plt.plot([-0.06, -0.04],[0.2, 0.2], 'k', markersize=5)
+plt.plot([-0.06, -0.06],[0, 0.2], 'k', markersize=5)
+plt.plot([-0.04, -0.04],[0, 0.2], 'k', markersize=5)
+#box2
+plt.plot([0, 0.01],[0.8, 0.8], 'k', markersize=5)
+plt.plot([0, 0.01],[1.02, 1.02], 'k', markersize=5)
+plt.plot([0, 0],[0.8, 1.02], 'k', markersize=5)
+plt.plot([0.01, 0.01],[0.8, 1.02], 'k', markersize=5)
+# #text
+plt.text(-0.04, 0.2, r'Secondary Peak', fontdict=font)
+plt.text(0.0105, 1, r'Main Peak', fontdict=font)
+# plt.title('Aperture Field Models on Focal Plane - Normalisation')
+plt.tight_layout()
+plt.grid('True')
+plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/basicnormv3fp.png", bbox_inches='tight', facecolor='white')
+
 #plt.yscale('log')
 plt.figure(figsize=(16,8))
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(i)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), linestyle=markers[i], label=labels[i])
+    plt.plot(aziA[i+1,:], ziA[i+1,:]/max(ziA[i+1,:]), lw=3, linestyle=markers[i], label=labels[i])
 plt.ylim([0, 0.2])
 plt.xlim([-0.06, -0.04])
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+plt.tight_layout()
+#plt.yticks(np.linspace(0,0.1,21))
+plt.grid('True')
 plt.legend()
+plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/basicnormv3secondary.png", bbox_inches='tight', facecolor='white')
 
 plt.figure(figsize=(16,8))
-for i, rep in enumerate(reps):
+for i, rep in enumerate(reps[0:4]):
     #print(i)
-    plt.plot(aziA[i,:], ziA[i,:]/max(ziA[i,:]), linestyle=markers[i], label=labels[i])
-plt.ylim([0.8, 1])
+    plt.plot(aziA[i+1,:], ziA[i+1,:]/max(ziA[i+1,:]), lw=3, linestyle=markers[i], label=labels[i])
+plt.ylim([0.8, 1.02])
 plt.xlim([0, 0.01])
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
 plt.legend()
+plt.tight_layout()
+plt.grid('True')
+plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/basicnormv3center.png", bbox_inches='tight', facecolor='white')
+
 ```
 
 ```{python}
