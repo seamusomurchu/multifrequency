@@ -16,6 +16,7 @@ jupyter:
 from CSFPA_dataIO import calculate_intensity_4_baseline
 from CSFPA_plots import baseline_plotter
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import glob
 import qubic
@@ -280,8 +281,8 @@ diff = p1i-p2i
 # # %matplotlib notebook
 # # %matplotlib notebook
 
-xr = x*np.cos(np.pi/2) + y*np.sin(np.pi/2)
-yr = y*np.cos(np.pi/2) - x*np.sin(np.pi/2)
+xr = x*np.cos(np.pi) + y*np.sin(np.pi)
+yr = y*np.cos(np.pi) - x*np.sin(np.pi)
     
     
 font = {'family' : 'normal',
