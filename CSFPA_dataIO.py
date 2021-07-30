@@ -702,3 +702,65 @@ def calculate_intensity_4_baseline(baseline, datadir):
     it = itx[:] + ity[:]
     #print("it shape: ", it.shape, cnt)
     return data['Xpos'], data['Ypos'], it
+
+def QB_add_intensity_anyhorns(filepath, config='FI', baseline=None):
+    """take the rep with qb files, add intensity array for 400 horns return an array with intensity for 400 horns
+    this code could/should be generalised/I think its already somewhere in my libraries, think i even added
+    to qubicsoft already"""
+    if config == 'FI':
+        horns = np.linspace(1,400,400, dtype=int)
+    elif config == 'TD':
+        tdrow1 = np.linspace(120, 127, 8, dtype=int)
+        tdrow2 = np.linspace(142, 149, 8, dtype=int)
+        tdrow3 = np.linspace(164, 171, 8, dtype=int)
+        tdrow4 = np.linspace(186, 193, 8, dtype=int)
+        tdrow5 = np.linspace(208, 215, 8, dtype=int)
+        tdrow6 = np.linspace(230, 237, 8, dtype=int)
+        tdrow7 = np.linspace(252, 259, 8, dtype=int)
+        tdrow8 = np.linspace(274, 281, 8, dtype=int)
+        horns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+    elif config == 'baseline':
+        horns = baseline
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    #data = pd.read_csv(filepath, sep='\t')
+    #print(data.shape)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in horns:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(int(horn))+'_150_GHz_Mstyle.qb', sep='\t')
+        #print(data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    #print(myit.shape, type(myit))
+    
+    return myit

@@ -13,7 +13,7 @@ jupyter:
 ---
 
 ```{python}
-from CSFPA_dataIO import calculate_intensity_4_baseline
+from CSFPA_dataIO import *
 from CSFPA_plots import baseline_plotter
 import numpy as np
 import pandas as pd
@@ -295,11 +295,286 @@ baseline_plotter(xr, yr, p1i, p2i, diff, TDhornsFIconf, instTD.horn,  tdpair1, t
 ```
 
 ```{python}
+"""from here do the thesis plots"""
 
 ```
 
 ```{python}
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
 
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+h190 = (col == 12) & (row == 11)
+h193 = (col == 15) & (row == 11)
+h200 = (col == 22) & (row == 11)
+h387 = (col == 12) & (row == 21)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[:] = False
+instTD.horn.open[h190] = True
+instTD.horn.open[h193] = True
+instTD.horn.open[h200] = True
+instTD.horn.open[h387] = True
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+
+for i in range(len(centers)):
+    plt.text(centers[i,0]-0.005, centers[i,1]-0.004, '{0:}'.format(str(i+1)), color='g',fontsize=8)
+    plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+    plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+#     if hornsTD[i] == True:
+#         plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+#         plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+#         plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        #plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+#         TDhornsFIconf[i] = cnt
+        
+#         cnt+=1
+instTD.horn.plot()    
+
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+```
+
+```{python}
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+#instTD = qubic.QubicInstrument(d)
+#instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(14,14))
+q.horn.plot()
+for i in range(len(centers)):
+    plt.text(centers[i,0]-0.005, centers[i,1]-0.004, '{0:}'.format(str(i+1)), color='g',fontsize=12)
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        #plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], '{0:}'.format(str(cnt)), color='r',fontsize=12)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+    
+instFI.horn.plot()
+plt.ylabel('Horns in GRF Y (m)')
+plt.xlabel('Horns in GRF X (m)')
+
+plt.show()
+
+```
+
+```{python}
+horn = 190
+print(my150dat+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+sfile = my150dat+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+
+fi = QB_add_intensity_anyhorns(my150dat)
+```
+
+```{python}
+tdi = QB_add_intensity_anyhorns(my150dat, config='TD')
+```
+
+```{python}
+plt.figure(figsize=(10,8))
+plt.scatter(xdat, ydat, c=fi/max(fi))
+plt.figure(figsize=(10,8))
+plt.scatter(xdat, ydat, c=tdi/max(tdi))
+```
+
+```{python}
+#set up first row
+horn = 190
+sfile = my150dat+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+shx, shy, shi = IntensityCalcRAW(sfile)
+data = np.loadtxt(sfile, skiprows=1)
+xdat = data[:,2]
+ydat = data[:,3]
+
+#setup 2nd row
+horn2 = 193
+file2 = my150dat+'FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb'
+#shx, shy, shi = IntensityCalcRAW(file2)
+#data = np.loadtxt(sfile, skiprows=1)
+x, y, i = calculate_intensity_4_baseline([horn, horn2], my150dat)
+
+#setup 3rd row
+horn3 = 200
+file3 = my150dat+'FP_planar_grid_horn'+str(horn3)+'_150_GHz_Mstyle.qb'
+#shx, shy, shi = IntensityCalcRAW(file2)
+#data = np.loadtxt(sfile, skiprows=1)
+x, y, i3 = calculate_intensity_4_baseline([horn, horn3], my150dat)
+
+#setup 4th row
+horn4 = 387
+file3 = my150dat+'FP_planar_grid_horn'+str(horn4)+'_150_GHz_Mstyle.qb'
+#shx, shy, shi = IntensityCalcRAW(file2)
+#data = np.loadtxt(sfile, skiprows=1)
+x, y, i4 = calculate_intensity_4_baseline([horn, horn4], my150dat)
+
+
+plt.figure(figsize=(10,24))
+
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[:] = False
+
+plt.subplot(6,2,1)
+instTD.horn.open[h190] = True
+instTD.horn.plot()    
+plt.text(centers[horn-1,0]-0.005, centers[horn-1,1]+0.005, '{0:}'.format(str(horn)), color='r',fontsize=12, fontweight='bold')
+#plt.plot(centers[horn-1,0], centers[horn-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+
+plt.subplot(6,2,2)
+plt.scatter(xdat, ydat, c=shi/max(shi))
+#plt.title('Horns: {} & {}'.format(int(tdpair1[0]), int(tdpair1[1])))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+plt.subplot(6,2,3)
+#instTD.horn.open[h190] = True
+instTD.horn.open[h193] = True
+instTD.horn.plot()
+plt.text(centers[horn-1,0]-0.005, centers[horn-1,1]+0.005, '{0:}'.format(str(horn)), color='r',fontsize=12, fontweight='bold')
+plt.text(centers[horn2-1,0]-0.005, centers[horn2-1,1]+0.005, '{0:}'.format(str(horn2)), color='r',fontsize=12, fontweight='bold')
+#plt.plot(centers[horn-1,0], centers[horn-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+#plt.plot(centers[horn2-1,0], centers[horn2-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+
+plt.subplot(6,2,4)
+plt.scatter(x, y, c=i/max(i))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+
+plt.subplot(6,2,5)
+instTD.horn.open[h193] = False
+instTD.horn.open[h200] = True
+instTD.horn.plot()
+plt.text(centers[horn-1,0]-0.005, centers[horn-1,1]+0.005, '{0:}'.format(str(horn)), color='r',fontsize=12, fontweight='bold')
+plt.text(centers[horn3-1,0]-0.005, centers[horn3-1,1]+0.005, '{0:}'.format(str(horn3)), color='r',fontsize=12, fontweight='bold')
+#plt.plot(centers[horn-1,0], centers[horn-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+#plt.plot(centers[horn3-1,0], centers[horn3-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+
+plt.subplot(6,2,6)
+plt.scatter(x, y, c=i3/max(i3))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+plt.subplot(6,2,7)
+instTD.horn.open[h193] = False
+instTD.horn.open[h200] = False
+instTD.horn.open[h387] = True
+instTD.horn.plot()
+plt.text(centers[horn-1,0]-0.005, centers[horn-1,1]+0.005, '{0:}'.format(str(horn)), color='r',fontsize=12, fontweight='bold')
+plt.text(centers[horn4-1,0]-0.005, centers[horn4-1,1]+0.005, '{0:}'.format(str(horn4)), color='r',fontsize=12, fontweight='bold')
+#plt.plot(centers[horn-1,0], centers[horn-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+#plt.plot(centers[horn3-1,0], centers[horn3-1,1], 'o', color='xkcd:burnt orange', markersize=8, mfc = None)
+
+plt.subplot(6,2,8)
+plt.scatter(x, y, c=i4/max(i4))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+plt.subplot(6,2,9)
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+instTD.horn.plot()
+
+plt.subplot(6,2,10)
+plt.scatter(x, y, c=tdi/max(tdi))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+plt.subplot(6,2,11)
+q.horn.plot()
+
+plt.subplot(6,2,12)
+plt.scatter(x, y, c=fi/max(fi))
+plt.colorbar(label='Normalised Intensity (W)')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.xlim(min(xdat), max(xdat))
+plt.ylim(min(ydat), max(ydat))
+
+plt.tight_layout()
+#plt.savefig('/media/james/DATA/baseline_figures/results_cmeancrit.png')
+plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/horn_demo.png')
+```
+
+```{python}
+"""different baseline plot for ray trace section"""
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[:] = False
+instTD.horn.open[1-1] = True
+instTD.horn.open[134-1] = True
+instTD.horn.open[267-1] = True
+instTD.horn.open[400-1] = True
+
+# cnt = 1
+# TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+
+plt.text(centers[1-1,0]-0.003, centers[1-1,1]-0.003, '{0:}'.format(str(1)), color='r',fontsize=10, fontweight='bold')
+plt.text(centers[134-1,0]-0.007, centers[134-1,1]-0.003, '{0:}'.format(str(134)), color='r',fontsize=10, fontweight='bold')
+plt.text(centers[267-1,0]-0.007, centers[267-1,1]-0.003, '{0:}'.format(str(267)), color='r',fontsize=10, fontweight='bold')
+plt.text(centers[400-1,0]-0.007, centers[400-1,1]-0.003, '{0:}'.format(str(400)), color='r',fontsize=10, fontweight='bold')
+
+instTD.horn.plot()    
+
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+
+plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/zemaxhorns.png')
 ```
 
 ```{python}
