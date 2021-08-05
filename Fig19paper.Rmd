@@ -78,6 +78,57 @@ def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD, tdpair1, tdpai
 
     plt.tight_layout()
     
+def baseline_plotter_FI(x, y, p1i, p2i, diff, instFI, fipair1, fipair2, centers, virtual_diff=False):
+    """elaborate baseline comparison plot
+    use show_baseline_types script to use this function"""
+    
+    plt.figure(figsize=(10,8))
+    plt.subplot(2,2,1)
+    plt.scatter(x, y, c=p1i/max(p1i))
+    plt.title('Horns: {} & {}'.format(int(fipair1[0]), int(fipair1[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,2)
+    plt.scatter(x, y, c=p2i/max(p2i))
+    plt.title('Horns: {} & {}'.format(int(fipair2[0]), int(fipair2[1])))
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,4)
+    
+    if virtual_diff is True:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+    if virtual_diff is False:
+        plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        
+    plt.title('Residual Difference')
+    plt.colorbar(label='Normalised Intensity Difference (W)')
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(x), max(x))
+    plt.ylim(min(y), max(y))
+    plt.subplot(2,2,3)
+    instFI.plot()
+    plt.plot(centers[fipair1[0]-1, 0], centers[fipair1[0]-1, 1],
+             'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+    plt.plot(centers[fipair1[1]-1, 0], centers[fipair1[1]-1, 1],
+             'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[fipair2[0]-1, 0], centers[fipair2[0]-1, 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.plot(centers[fipair2[1]-1, 0], centers[fipair2[1]-1, 1],
+             'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+    plt.title('Horn Array')
+    plt.xlabel('Horn Array X (m)')
+    plt.ylabel('Horn Array Y (m)')
+    plt.axis('equal')
+
+    plt.tight_layout()
+    
 def simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers):
     """elaborate baseline comparison plot
     requires you have qubic inst loaded e.g.
@@ -260,11 +311,14 @@ plt.show()
 ```
 
 ```{python}
-tdpair1 = [60,64]
-tdpair2 = [1, 5]
+# tdpair1 = [60,64]
+# tdpair2 = [1, 5]
 
 # tdpair1 = [1,57]
 # tdpair2 = [57, 64]
+
+tdpair1 = [29,31]
+tdpair2 = [42, 44]
 
 fipair1 = [int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])])]
 fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
@@ -277,7 +331,7 @@ x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
 p1i = p1i/max(p1i)
 p2i = p2i/max(p2i)
 diff = p1i-p2i
-
+print(max(diff), sum(abs(diff)), sum(p1i), "%diff", 100*sum(abs(diff))/sum(p1i), "RMSE", RMSE(p1i,p2i))
 # # %matplotlib notebook
 # # %matplotlib notebook
 
@@ -291,7 +345,204 @@ font = {'family' : 'normal',
 plt.rc('font', **font)
 
 
-baseline_plotter(xr, yr, p1i, p2i, diff, TDhornsFIconf, instTD.horn,  tdpair1, tdpair2, centers, virtual_diff=False)
+baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD.horn,  tdpair1, tdpair2, centers, virtual_diff=False)
+
+
+#baseline_plotter_FI(x, y, p1i, p2i, diff, TDhornsFIconf, instTD.horn,  tdpair1, tdpair2, centers, virtual_diff=False)
+```
+
+```{python}
+
+```
+
+```{python}
+fipair1 = [190, 192]
+fipair2 = [231, 400]
+x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
+#print(p1i.shape, p2i.shape)
+p1i = p1i/max(p1i)
+p2i = p2i/max(p2i)
+diff2 = p1i-p2i
+print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
+
+baseline_plotter_FI(x, y, p1i, p2i, diff2, instFI.horn,  fipair1, fipair2, centers, virtual_diff=False)
+
+
+```
+
+```{python}
+print(np.where(y==0, x, x))
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+plt.plot(np.where(y==0, x, x), np.where(y==0, diff2, diff2), '.', color='xkcd:burnt orange', 
+         label='Arbitrary Baselines {}{}'.format(fipair1, fipair2))
+plt.plot(np.where(y==0, x, x), np.where(y==0, diff, diff), '.', color='xkcd:sea green', alpha=0.1, 
+         label='Equivalent Baselines [{}, {}][{}, {}]'.format(int(FIhorns[np.where(TDhornsFIconf == tdpair1[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair1[1])]),
+        int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])))
+# plt.plot(diff2, '.', color='xkcd:burnt orange')
+# plt.plot(diff, '.', color='xkcd:sea green', alpha=0.1)
+plt.xlabel('X Cut (m)')
+plt.ylabel('Residual Difference (W)')
+#plt.legend(loc='upper right')
+leg = plt.legend(loc='upper right')
+
+for lh in leg.legendHandles: 
+    lh._legmarker.set_alpha(1)
+    lh._legmarker.set_markersize(15)
+
+#plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/residcomp.png')
+```
+
+```{python}
+# def tbp(x, y, p1i, p2i, diff, instFI, fipair1, fipair2, centers, virtual_diff=False):
+#     """elaborate baseline comparison plot
+#     use show_baseline_types script to use this function"""
+    
+#     plt.figure(figsize=(10,8))
+#     plt.subplot(2,2,1)
+#     plt.scatter(x, y, c=p1i/max(p1i))
+#     plt.title('Horns: {} & {}'.format(int(fipair1[0]), int(fipair1[1])))
+#     plt.colorbar(label='Normalised Intensity (W)')
+#     plt.xlabel('Focal Plane X (m)')
+#     plt.ylabel('Focal Plane Y (m)')
+#     plt.xlim(min(x), max(x))
+#     plt.ylim(min(y), max(y))
+#     plt.subplot(2,2,2)
+#     plt.scatter(x, y, c=p2i/max(p2i))
+#     plt.title('Horns: {} & {}'.format(int(fipair2[0]), int(fipair2[1])))
+#     plt.colorbar(label='Normalised Intensity (W)')
+#     plt.xlabel('Focal Plane X (m)')
+#     plt.ylabel('Focal Plane Y (m)')
+#     plt.xlim(min(x), max(x))
+#     plt.ylim(min(y), max(y))
+#     plt.subplot(2,2,4)
+    
+#     if virtual_diff is True:
+#         plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG', vmin=-0.1, vmax=0.1)
+#     if virtual_diff is False:
+#         plt.scatter(x, y, c=diff/max(p1i),  cmap='PiYG')#, vmin=-1, vmax=1) #vmin=0, vmax=1,
+        
+#     plt.title('Residual Difference')
+#     plt.colorbar(label='Normalised Intensity Difference (W)')
+#     plt.xlabel('Focal Plane X (m)')
+#     plt.ylabel('Focal Plane Y (m)')
+#     plt.xlim(min(x), max(x))
+#     plt.ylim(min(y), max(y))
+#     plt.subplot(2,2,3)
+#     instFI.plot()
+#     plt.plot(centers[fipair1[0]-1, 0], centers[fipair1[0]-1, 1],
+#              'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+#     plt.plot(centers[fipair1[1]-1, 0], centers[fipair1[1]-1, 1],
+#              'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+#     plt.plot(centers[fipair2[0]-1, 0], centers[fipair2[0]-1, 1],
+#              'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+#     plt.plot(centers[fipair2[1]-1, 0], centers[fipair2[1]-1, 1],
+#              'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+#     plt.title('Horn Array')
+#     plt.xlabel('Horn Array X (m)')
+#     plt.ylabel('Horn Array Y (m)')
+#     plt.axis('equal')
+
+#     plt.tight_layout()
+    
+fipair1 = [190, 192]
+fipair2 = [211, 213]
+fipair3 = [1, 3]
+fipair4 = [398, 400]
+x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
+x, y, p3i = calculate_intensity_4_baseline(fipair3, my150dat)
+x, y, p4i = calculate_intensity_4_baseline(fipair4, my150dat)
+#print(p1i.shape, p2i.shape)
+p1i = p1i/max(p1i)
+p2i = p2i/max(p2i)
+diffc = p1i-p2i
+
+p3i = p3i/max(p3i)
+p4i = p4i/max(p4i)
+difff = p3i-p4i
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+instFI.horn.plot()
+plt.plot(centers[fipair1[0]-1, 0], centers[fipair1[0]-1, 1],
+         'o', color='xkcd:burnt orange', markersize=7, mfc = None)
+plt.plot(centers[fipair1[1]-1, 0], centers[fipair1[1]-1, 1],
+         'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
+plt.plot(centers[fipair2[0]-1, 0], centers[fipair2[0]-1, 1],
+         'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+plt.plot(centers[fipair2[1]-1, 0], centers[fipair2[1]-1, 1],
+         'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
+plt.plot(centers[fipair3[0]-1, 0], centers[fipair3[0]-1, 1],
+         'o', color='xkcd:amber', markersize=7, mfc = None)
+plt.plot(centers[fipair3[1]-1, 0], centers[fipair3[1]-1, 1],
+         'o', color='xkcd:amber', markersize=7, alpha=1, mfc = None)
+plt.plot(centers[fipair4[0]-1, 0], centers[fipair4[0]-1, 1],
+         'o', color='xkcd:cobalt', markersize=7, alpha=1, mfc = None)
+plt.plot(centers[fipair4[1]-1, 0], centers[fipair4[1]-1, 1],
+         'o', color='xkcd:cobalt', markersize=7, alpha=1, mfc = None)
+plt.title('Horn Array')
+plt.xlabel('Horn Array X (m)')
+plt.ylabel('Horn Array Y (m)')
+plt.axis('equal')
+
+plt.tight_layout()
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+plt.plot(np.where(y==0, x, x), np.where(y==0, difff, difff), '.', color='xkcd:cobalt', 
+         label='Far Baselines {}{}'.format(fipair3, fipair4))
+plt.plot(np.where(y==0, x, x), np.where(y==0, diffc, diffc), '.', color='xkcd:strawberry', alpha=0.1,
+         label='Close Baselines {}{}'.format(fipair1, fipair2))
+
+# plt.plot(diff2, '.', color='xkcd:burnt orange')
+# plt.plot(diff, '.', color='xkcd:sea green', alpha=0.1)
+plt.xlabel('X Cut (m)')
+plt.ylabel('Residual Difference (W)')
+#plt.legend(loc='upper right')
+leg = plt.legend(loc='upper right')
+
+for lh in leg.legendHandles: 
+    lh._legmarker.set_alpha(1)
+    lh._legmarker.set_markersize(15)
+```
+
+```{python}
+# maxd = max(abs(diff))
+# maxd2 = max(abs(diff2))
+
+
+# histogram, bins = np.histogram(diff, bins=101, range=(-maxd, maxd), density=True)
+# histogram2, bins2 = np.histogram(diff2, bins=101, range=(-maxd2, maxd2), density=True)
+# # histogram, bins = np.histogram(diff, bins=25, range=(-maxd2, maxd2), density=True)
+# # histogram2, bins2 = np.histogram(diff2, bins=25, range=(-maxd2, maxd2), density=True)
+
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 20}
+# plt.rc('font', **font)
+# plt.figure(figsize=(16, 8))
+
+# plt.plot(bins[0:101],histogram, label="Distribution of residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
+# plt.plot(bins2[0:101],histogram2, label="Distribution of ARBI residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
+
+# plt.xlabel('Residual')
+# plt.ylabel('Frequency')
+# plt.legend(loc='upper right')
+# plt.show()
 ```
 
 ```{python}
@@ -539,7 +790,7 @@ plt.ylim(min(ydat), max(ydat))
 
 plt.tight_layout()
 #plt.savefig('/media/james/DATA/baseline_figures/results_cmeancrit.png')
-plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/horn_demo.png')
+#plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/horn_demo.png')
 ```
 
 ```{python}
@@ -574,7 +825,11 @@ plt.xlabel('Horn GRF X (m)')
 
 plt.show()
 
-plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/zemaxhorns.png')
+#plt.savefig('/home/james/OneDrive/Thesisv3_revised_layout/Figures/figs_baselines/zemaxhorns.png')
+```
+
+```{python}
+
 ```
 
 ```{python}

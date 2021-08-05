@@ -764,3 +764,7 @@ def QB_add_intensity_anyhorns(filepath, config='FI', baseline=None):
     #print(myit.shape, type(myit))
     
     return myit
+
+def RMSE(v1,v2):
+    """simple RMSE calculation for two arrays, typically focal plane intensity"""
+    return np.sqrt(np.mean((v1-v2)**2))
