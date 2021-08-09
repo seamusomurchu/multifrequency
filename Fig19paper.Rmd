@@ -469,31 +469,35 @@ p3i = p3i/max(p3i)
 p4i = p4i/max(p4i)
 difff = p3i-p4i
 
+#setup close horns
+instFI.horn.open[:] = False
+
 # %matplotlib notebook
 plt.figure(figsize=(10,10))
 instFI.horn.plot()
-plt.plot(centers[fipair1[0]-1, 0], centers[fipair1[0]-1, 1],
-         'o', color='xkcd:burnt orange', markersize=7, mfc = None)
-plt.plot(centers[fipair1[1]-1, 0], centers[fipair1[1]-1, 1],
-         'o', color='xkcd:burnt orange', markersize=7, alpha=1, mfc = None)
-plt.plot(centers[fipair2[0]-1, 0], centers[fipair2[0]-1, 1],
-         'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
-plt.plot(centers[fipair2[1]-1, 0], centers[fipair2[1]-1, 1],
-         'o', color='xkcd:sea green', markersize=7, alpha=1, mfc = None)
-plt.plot(centers[fipair3[0]-1, 0], centers[fipair3[0]-1, 1],
-         'o', color='xkcd:amber', markersize=7, mfc = None)
-plt.plot(centers[fipair3[1]-1, 0], centers[fipair3[1]-1, 1],
-         'o', color='xkcd:amber', markersize=7, alpha=1, mfc = None)
-plt.plot(centers[fipair4[0]-1, 0], centers[fipair4[0]-1, 1],
-         'o', color='xkcd:cobalt', markersize=7, alpha=1, mfc = None)
-plt.plot(centers[fipair4[1]-1, 0], centers[fipair4[1]-1, 1],
-         'o', color='xkcd:cobalt', markersize=7, alpha=1, mfc = None)
-plt.title('Horn Array')
+plt.plot(centers[fipair1[0]-1, 0]-0.0001, centers[fipair1[0]-1, 1]+0.0001,
+         'o', color='xkcd:burnt orange', markersize=22, mfc = None)
+plt.plot(centers[fipair1[1]-1, 0]-0.0001, centers[fipair1[1]-1, 1]+0.0001,
+         'o', color='xkcd:burnt orange', markersize=22, alpha=1, mfc = None)
+plt.plot(centers[fipair2[0]-1, 0]-0.0001, centers[fipair2[0]-1, 1]+0.0001,
+         'o', color='xkcd:sea green', markersize=22, alpha=1, mfc = None)
+plt.plot(centers[fipair2[1]-1, 0]-0.0001, centers[fipair2[1]-1, 1]+0.0001,
+         'o', color='xkcd:sea green', markersize=22, alpha=1, mfc = None)
+plt.plot(centers[fipair3[0]-1, 0]-0.0002, centers[fipair3[0]-1, 1]+0.0002,
+         'o', color='xkcd:amber', markersize=22, mfc = None)
+plt.plot(centers[fipair3[1]-1, 0]-0.0002, centers[fipair3[1]-1, 1]+0.0002,
+         'o', color='xkcd:amber', markersize=22, alpha=1, mfc = None)
+plt.plot(centers[fipair4[0]-1, 0]-0.0001, centers[fipair4[0]-1, 1]+0.0001,
+         'o', color='xkcd:cobalt', markersize=22, alpha=1, mfc = None)
+plt.plot(centers[fipair4[1]-1, 0]-0.0001, centers[fipair4[1]-1, 1]+0.0001,
+         'o', color='xkcd:cobalt', markersize=22, alpha=1, mfc = None)
+#plt.title('Horn Array')
 plt.xlabel('Horn Array X (m)')
 plt.ylabel('Horn Array Y (m)')
 plt.axis('equal')
 
 plt.tight_layout()
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/maxdiff.png')
 ```
 
 ```{python}
@@ -518,31 +522,36 @@ leg = plt.legend(loc='upper right')
 for lh in leg.legendHandles: 
     lh._legmarker.set_alpha(1)
     lh._legmarker.set_markersize(15)
+    
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/maxdiffresids.png')
 ```
 
 ```{python}
-# maxd = max(abs(diff))
-# maxd2 = max(abs(diff2))
+maxd = max(abs(difff))
+maxd2 = max(abs(diffc))
+print(len(difff))
 
 
-# histogram, bins = np.histogram(diff, bins=101, range=(-maxd, maxd), density=True)
-# histogram2, bins2 = np.histogram(diff2, bins=101, range=(-maxd2, maxd2), density=True)
-# # histogram, bins = np.histogram(diff, bins=25, range=(-maxd2, maxd2), density=True)
-# # histogram2, bins2 = np.histogram(diff2, bins=25, range=(-maxd2, maxd2), density=True)
+histogram, bins = np.histogram(difff, bins=101, range=(-maxd, maxd), density=False)
+histogram2, bins2 = np.histogram(diffc, bins=101, range=(-maxd2, maxd2), density=False)
+# histogram, bins = np.histogram(diff, bins=25, range=(-maxd2, maxd2), density=True)
+# histogram2, bins2 = np.histogram(diff2, bins=25, range=(-maxd2, maxd2), density=True)
 
-# font = {'family' : 'normal',
-#         'weight' : 'normal',
-#         'size'   : 20}
-# plt.rc('font', **font)
-# plt.figure(figsize=(16, 8))
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
 
-# plt.plot(bins[0:101],histogram, label="Distribution of residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
-# plt.plot(bins2[0:101],histogram2, label="Distribution of ARBI residuals"+'\n'+'p1{} p2{}'.format(tdpair1, tdpair2), lw=3)
+plt.plot(bins[0:101],histogram,  color='xkcd:cobalt', label="Far baseline", lw=3)
+plt.plot(bins2[0:101],histogram2, color='xkcd:strawberry', label="Close baseline", lw=3)
 
-# plt.xlabel('Residual')
-# plt.ylabel('Frequency')
-# plt.legend(loc='upper right')
-# plt.show()
+plt.xlabel('Residual Difference (W)')
+plt.ylabel('Frequency')
+plt.legend(loc='upper right')
+plt.show()
+
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residhisto.png')
 ```
 
 ```{python}
@@ -649,6 +658,14 @@ tdi = QB_add_intensity_anyhorns(my150dat, config='TD')
 ```
 
 ```{python}
+#set up first row
+horn = 190
+sfile = my150dat+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+shx, shy, shi = IntensityCalcRAW(sfile)
+data = np.loadtxt(sfile, skiprows=1)
+xdat = data[:,2]
+ydat = data[:,3]
+
 plt.figure(figsize=(10,8))
 plt.scatter(xdat, ydat, c=fi/max(fi))
 plt.figure(figsize=(10,8))
