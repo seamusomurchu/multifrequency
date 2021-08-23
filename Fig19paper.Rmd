@@ -361,20 +361,21 @@ p1i = p1i/max(p1i)
 p2i = p2i/max(p2i)
 diffEQ = p1i-p2i
 #print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
-
+plt.style.use('default')
 baseline_plotter_FI(x, y, p1i, p2i, diffEQ, instFI.horn,  fipair1EQ, fipair2EQ, centers, virtual_diff=False)
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/moreEQ.png', dpi=300, facecolor='w')
 ```
 
 ```{python}
 fipair1ARB = [190, 192]
-fipair2ARB = [231, 400]
+fipair2ARB = [211, 400]
 x, y, p1i = calculate_intensity_4_baseline(fipair1ARB, my150dat)
 x, y, p2i = calculate_intensity_4_baseline(fipair2ARB, my150dat)
 #print(p1i.shape, p2i.shape)
 p1i = p1i/max(p1i)
 p2i = p2i/max(p2i)
 diffARB = p1i-p2i
-print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
+#print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
 
 baseline_plotter_FI(x, y, p1i, p2i, diffARB, instFI.horn,  fipair1ARB, fipair2ARB, centers, virtual_diff=False)
 
@@ -395,6 +396,10 @@ difffarEQ = p1i-p2i
 baseline_plotter_FI(x, y, p1i, p2i, difffarEQ, instFI.horn,  fipair1farEQ, fipair2farEQ, centers, virtual_diff=False)
 
 
+```
+
+```{python}
+print(diff.shape)
 ```
 
 ```{python}
@@ -437,17 +442,17 @@ font = {'family' : 'normal',
 plt.rc('font', **font)
 plt.figure(figsize=(16, 8))
 
-plt.plot(bins2[0:101],histogramEQ/max(histogramEQ), color='xkcd:sea green', 
-         label='Arbitrary Baselines {}{}'.format(fipair1EQ, fipair2EQ), lw=3)
+plt.plot(binsEQ[0:101],histogramEQ, color='xkcd:sea green', 
+         label='Equivalent Baseline \n {}{}'.format(fipair1EQ, fipair2EQ), lw=3)
 
-plt.plot(binsARB[0:101],histogramARB/max(histogramARB),  color='xkcd:burnt orange', 
-         label='Equivalent Baselines {}{}'.format(fipair1ARB, fipair2ARB), lw=3)
+plt.plot(binsARB[0:101],histogramARB,  color='xkcd:burnt orange', 
+         label='Arbitrary Baseline \n {}{}'.format(fipair1ARB, fipair2ARB), lw=3)
 
 plt.xlabel('Residual Difference (W)')
 plt.ylabel('Frequency')
-plt.legend(loc='upper right')
+plt.legend(loc='upper left')
 #plt.show()
-#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residcomp_hist.png', dpi=300, facecolor='w')
+plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residcomp_hist2.png', dpi=300, facecolor='w')
 ```
 
 ```{python}
@@ -605,22 +610,24 @@ print(len(difff))
 
 # #plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residhisto.png')
 
-histogramEQ, binsEQ = np.histogram(diffEQ, bins=101, range=(-1, 1), density=False)
-histogramf, binsf = np.histogram(difff, bins=101, range=(-1, 1), density=False)
+bintest = np.linspace(-0.5,0.5,101)
+
+histogramEQ, binsEQ = np.histogram(diffEQ, bins=bintest, density=False)
+histogramf, binsf = np.histogram(difff, bins=bintest, density=False)
 # histogram, bins = np.histogram(diff, bins=25, range=(-maxd2, maxd2), density=True)
 # histogram2, bins2 = np.histogram(diff2, bins=25, range=(-maxd2, maxd2), density=True)
-histogramARB, binsARB, = np.histogram(diffARB, bins=101, range=(-1, 1), density=False)
+histogramARB, binsARB, = np.histogram(diffARB, bins=bintest, density=False)
 
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
 plt.figure(figsize=(16, 8))
-plt.plot(binsEQ[0:101],histogramEQ/max(histogramEQ), color='xkcd:sea green', 
+plt.plot(binsEQ[0:100],histogramEQ, color='xkcd:sea green', 
          label='Close Baselines {}{}'.format(fipair1EQ, fipair2EQ), lw=3)
-plt.plot(binsf[0:101],histogramf/max(histogramf),  color='xkcd:cobalt', 
+plt.plot(binsf[0:100],histogramf,  color='xkcd:cobalt', 
          label='Far Baselines {}{}'.format(fipair3, fipair4), lw=3)
-plt.plot(binsARB[0:101],histogramARB/max(histogramARB,),  color='xkcd:burnt orange', 
+plt.plot(binsARB[0:100],histogramARB,  color='xkcd:burnt orange', 
          label='Arbitrary Baselines {}{}'.format(fipair1ARB, fipair2ARB), lw=3)
 
 
@@ -657,7 +664,7 @@ instTD.horn.open[:] = False
 instTD.horn.open[h190] = True
 instTD.horn.open[h193] = True
 instTD.horn.open[h200] = True
-instTD.horn.open[h397] = True
+instTD.horn.open[h387] = True
 
 cnt = 1
 TDhornsFIconf = np.zeros(400)
@@ -956,7 +963,7 @@ fipair11 = [387-4, 389-4]
 fipairtemp = [398, 400]
 
 pairs = [fipair1, fipair2, fipair3, fipair4, fipair5, fipair6, fipair7, fipair8, fipair9, fipair10, 
-         fipair11, fipairtemp]
+         fipair11]
 
 x, y, p1i = calculate_intensity_4_baseline(fipair1, my150dat)
 
@@ -979,11 +986,11 @@ instFI.horn.open[:] = False
 cmap = plt.get_cmap("tab20")
 cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
 
-# %matplotlib notebook
+# #%matplotlib notebook
 plt.figure(figsize=(10,10))
 instFI.horn.plot()
 for i, pair in enumerate(pairs):
-    print(pair[0], pair)
+    #print(pair[0], pair)
     plt.plot(centers[pair[0]-1, 0]-0.0001, centers[pair[0]-1, 1]+0.0001,
           'o', color=cmap(i), markersize=21, mfc = None)
     plt.plot(centers[pair[1]-1, 0]-0.0001, centers[pair[1]-1, 1]+0.0001,
@@ -993,7 +1000,7 @@ plt.xlabel('Horn Array X (m)')
 plt.ylabel('Horn Array Y (m)')
 plt.axis('equal')
 
-plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhorns.png')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhorns.png')
 # x, y, p2i = calculate_intensity_4_baseline(fipair2, my150dat)
 # x, y, p3i = calculate_intensity_4_baseline(fipair3, my150dat)
 # x, y, p4i = calculate_intensity_4_baseline(fipair4, my150dat)
@@ -1034,7 +1041,11 @@ plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhorns.png')
 # plt.axis('equal')
 
 # plt.tight_layout()
-#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/maxdiff.png')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/hornsandr.png')
+```
+
+```{python}
+
 ```
 
 ```{python}
@@ -1048,6 +1059,7 @@ plt.rc('font', **font)
 plt.figure(figsize=(16, 8))
 
 alp = np.linspace(1, 0.1, 11)
+bintest = np.linspace(-1,1,101)
 
 for i, pair in enumerate(pairs[1:12]):
     print(i, max(intarr[i,:]), pair, 1)
@@ -1062,7 +1074,8 @@ plt.plot(bins[0:101],histogram,  color='xkcd:cobalt blue', label="[1, 3] differe
 # histogramf, binsf = np.histogram(difff, bins=101, density=False)
 # plt.plot(binsf[0:101],histogramf,  color='xkcd:brown', label="[1, 3] difference to 398, 400", 
 #              lw=3)
-    
+plt.plot(binsARB[0:101],histogramARB,  color='xkcd:burnt orange', 
+     label='Arbitrary Baselines {}{}'.format(fipair1ARB, fipair2ARB), lw=3) 
     
 
 # plt.plot(bins[0:101],histogram,  color='xkcd:cobalt', label="Far baseline", lw=3)
@@ -1073,6 +1086,46 @@ plt.ylabel('Frequency')
 plt.legend(loc='upper left')
 #plt.yscale('log')
 plt.show()
+```
+
+```{python}
+# %matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+alp = np.linspace(1, 0.1, 11)
+bintest = np.linspace(-0.5,0.5,101)
+
+for i, pair in enumerate(pairs[1:12]):
+    print(i, max(intarr[i,:]), pair, 1)
+    histogram, bins = np.histogram(intarr[i,:], bins=bintest, density=False)
+    plt.plot(bins[0:100],histogram,  color=cmap(i+1), label="[1, 3] & {}".format(pair), 
+             lw=3)
+
+# histogram, bins = np.histogram(intarr[10,:], bins=bintest, density=False)
+# plt.plot(bins[0:100],histogram,  color='xkcd:cobalt blue', label="[1, 3] difference to 398, 400", 
+#              lw=3)
+
+# histogramf, binsf = np.histogram(difff, bins=101, density=False)
+# plt.plot(binsf[0:101],histogramf,  color='xkcd:brown', label="[1, 3] difference to 398, 400", 
+#              lw=3)
+# histogramARB, binsARB, = np.histogram(diffARB, bins=bintest, density=False)
+# plt.plot(binsARB[0:100],histogramARB,  color='xkcd:burnt orange', 
+#      label='ARB Baseline {}{}'.format(fipair1ARB, fipair2ARB), lw=3) 
+    
+
+# plt.plot(bins[0:101],histogram,  color='xkcd:cobalt', label="Far baseline", lw=3)
+# plt.plot(bins2[0:101],histogram2, color='xkcd:strawberry', label="Close baseline", lw=3)
+
+plt.xlabel('Residual Difference (W)')
+plt.ylabel('Frequency')
+plt.legend(loc='upper left')
+#plt.yscale('log')
+#plt.show()
+plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhornshist2.png', dpi=300, facecolor='w')
 ```
 
 ```{python}
@@ -1137,7 +1190,7 @@ alp = np.linspace(1, 0.1, 11)
 for i, pair in enumerate(pairs[1:4]):
     print(i, max(intarr[i,:]), pair, 1)
     histogram, bins = np.histogram(intarr[i,:], bins=101, density=False)
-    plt.plot(bins[0:101],histogram,  color=cmap(i+1), label="[1, 3] difference to {}".format(pair), 
+    plt.plot(bins[0:101],histogram/max(histogram),  color=cmap(i+1), label="[190, 192] difference to {}".format(pair), 
              lw=3)
 
 # histogram, bins = np.histogram(intarr[10,:], bins=101, density=False)
