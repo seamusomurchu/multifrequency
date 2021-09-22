@@ -27,6 +27,10 @@ import qubic
 ```
 
 ```{python}
+def RMSE_residual(diff):
+    """simple RMSE calculation for the residual difference, typically focal plane intensity"""
+    return np.sqrt(np.mean((diff)**2))
+
 def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD, tdpair1, tdpair2, centers, virtual_diff=False):
     """elaborate baseline comparison plot
     use show_baseline_types script to use this function"""
@@ -368,18 +372,45 @@ baseline_plotter_FI(x, y, p1i, p2i, diffEQ, instFI.horn,  fipair1EQ, fipair2EQ, 
 
 ```{python}
 fipair1ARB = [190, 192]
-fipair2ARB = [211, 400]
+fipair2ARB = [211, 212]
 x, y, p1i = calculate_intensity_4_baseline(fipair1ARB, my150dat)
 x, y, p2i = calculate_intensity_4_baseline(fipair2ARB, my150dat)
 #print(p1i.shape, p2i.shape)
 p1i = p1i/max(p1i)
 p2i = p2i/max(p2i)
 diffARB = p1i-p2i
-#print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
+print(max(diffARB), sum(abs(diffARB)), sum(p1i), "%diff", 100*sum(abs(diffARB))/sum(p1i), "RMSE", RMSE(p1i,p2i))
 
 baseline_plotter_FI(x, y, p1i, p2i, diffARB, instFI.horn,  fipair1ARB, fipair2ARB, centers, virtual_diff=False)
 
 
+```
+
+```{python}
+"""test another arbitary pair"""
+fipair1ARB2 = [378, 255]
+fipair2ARB2 = [29, 46]
+x, y, p1i = calculate_intensity_4_baseline(fipair1ARB2, my150dat)
+x, y, p2i = calculate_intensity_4_baseline(fipair2ARB2, my150dat)
+#print(p1i.shape, p2i.shape)
+p1i = p1i/max(p1i)
+p2i = p2i/max(p2i)
+diffARB2 = p1i-p2i
+print(max(diffARB2), sum(abs(diffARB2)), sum(p1i), "%diff", 100*sum(abs(diffARB2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
+
+baseline_plotter_FI(x, y, p1i, p2i, diffARB2, instFI.horn,  fipair1ARB2, fipair2ARB2, centers, virtual_diff=False)
+
+
+```
+
+```{python}
+# %matplotlib inline
+plt.figure(figsize=(16,8))
+plt.plot(p1i, '.')
+plt.plot(p2i, '.')
+plt.plot(p1i-p2i, '.')
+
+print(sum(p1i), sum(p2i))
 ```
 
 ```{python}
@@ -392,7 +423,7 @@ p1i = p1i/max(p1i)
 p2i = p2i/max(p2i)
 difffarEQ = p1i-p2i
 #print(max(diff2), sum(abs(diff2)), sum(p1i), "%diff", 100*sum(abs(diff2))/sum(p1i), "RMSE", RMSE(p1i,p2i))
-
+# %matplotlib notebook
 baseline_plotter_FI(x, y, p1i, p2i, difffarEQ, instFI.horn,  fipair1farEQ, fipair2farEQ, centers, virtual_diff=False)
 
 
@@ -434,6 +465,7 @@ font = {'family' : 'normal',
 plt.figure(figsize=(16, 8))
 histogramARB, binsARB, = np.histogram(diffARB, bins=101, range=(min(diffARB), max(diffARB)), density=False)
 histogramEQ, binsEQ = np.histogram(diffEQ, bins=101, range=(min(diffARB), max(diffARB)), density=False)
+histogramfarEQ, binsfarEQ = np.histogram(difffarEQ, bins=101, range=(min(diffARB), max(diffARB)), density=False)
 
 
 font = {'family' : 'normal',
@@ -448,11 +480,14 @@ plt.plot(binsEQ[0:101],histogramEQ, color='xkcd:sea green',
 plt.plot(binsARB[0:101],histogramARB,  color='xkcd:burnt orange', 
          label='Arbitrary Baseline \n {}{}'.format(fipair1ARB, fipair2ARB), lw=3)
 
+plt.plot(binsfarEQ[0:101],histogramfarEQ,  color='xkcd:blue', 
+         label='far Equivalent Baseline \n {}{}'.format(fipair1farEQ, fipair2farEQ), lw=3)
+
 plt.xlabel('Residual Difference (W)')
 plt.ylabel('Frequency')
 plt.legend(loc='upper left')
 #plt.show()
-plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residcomp_hist2.png', dpi=300, facecolor='w')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/residcomp_hist2.png', dpi=300, facecolor='w')
 ```
 
 ```{python}
@@ -1067,14 +1102,14 @@ for i, pair in enumerate(pairs[1:12]):
     plt.plot(bins[0:101],histogram,  color=cmap(i+1), label="[1, 3] difference to {}".format(pair), 
              lw=3)
 
-histogram, bins = np.histogram(intarr[10,:], bins=101, density=False)
-plt.plot(bins[0:101],histogram,  color='xkcd:cobalt blue', label="[1, 3] difference to 398, 400", 
-             lw=3)
+# histogram, bins = np.histogram(intarr[10,:], bins=101, density=False)
+# plt.plot(bins[0:101],histogram,  color='xkcd:cobalt blue', label="[1, 3] difference to 398, 400", 
+#              lw=3)
 
 # histogramf, binsf = np.histogram(difff, bins=101, density=False)
 # plt.plot(binsf[0:101],histogramf,  color='xkcd:brown', label="[1, 3] difference to 398, 400", 
 #              lw=3)
-plt.plot(binsARB[0:101],histogramARB,  color='xkcd:burnt orange', 
+plt.plot(binsARB[0:100],histogramARB,  color='xkcd:burnt orange', 
      label='Arbitrary Baselines {}{}'.format(fipair1ARB, fipair2ARB), lw=3) 
     
 
@@ -1100,7 +1135,7 @@ alp = np.linspace(1, 0.1, 11)
 bintest = np.linspace(-0.5,0.5,101)
 
 for i, pair in enumerate(pairs[1:12]):
-    print(i, max(intarr[i,:]), pair, 1)
+    print(i, max(intarr[i,:]), pair, RMSE_residual(intarr[i,:]))
     histogram, bins = np.histogram(intarr[i,:], bins=bintest, density=False)
     plt.plot(bins[0:100],histogram,  color=cmap(i+1), label="[1, 3] & {}".format(pair), 
              lw=3)
@@ -1113,8 +1148,8 @@ for i, pair in enumerate(pairs[1:12]):
 # plt.plot(binsf[0:101],histogramf,  color='xkcd:brown', label="[1, 3] difference to 398, 400", 
 #              lw=3)
 # histogramARB, binsARB, = np.histogram(diffARB, bins=bintest, density=False)
-# plt.plot(binsARB[0:100],histogramARB,  color='xkcd:burnt orange', 
-#      label='ARB Baseline {}{}'.format(fipair1ARB, fipair2ARB), lw=3) 
+plt.plot(binsARB[0:100],histogramARB,  color='xkcd:burnt orange', 
+     label='ARB Baseline {}{}'.format(fipair1ARB, fipair2ARB), lw=3) 
     
 
 # plt.plot(bins[0:101],histogram,  color='xkcd:cobalt', label="Far baseline", lw=3)
@@ -1125,7 +1160,35 @@ plt.ylabel('Frequency')
 plt.legend(loc='upper left')
 #plt.yscale('log')
 #plt.show()
-plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhornshist2.png', dpi=300, facecolor='w')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rhornshist2.png', dpi=300, facecolor='w')
+```
+
+```{python}
+#show residual difference
+
+r = np.linspace(0,280,11)
+
+# %matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+for i, pair in enumerate(pairs[1:12]):
+    print(r[i], RMSE_residual(intarr[i,:]))
+    
+    plt.plot(r[i+1], RMSE_residual(intarr[i,:]), '.', color=cmap(i+1), markersize=20)
+    
+plt.plot(0, RMSE_residual(diffARB), 'r.', markersize=15)
+plt.plot(0, RMSE_residual(diffARB2), 'g.', markersize=15)
+
+    
+plt.xlabel('Horn Pair Separation (mm)')
+plt.ylabel('RMSE (W)')
+plt.xticks(r)
+#plt.legend(loc='upper left')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseandr.png', dpi=300, facecolor='w')
 ```
 
 ```{python}
@@ -1214,7 +1277,119 @@ plt.show()
 ```
 
 ```{python}
+"""nice TD plot?"""
+td = qubic.qubicdict.qubicDict()
+td.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+td['config'] = 'TD'
+tdq = qubic.QubicInstrument(d)
 
+centers = tdq.horn.center[:, 0:2]
+col = tdq.horn.column
+row = tdq.horn.row
+
+#instFI = qubic.QubicInstrument(d)
+#hornsFI = instFI.horn.open
+
+#hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(td)
+#instTD.horn.open[~hornsTD] = False
+
+#instTD.horn.open
+plt.figure()
+instTD.horn.plot()
+```
+
+```{python}
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+instTD.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        #plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'FI {0:}'.format(str(i+1)), color='g',fontsize=8)
+        #plt.text(centers[i,0]-0.005, centers[i,1], 'TD {0:}'.format(str(cnt)), color='r',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.0015, 'TD {0:}'.format(str(cnt)), color='r',fontsize=12)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+plt.axis('equal')
+```
+
+```{python}
+"""nice FI plot?"""
+fi = qubic.qubicdict.qubicDict()
+fi.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+fi['config'] = 'FI'
+fiq = qubic.QubicInstrument(fi)
+
+centers = fiq.horn.center[:, 0:2]
+col = fiq.horn.column
+row = fiq.horn.row
+
+#instFI = qubic.QubicInstrument(d)
+#hornsFI = instFI.horn.open
+
+#hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instFI = qubic.QubicInstrument(fi)
+#instTD.horn.open[~hornsTD] = False
+
+#instTD.horn.open
+plt.figure()
+instFI.horn.plot()
+```
+
+```{python}
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+instFI.horn.plot()
+for i in range(len(centers)):
+    #if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+    plt.text(centers[i,0]-0.006, centers[i,1]-0.0021, '{0:}'.format(str(i+1)), color='g',fontsize=10)
+        #plt.text(centers[i,0]-0.005, centers[i,1], 'TD {0:}'.format(str(cnt)), color='r',fontsize=8)
+        #plt.text(centers[i,0]-0.005, centers[i,1]-0.0015, 'TD {0:}'.format(str(cnt)), color='r',fontsize=12)
+        
+    TDhornsFIconf[i] = cnt
+        
+    cnt+=1
+plt.axis('equal')
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rcParams.update({
+    "axes.facecolor":    'xkcd:pale turquoise',  # green with alpha = 50%
+})
+plt.rc('font', **font)
+# %matplotlib notebook
+plt.figure(figsize=(14,14), facecolor='white')
+instFI.detector.plot(edgecolor='xkcd:faded red',
+    facecolor='xkcd:faded red',
+    fill=True)
+plt.xlabel('FPRF x (m)')
+plt.ylabel('FPRF y (m)')
+plt.tight_layout()
+```
+
+```{python}
+print(instFI.detector)
 ```
 
 ```{python}

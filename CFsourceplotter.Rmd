@@ -21,9 +21,10 @@ import matplotlib.pyplot as plt
 ```{python}
 """Find this dictionary global_source_oneDetFI.dict and set to FI instead of TD"""
 d = qubic.qubicdict.qubicDict()
-d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDetFI.dict')
-q = qubic.QubicMultibandInstrument(d)
-vtxs = q[0].detector.vertex
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+vtxs = q.detector.vertex
 ```
 
 ```{python}

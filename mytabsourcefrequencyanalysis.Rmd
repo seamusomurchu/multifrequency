@@ -229,7 +229,7 @@ for i, rep in enumerate(outreps):
 #     aziA = np.vstack((aziA, azi))
 #     ziA = np.vstack((ziA, zi))
     
-print(aziA.shape, ziA.shape)
+#print(aziA.shape, ziA.shape)
 ```
 
 ```{python}
@@ -321,6 +321,12 @@ plt.ylabel('Focal Plane Y (m)')
 ```
 
 ```{python}
+X = np.linspace(min(data['Xpos']), max(data['Xpos']), 301)
+Y = np.linspace(min(data['Ypos']), max(data['Ypos']), 301)
+x0, y0 = 25, 53# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 175
+x2, y2 = 219, 250
+
 plt.figure(figsize=(18,22))
 
 for i, rep in enumerate(outreps):
@@ -339,13 +345,15 @@ plt.subplot(3,2,6)
 plt.imshow(rgb_default, 
            extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
            aspect='equal')
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
 plt.xlabel('Focal Plane X (m)')
 plt.ylabel('Focal Plane Y (m)')
 plt.title('RGB Composite')
 plt.tight_layout()
 
 #plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgrids.png", bbox_inches='tight', facecolor='white')
-#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/fpgridsv2.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv4/Figures/figshornap/fpgridsv3.png", bbox_inches='tight', facecolor='white')
 
 ```
 
