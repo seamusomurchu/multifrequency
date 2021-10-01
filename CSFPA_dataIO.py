@@ -78,7 +78,7 @@ def getXYcoords(f, vtxs):
             #test if x and x1 are same unit
             #print "xandys", x, y, x1, y1
 
-            if x >= x2 and x <= x1 and y >= y2 and y <= y1:
+            if x >= x1 and x <= x2 and y >= y1 and y <= y2:
                 #find mags and phases in pixel area
                 MagXlist = np.append(MagXlist, data[cntj,4])
                 PhaXlist = np.append(PhaXlist, data[cntj,5])
@@ -423,6 +423,21 @@ def OutputTESPower(TESPower,filename):
 	#outF.close()
 	
 	return
+    
+def OutputTESPower_v2(pixlocx, pixlocy, TESPower, ofilename):
+    #form data
+    data = np.array([pixlocx, pixlocy, TESPower]).T
+    
+    #outfile location
+    outF = open(ofilename, "w")
+
+    outF.write('pixel location centers (ONAXISFPRF) and intensity' + '\n')
+
+    np.savetxt(outF, data, fmt='%1.4e', delimiter =', ')
+    
+    outF.close()
+
+    return
 
 def GetMODALGridPixArea(fname):
 	df = pd.read_csv(fname, sep='\t', header=0)

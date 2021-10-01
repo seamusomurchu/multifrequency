@@ -23,10 +23,11 @@ from CSFPA_main import *
 from qbdataio import *
 from glob import glob
 import matplotlib.pyplot as plt
+import math
 ```
 
 ```{python}
-MultiHornMain(file, outrep)
+#MultiHornMain(file, outrep)
 ```
 
 ```{python}
@@ -43,6 +44,12 @@ print(dat150.shape, dat150[3,:], dat150[2,:], dat150[4,:])
 ```{python}
 plt.figure(figsize=(8,8))
 plt.scatter(dat150[3,:], dat150[2,:], c=dat150[4,:], cmap='jet',marker='.')
+plt.plot(dat150[3,:][np.where(dat150[2,:] == 0)], dat150[2,:][np.where(dat150[2,:] == 0)])
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+plt.plot(dat150[3,:][np.where(dat150[2,:] == 0)], dat150[4,:][np.where(dat150[2,:] == 0)])
 ```
 
 ```{python}
@@ -53,84 +60,405 @@ dictfile = '/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict'
 
 ```{python}
 MainProg(files[4], pklrep, tesdatrep, dictfile)
+#MainProg(files[4], pklrep, tesdatrep)
 ```
 
 ```{python}
-def MainProg(filepath, pklrep, tesdatrep, dictfile):
+# def MainProg(filepath, pklrep, tesdatrep, dictfile):
     
-    start = timeit.default_timer()
-    repfile=filepath
-    #strip Modal qb filename from filepath
-    qbfilename = os.path.splitext(os.path.basename(repfile))[0]
+#     start = timeit.default_timer()
+#     repfile=filepath
+#     #strip Modal qb filename from filepath
+#     qbfilename = os.path.splitext(os.path.basename(repfile))[0]
 
-    # Use a tool from qubicpack to get a path
-    #basedir = Qubic_DataDir(datafile='instrument.py', ) 
-    #print('basedir : ', basedir)
-    #dictfilename = basedir + '/dicts/global_source_oneDet.dict'
-    d = qubic.qubicdict.qubicDict()
-    #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
-    #change to moddded dictionary
-    d.read_from_file(dictfile)
-    q = qubic.QubicMultibandInstrument(d)
+#     # Use a tool from qubicpack to get a path
+#     #basedir = Qubic_DataDir(datafile='instrument.py', ) 
+#     #print('basedir : ', basedir)
+#     #dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+#     d = qubic.qubicdict.qubicDict()
+#     #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#     #change to moddded dictionary
+#     d.read_from_file(dictfile)
+#     q = qubic.QubicMultibandInstrument(d)
     
-    vtxs = q[0].detector.vertex
-    vtxcounter = np.zeros(992)
-    print("vertexes shape: ", vtxs.shape)
+#     vtxs = q[0].detector.vertex
+#     vtxcounter = np.zeros(992)
+#     print("vertexes shape: ", vtxs.shape)
     
-    MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY = getXYcoords(filepath, vtxs)
-    print('getxycoordfunctest', max(MagXarr), MagXarr.shape)
+#     MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY = getXYcoords(filepath, vtxs)
+#     print('getxycoordfunctest', max(MagXarr), MagXarr.shape)
     
-    vtxcounter = np.vstack((vtxcounter, vtxcntarr))
-    vtxcounter = vtxcounter.T
-    vtxcounter = vtxcounter[:, 1:3]
+#     vtxcounter = np.vstack((vtxcounter, vtxcntarr))
+#     vtxcounter = vtxcounter.T
+#     vtxcounter = vtxcounter[:, 1:3]
     
-    #caluclate and return instensity values for given mag & phase PIXELS
-    IntX, IntY, IntT = IntensityCalc(MagXarr, PhaXarr, MagYarr, PhaYarr)
-    print('intensity tests shape max', IntX.shape, max(IntX))
+#     #caluclate and return instensity values for given mag & phase PIXELS
+#     IntX, IntY, IntT = IntensityCalc(MagXarr, PhaXarr, MagYarr, PhaYarr)
+#     print('intensity tests shape max', IntX.shape, max(IntX))
     
-    dat = np.vstack((MagXarr,
-     PhaXarr,
-     ReXarr,
-     ImXarr,
-     MagYarr,
-     PhaYarr,
-     ReYarr,
-     ImYarr,
-     vtxcntarr,
-     PixCenX,
-     PixCenY,
-     IntX,
-     IntY,
-     IntT))
-    dat = dat.T
+#     dat = np.vstack((MagXarr,
+#      PhaXarr,
+#      ReXarr,
+#      ImXarr,
+#      MagYarr,
+#      PhaYarr,
+#      ReYarr,
+#      ImYarr,
+#      vtxcntarr,
+#      PixCenX,
+#      PixCenY,
+#      IntX,
+#      IntY,
+#      IntT))
+#     dat = dat.T
     
-    #save the mag&pha data with the calculated intensity values PIXELS
-    #chose whether to bother even saving the un-normed data if it just gets overwitten
-    #dataIO(dat, tesdatrep, qbfilename)
-    datmodstring = 'datmod'
-    #dataAnalysis function normalises the data PIXELS
-    datmod = dataAnalysis(dat)
-    dataIO(datmod, tesdatrep, qbfilename)
+#     #save the mag&pha data with the calculated intensity values PIXELS
+#     #chose whether to bother even saving the un-normed data if it just gets overwitten
+#     #dataIO(dat, tesdatrep, qbfilename)
+#     datmodstring = 'datmod'
+#     #dataAnalysis function normalises the data PIXELS
+#     datmod = dataAnalysis(dat)
+#     dataIO(datmod, tesdatrep, qbfilename)
     
-    #load MODAL style data point data
-    dataCF1 = np.loadtxt(repfile, skiprows=1)
-    xycoords = np.array(dataCF1[:, 2:4])
-    freq = dataCF1[0, 10]
-    print('frequency', freq)
+#     #load MODAL style data point data
+#     dataCF1 = np.loadtxt(repfile, skiprows=1)
+#     xycoords = np.array(dataCF1[:, 2:4])
+#     freq = dataCF1[0, 10]
+#     print('frequency', freq)
     
-    #return intensity values for data points in the MODAL style
-    Ix, Iy, IT = IntensityCalcRAW(repfile)
-    ITnans = [ (np.nan if x == 0 else x) for x in IT ]
-    ITnans = np.asarray(ITnans)
+#     #return intensity values for data points in the MODAL style
+#     Ix, Iy, IT = IntensityCalcRAW(repfile)
+#     ITnans = [ (np.nan if x == 0 else x) for x in IT ]
+#     ITnans = np.asarray(ITnans)
     
-    #save in a folder as pickle files with all data accesible.
-    SaveVars(MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, qbfilename, freq, pklrep)
+#     #save in a folder as pickle files with all data accesible.
+#     SaveVars(MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, qbfilename, freq, pklrep)
     
-    os.system('spd-say "Main program has finished"')
-    stop = timeit.default_timer()
-    time = stop - start
-    seconds = (time - int(time)) * 60
-    print(time / 60, 'm', seconds, 's')
+#     os.system('spd-say "Main program has finished"')
+#     stop = timeit.default_timer()
+#     time = stop - start
+#     seconds = (time - int(time)) * 60
+#     print(time / 60, 'm', seconds, 's')
+```
+
+```{python}
+# def getXYcoords(f, vtxs):
+
+#     print(f, vtxs.shape)
+#     data = np.loadtxt(f, skiprows=1)
+    
+#     xycoords = np.array(data[:,2:4])
+    
+#     print(f, xycoords)
+    
+#     cnti = 0
+#     cntj = 0
+    
+#     MagXlist = np.array([])
+#     MagXarr = np.array([])
+    
+#     PhaXlist = np.array([])
+#     PhaXarr = np.array([])
+    
+#     MagYlist = np.array([])
+#     MagYarr = np.array([])
+    
+#     PhaYlist = np.array([])
+#     PhaYarr = np.array([])
+    
+#     ReXlist = np.array([])
+#     ReXarr = np.array([])
+    
+#     ImXlist = np.array([])
+#     ImXarr = np.array([])
+    
+#     ReYlist = np.array([])
+#     ReYarr = np.array([])
+    
+#     ImYlist = np.array([])
+#     ImYarr = np.array([])
+#     #pixel centers
+#     PixCenX = np.array([])
+#     PixCenY = np.array([])
+    
+#     vtxcntarr = ([])
+#     #count number of data points per pixel for analysis/normalisation
+#     vtxcnt = 0   
+    
+#     for i in vtxs:
+#         print(i, i.shape)
+#         cnti = cnti + 1
+#         cntj = 0
+#         #pixcenx = (i[0,0] + i[2,0]) / 2  #have to use vtxs here
+#         #print "pixcenx = ", pixcenx, type(pixcenx), type(PixCenX)
+#         #PixCenX.append(pixcenx)
+#         #pixceny = (i[0,1] + i[2,1]) / 2
+#         #PixCenY.append(pixceny)
+        
+#         for j in xycoords:
+            
+#             #x y are modal data points
+#             #x1,y1,x2,y2 are detector geometry points
+#             if f.endswith((".qb")):
+#                 x = j[1]
+#                 y = j[0]
+#             else:                
+#                 x = j[0]
+#                 y = j[1]
+                
+#             x2 = i[0,0]
+#             y1 = i[0,1]
+#             x1 = i[2,0]
+#             y2 = i[2,1]
+            
+#             #print(x, x1, x2, y, y1, y2, data[cntj,4], j)
+    
+#             #test if x and x1 are same unit
+#             #print "xandys", x, y, x1, y1
+
+#             if x >= x1 and x <= x2 and y >= y1 and y <= y2:
+#                 print("point in TES found")
+#                 #find mags and phases in pixel area
+#                 MagXlist = np.append(MagXlist, data[cntj,4])
+#                 PhaXlist = np.append(PhaXlist, data[cntj,5])
+#                 MagYlist = np.append(MagYlist, data[cntj,6])
+#                 PhaYlist = np.append(PhaYlist, data[cntj,7])
+#                 #convert mags&phases to intensity
+#                 ReX = data[cntj,4]*math.cos(data[cntj,5])
+#                 #print "ReX test ",ReX,data[cntj,4],data[cntj,5]
+#                 ReXlist = np.append(ReXlist,ReX)
+                
+#                 ImX = data[cntj,4]*math.sin(data[cntj,5])
+#                 ImXlist = np.append(ImXlist,ImX)
+                
+#                 #Re Im in Y direction here
+#                 ReY = data[cntj,6]*math.cos(data[cntj,7])
+#                 ReYlist = np.append(ReYlist,ReY)
+#                 ImY = data[cntj,6]*math.sin(data[cntj,7])
+#                 ImYlist = np.append(ImYlist,ImY)
+                
+#                 #print "point exists in vertexes", x,y,x1,y1,x2,y2
+#                 vtxcnt = vtxcnt + 1              
+                
+#             cntj = cntj + 1 
+        
+#         #Do for Magnitude X
+#         MagXsum = sum(MagXlist)/len(MagXlist)
+#         MagXarr = np.append(MagXarr,MagXsum)    #Now set int and arr to zero for next loop
+#         MagXsum = 0
+#         MagXlist = np.array([])
+#         #Do for Phase X
+#         PhaXsum = sum(PhaXlist)/len(PhaXlist)
+#         PhaXarr = np.append(PhaXarr,PhaXsum)
+#         PhaXsum = 0
+#         PhaXlist = np.array([])
+#         #Do for Mag Y
+#         MagYsum = sum(MagYlist)/len(MagYlist)
+#         MagYarr = np.append(MagYarr,MagYsum)    #Now set int and arr to zero for next loop
+#         MagYsum = 0
+#         MagYlist = np.array([])       
+#         #Do for Phase Y
+#         PhaYsum = sum(PhaYlist)/len(PhaYlist)
+#         PhaYarr = np.append(PhaYarr,PhaYsum)
+#         PhaYsum = 0
+#         PhaYlist = np.array([])
+#         #Re, Im data
+#         ReXsum = sum(ReXlist)/len(ReXlist)
+#         ReXarr = np.append(ReXarr,ReXsum)
+#         ReXsum = 0
+#         ReXlist = np.array([])
+#         #ImX arr work
+#         ImXsum = sum(ImXlist)/len(ImXlist)
+#         ImXarr = np.append(ImXarr,ImXsum)
+#         ImXsum = 0
+#         ImXlist = np.array([])
+#         #Re Y data
+#         ReYsum = sum(ReYlist)/len(ReYlist)
+#         ReYarr = np.append(ReYarr,ReYsum)
+#         ReYsum = 0
+#         ReYlist = np.array([])
+#         #ImY arr work
+#         ImYsum = sum(ImYlist)/len(ImYlist)
+#         ImYarr = np.append(ImYarr,ImYsum)
+#         ImYsum = 0
+#         ImYlist = np.array([])
+#         #data points per pixel counter
+#         vtxcntarr = np.append(vtxcntarr,vtxcnt)
+#         vtxcnt = 0 
+#         #Pixel centers as array
+#         pixcenx = (x1 + x2) / 2        
+#         pixceny = (y1 + y2) / 2
+#         PixCenX = np.append(PixCenX,pixcenx)
+#         PixCenY = np.append(PixCenY,pixceny)
+#         #progperc = (float(cnti)/len(vtxs) ) *100
+#         #print "vertex loop percent estimate = ", progperc, "%"#, "file = ",f 
+        
+#     #print "ReXarr test, =", ReXarr
+#     return MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY
+
+```
+
+```{python}
+#MainProg(files[4], pklrep, tesdatrep, dictfile)
+```
+
+```{python}
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenX, PixCenY, IntX, IntY, IntT, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrep+'FPA_objs_cf1150_150_GHz_Mstyle.pkl')
+```
+
+```{python}
+#     d = qubic.qubicdict.qubicDict()
+#     #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#     #change to moddded dictionary
+#     d.read_from_file(dictfile)
+#     q = qubic.QubicMultibandInstrument(d)
+    
+#     vtxs = q[0].detector.vertex
+#     vtxcounter = np.zeros(992)
+```
+
+```{python}
+print(PixCenX.shape, IntT.shape, IT.shape)
+plt.scatter(PixCenX, PixCenY, c=IntT, cmap='jet',marker='s')
+```
+
+```{python}
+# print(vtxs.shape)
+# print(vtxs[0,:,:])
+# print(vtxs[0,:,0:2])
+# plt.plot(vtxs[0,0,0],vtxs[0,0,1], 'r.')
+# plt.plot(vtxs[0,1,0],vtxs[0,1,1], 'b.')
+# plt.plot(vtxs[0,2,0],vtxs[0,2,1], 'g.')
+# plt.plot(vtxs[0,3,0],vtxs[0,3,1], 'k.')
+
+
+```
+
+```{python}
+# print(max(vtxs[:,2,0]))
+```
+
+```{python}
+# plt.plot(vtxs[:,:,0], vtxs[:,:,1], 'r.')
+```
+
+```{python}
+filecf2 = '/home/james/mylibs/CheckCFcode/MultiFreqFiles CF2/'
+outrepcf2 = '/home/james/mylibs/CheckCFcode/MultiFreqFiles CF2/qbfiles/'
+tesdatrepcf2 = '/home/james/mylibs/CheckCFcode/MultiFreqFiles CF2/tesdat/'
+pklrepcf2 = '/home/james/mylibs/CheckCFcode/MultiFreqFiles CF2/pklrep/'
+#dictfile = '/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict'
+
+
+```
+
+```{python}
+#MultiHornMain(file, outrep)
+```
+
+```{python}
+#dat150cf2 = np.loadtxt(files[4], skiprows=1).T
+```
+
+```{python}
+files = sorted(glob(outrepcf2+'*.qb'))
+print(files)
+print(files[4])
+dat150cf2 = np.loadtxt(files[4], skiprows=1).T
+```
+
+```{python}
+plt.figure(figsize=(8,8))
+plt.scatter(dat150cf2[3,:], dat150cf2[2,:], c=dat150cf2[4,:], cmap='jet',marker='.')
+```
+
+```{python}
+MainProg(files[4], pklrep, tesdatrep, dictfile)
+```
+
+```{python}
+MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, PixCenXcf2, PixCenYcf2, IntX, IntY, IntTcf2, Ix, Iy, IT, xycoords, filename, freq = RetrieveVars(pklrepcf2+'FPA_objs_cf2150_150_GHz_Mstyle.pkl')
+```
+
+```{python}
+plt.scatter(PixCenXcf2, PixCenYcf2, c=IntTcf2, cmap='jet',marker='s')
+```
+
+```{python}
+# def OutputTESPower_v2(pixlocx, pixlocy, TESPower, ofilename):
+#     #form data
+#     data = np.array([pixlocx, pixlocy, TESPower]).T
+#     print(data.shape)
+#     #outfile location
+#     outF = open(ofilename, "w")
+
+#     outF.write('pixel location centers (ONAXISFPRF) and intensity' + '\n')
+
+#     np.savetxt(outF, data, fmt='%1.4e', delimiter =', ')
+    
+#     outF.close()
+
+#     return
+```
+
+```{python}
+# data = np.array([PixCenXcf2, PixCenYcf2, IntTcf2])
+# print(data.shape, data[0,:].shape)
+ofilenamecf1 = '/home/james/mylibs/CheckCFcode/tesoutputdata/cf1tesdat.txt'
+ofilenamecf2 = '/home/james/mylibs/CheckCFcode/tesoutputdata/cf2tesdat.txt'
+```
+
+```{python}
+OutputTESPower_v2(PixCenX, PixCenY, IntT, ofilenamecf1)
+OutputTESPower_v2(PixCenXcf2, PixCenYcf2, IntTcf2, ofilenamecf2)
+```
+
+```{python}
+"""experiment with pix nums"""
+```
+
+```{python}
+d = qubic.qubicdict.qubicDict()
+d.read_from_file(dictfile)
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+```
+
+```{python}
+print(vtxs.shape, vtxs[:,0,0])
+```
+
+```{python}
+q[0].detector
+```
+
+```{python}
+q[0].detector.index
+```
+
+```{python}
+print(q[0].detector.index.shape)
+```
+
+```{python}
+qubicsoftpix = np.array(q[0].detector.index)
+print(qubicsoftpix.shape, )
+```
+
+```{python}
+plt.figure(figsize=(16,16))
+plt.plot(vtxs[:,0,0], vtxs[:,0,1], marker='s', linestyle='')
+
+for i, pix in enumerate(qubicsoftpix):
+    plt.text(vtxs[i,0,0], vtxs[i,0,1], str(pix))
+```
+
+```{python}
+from qubicpack import *
+
+l = tes2pix(96, asic=1)
+print(l)
 ```
 
 ```{python}

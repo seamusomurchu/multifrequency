@@ -7,7 +7,7 @@ from CSFPA_dataIO import getXYcoords, dataIO, dataAnalysis, SaveVars, IntensityC
 from qubicpack.utilities import Qubic_DataDir
 import qubic
 
-def MainProg(filepath, pklrep, tesdatrep):
+def MainProg(filepath, pklrep, tesdatrep, dictfile):
     
     start = timeit.default_timer()
     repfile=filepath
@@ -15,13 +15,13 @@ def MainProg(filepath, pklrep, tesdatrep):
     qbfilename = os.path.splitext(os.path.basename(repfile))[0]
 
     # Use a tool from qubicpack to get a path
-    basedir = Qubic_DataDir(datafile='instrument.py', ) 
-    print('basedir : ', basedir)
-    dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+    #basedir = Qubic_DataDir(datafile='instrument.py', ) 
+    #print('basedir : ', basedir)
+    #dictfilename = basedir + '/dicts/global_source_oneDet.dict'
     d = qubic.qubicdict.qubicDict()
     #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
     #change to moddded dictionary
-    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDetFI.dict')
+    d.read_from_file(dictfile)
     q = qubic.QubicMultibandInstrument(d)
     
     vtxs = q[0].detector.vertex
