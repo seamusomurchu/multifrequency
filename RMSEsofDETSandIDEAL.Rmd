@@ -1,0 +1,324 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+from CSFPA_dataIO import calculate_intensity_4_baseline, IntegrateHornCombOnFP, RMSE
+import matplotlib.pyplot as plt
+import qubic
+from qubic import selfcal_lib as scal
+import glob
+from timeit import default_timer as timer
+import os
+import re
+from joblib import Parallel, delayed
+from tqdm import tqdm
+import multiprocessing
+from random import randint, sample
+from itertools import combinations
+```
+
+```{python}
+my150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+```
+
+```{python}
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+
+centers = q.horn.center[:, 0:2]
+col = q.horn.column
+row = q.horn.row
+
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+```
+
+```{python}
+instFI = qubic.QubicInstrument(d)
+hornsFI = instFI.horn.open
+
+
+hornsTD = (col >= 8) & (col <= 15) & (row >= 8) & (row <= 15)
+#print(hornsTD)
+
+### Now create First Instrument and TD monochromatic
+instTD = qubic.QubicInstrument(d)
+instTD.horn.open[~hornsTD] = False
+
+cnt = 1
+TDhornsFIconf = np.zeros(400)
+
+# %matplotlib notebook
+plt.figure(figsize=(10,10))
+q.horn.plot()
+for i in range(len(centers)):
+    if hornsTD[i] == True:
+        #plt.text(centers[i,0]-0.006, centers[i,1], 'c{0:}'.format(col[i]), color='r',fontsize=8)
+        #plt.text(centers[i,0]+0.00001, centers[i,1], 'r{0:}'.format(row[i]), color='b',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1]-0.004, 'h {0:}'.format(str(i+1)), color='g',fontsize=8)
+        plt.text(centers[i,0]-0.005, centers[i,1], 'td {0:}'.format(str(cnt)), color='r',fontsize=8)
+        
+        TDhornsFIconf[i] = cnt
+        
+        cnt+=1
+    
+instTD.horn.plot()
+plt.ylabel('Horn GRF Y (m)')
+plt.xlabel('Horn GRF X (m)')
+
+plt.show()
+```
+
+```{python}
+#dat = np.loadtxt(file, delimiter=',', skiprows=1)
+tdpair1 = [41,59]
+tdpair2 = [1,57]
+tdpair3 = [57,64]
+fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
+fipair3 = [int(FIhorns[np.where(TDhornsFIconf == tdpair3[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair3[1])])]
+baseline = [274, 281]
+```
+
+```{python}
+x, y, i2 = calculate_intensity_4_baseline(fipair2, my150dat)
+x, y, i3 = calculate_intensity_4_baseline(fipair3, my150dat)
+#x, y, i2 = calculate_intensity_4_baseline([int(dat[int(comb[i,1]),0]), int(dat[int(comb[i,1]),1])], my150dat)
+
+```
+
+```{python}
+"""get vertexes..."""
+vtxs = q.detector.vertex
+print(vtxs.shape)
+```
+
+```{python}
+PixCenX, PixCenY, bols2 = IntegrateHornCombOnFP(i2, np.array([x, y]),  vtxs)
+PixCenX, PixCenY, bols3 = IntegrateHornCombOnFP(i3, np.array([x, y]),  vtxs)
+```
+
+```{python}
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.scatter(x, y, c=i2, cmap='jet', marker='.')
+plt.subplot(1,2,2)
+plt.scatter(PixCenX, PixCenY, c=bols2, cmap='jet', marker='s')
+
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.scatter(x, y, c=i3, cmap='jet', marker='.')
+plt.subplot(1,2,2)
+plt.scatter(PixCenX, PixCenY, c=bols3, cmap='jet', marker='s')
+```
+
+```{python}
+#baseline = [60, 63]
+Model_Ana = scal.Model_Fringes_Ana(q, fipair2, 
+                                   theta_source=np.deg2rad(0.), 
+                                   phi_source=np.deg2rad(0.), 
+                                   nu_source=150e9, fwhm=20., amp=1., frame='ONAFP')
+print(Model_Ana.focal)
+
+xONAFP, yONAFP, fringes2 = Model_Ana.get_fringes(times_gaussian=True)
+
+scal.scatter_plot_FP(q, xONAFP, yONAFP, fringes2, frame='ONAFP', s=50)
+##################################################
+Model_Ana = scal.Model_Fringes_Ana(q, fipair3, 
+                                   theta_source=np.deg2rad(0.), 
+                                   phi_source=np.deg2rad(0.), 
+                                   nu_source=150e9, fwhm=20., amp=1., frame='ONAFP')
+print(Model_Ana.focal)
+
+xONAFP, yONAFP, fringes3 = Model_Ana.get_fringes(times_gaussian=True)
+
+scal.scatter_plot_FP(q, xONAFP, yONAFP, fringes3, frame='ONAFP', s=50)
+```
+
+```{python}
+# %matplotlib inline
+plt.figure(figsize=(16,4))
+plt.subplot(1,3,1)
+plt.scatter(x, y, c=i2, cmap='jet', marker='.')
+plt.subplot(1,3,2)
+plt.scatter(PixCenX, PixCenY, c=bols2, cmap='jet', marker='s')
+plt.subplot(1,3,3)
+plt.scatter(xONAFP, yONAFP, c=fringes2, cmap='jet', marker='s')
+
+plt.figure(figsize=(16,4))
+plt.subplot(1,3,1)
+plt.scatter(x, y, c=i3, cmap='jet', marker='.')
+plt.subplot(1,3,2)
+plt.scatter(PixCenX, PixCenY, c=bols3, cmap='jet', marker='s')
+plt.subplot(1,3,3)
+plt.scatter(xONAFP, yONAFP, c=fringes3, cmap='jet', marker='s')
+```
+
+```{python}
+"""try with louises soft to integrate FP data"""
+"""well i think i have to skip since only for TD and Daves weird file names"""
+```
+
+```{python}
+
+
+```
+
+```{python}
+#renorm qubicsoft fringes
+print(max(fringes2), min(fringes2))
+rf = fringes2+1 
+rf = rf/ max(rf)
+print(max(rf), min(rf))
+```
+
+```{python}
+plt.figure(figsize=(16,4))
+plt.plot(bols2/max(bols2), '.')
+plt.plot(fringes2/max(fringes2), '.')
+plt.plot(rf, '.')
+```
+
+```{python}
+print(RMSE(bols2/max(bols2), rf))
+```
+
+```{python}
+redupath = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsDETS/'
+
+
+def reduce_combinations_DETS(file):
+    #load file
+    dat = np.loadtxt(file, delimiter=',', skiprows=1)
+    #print(dat.shape)
+    
+    #return if no combinations
+    if len(dat.shape) == 1:
+        print("break for baseline of 1")
+        return
+    
+    if len(dat) > 15:
+        #x = [randint(0, len(dat[:,0])-1) for p in range(0, 15)]
+        rs = sample(range(1, len(dat[:,0])), 15)
+        #print(rs)
+
+        #find combinations for reduced list
+        comb = np.array(list(combinations(rs, 2)))
+        print("> 15 ", rs, comb.shape)
+        
+    if len(dat) <= 15:
+        #find combinations
+        bi = np.linspace(0, len(dat[:,0])-1, len(dat[:,0]), dtype=int)
+        comb = np.array(list(combinations(bi, 2)))
+        print("<= 15 ", len(dat[:,0]), bi.shape, comb.shape)
+        
+        
+    #open a file here and file orginal file
+    fname = os.path.basename(file)  
+    sfile = open(redupath+'RMSE_'+fname, "w")
+    sfile.write("Orginal CB type file -> "+file+'\n')
+    sfile.write("h1, h2, h3, h4, rmse"+'\n')
+    
+    for i in range(len(comb[:,0])):
+#         print(i, comb[i], comb[i,0], comb[i,1], 
+#               dat[comb[i,0], 0], dat[comb[i,0], 1], dat[comb[i,1], 0], dat[comb[i,1], 1],
+#              int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),0])]),
+#              int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,0]),1])]),
+#              int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),0])]),
+#              int(FIhorns[np.where(TDhornsFIconf == dat[int(comb[i,1]),1])]))
+    
+    #print(i)
+        x, y, i1 = calculate_intensity_4_baseline([int(dat[int(comb[i,0]),0]), int(dat[int(comb[i,0]),1])], my150dat)
+        x, y, i2 = calculate_intensity_4_baseline([int(dat[int(comb[i,1]),0]), int(dat[int(comb[i,1]),1])], my150dat)
+        #rmse1 = RMSE(i1/max(i1), i2/max(i2))
+        px, py, pi1 = IntegrateHornCombOnFP(i1, np.array([x, y]), vtxs)
+        px, py, pi2 = IntegrateHornCombOnFP(i2, np.array([x, y]), vtxs)
+        rmse2 = RMSE(pi1, pi2)
+        sfile.write("{}, {}, {}, {}, {:.5e} \n".format(
+            int(dat[comb[i,0], 0]),
+            int(dat[comb[i,0], 1]),
+            int(dat[comb[i,1], 0]),
+            int(dat[comb[i,1], 1]),
+            rmse2))
+        
+    #close file here
+    sfile.close()
+
+    return
+```
+
+```{python}
+"""for each one of claudias baseline types
+save for a file
+produce auxilliary file"""
+
+claudiasbaselinerep = "/home/james/mylibs/multifrequency/baseline_files/FI_baselines/"
+
+cbfiles = glob.glob(claudiasbaselinerep+'*.txt')
+
+cbfiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+print(cbfiles)
+```
+
+```{python}
+num_cores=15
+#inputs=tqdm(cbfilesshort)
+inputs=tqdm(cbfiles)
+
+startm = timer()
+
+if __name__ == '__main__':
+        process=Parallel(n_jobs=num_cores)(delayed(reduce_combinations_DETS)(file) for file in inputs)
+        
+endm = timer()
+print("time taken parrallel", endm - startm, "s")
+```
+
+```{python}
+#print(redupath)
+```
+
+```{python}
+
+```

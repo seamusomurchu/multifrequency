@@ -561,7 +561,7 @@ font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
-plt.figure(figsize=(10,8))
+plt.figure(figsize=(16,10))
 
 for i in range(len(partitioned_baselines)):
 
@@ -576,10 +576,13 @@ cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=378)
 
 plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
-             cax=None, orientation='vertical', label='Some Units', ticks=np.linspace(0,378,15))
+             cax=None, orientation='vertical', label='Number of Baselines', ticks=np.linspace(0,378,15))
 
 plt.ylabel('Distance Between Horns (mm)')
 plt.xlabel(r'Angular Orientation ($\theta$)')
+
+plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/numbaselinesintype.png', facecolor='white')
+
 # plt.scatter(partitioned_baselines[:][0][0][0][3], partitioned_baselines[:][0][0][0][2], 
 #             c=len(partitioned_baselines[:][0][0][:,0]), cmap='jet', marker='.')
 
@@ -1258,7 +1261,7 @@ font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
-plt.figure(figsize=(10,8))
+plt.figure(figsize=(16,10))
 t=0
 
 for i in range(len(partitioned_baselines)):
@@ -1275,11 +1278,12 @@ cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
 
 plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
-             cax=None, orientation='vertical', label='Some Units')
+             cax=None, orientation='vertical', label='Mean RMSE of Baseline Type')
 
 plt.ylabel('Distance Between Horns (mm)')
 plt.xlabel(r'Angular Orientation ($\theta$)')
-print(t, colors.shape)
+plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype.png', facecolor='white')
+#print(t, colors.shape)
 ```
 
 ```{python}
