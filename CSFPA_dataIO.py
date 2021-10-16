@@ -789,3 +789,10 @@ def RMSE(v1,v2):
 def RMSE_residual(diff):
     """simple RMSE calculation for the residual difference, typically focal plane intensity"""
     return np.sqrt(np.mean((diff)**2))
+
+def rotate_about00(x, y, theta):
+    theta = np.deg2rad(theta)
+    xr = x*np.cos(theta) - y*np.sin(theta)
+    yr = x*np.sin(theta) + y*np.cos(theta)
+    
+    return xr, yr

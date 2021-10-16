@@ -118,6 +118,11 @@ tdpair3 = [57,64]
 fipair2 = [int(FIhorns[np.where(TDhornsFIconf == tdpair2[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair2[1])])]
 fipair3 = [int(FIhorns[np.where(TDhornsFIconf == tdpair3[0])]), int(FIhorns[np.where(TDhornsFIconf == tdpair3[1])])]
 baseline = [274, 281]
+
+```
+
+```{python}
+
 ```
 
 ```{python}
@@ -136,6 +141,16 @@ print(vtxs.shape)
 ```{python}
 PixCenX, PixCenY, bols2 = IntegrateHornCombOnFP(i2, np.array([x, y]),  vtxs)
 PixCenX, PixCenY, bols3 = IntegrateHornCombOnFP(i3, np.array([x, y]),  vtxs)
+
+
+
+```
+
+```{python}
+#also test louises function
+powerTES = scal.fullreso2TESreso(x, y, i2, vtxs, q.detector.area)
+plt.scatter(PixCenX, PixCenY, c=powerTES, cmap='jet', marker='s')
+plt.colorbar()
 ```
 
 ```{python}
@@ -177,13 +192,29 @@ scal.scatter_plot_FP(q, xONAFP, yONAFP, fringes3, frame='ONAFP', s=50)
 
 ```{python}
 # %matplotlib inline
-plt.figure(figsize=(16,4))
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 16}
+plt.rc('font', **font)
+plt.figure(figsize=(17,5))
 plt.subplot(1,3,1)
 plt.scatter(x, y, c=i2, cmap='jet', marker='.')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+plt.ylabel('y ONAFPRF (m)')
 plt.subplot(1,3,2)
 plt.scatter(PixCenX, PixCenY, c=bols2, cmap='jet', marker='s')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+plt.xlabel('x ONAFPRF (m)')
 plt.subplot(1,3,3)
-plt.scatter(xONAFP, yONAFP, c=fringes2, cmap='jet', marker='s')
+plt.scatter(xONAFP, yONAFP, c=fringes2**2, cmap='jet', marker='s')
+#plt.axis('equal')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+#plt.tight_layout()
+
+
 
 plt.figure(figsize=(16,4))
 plt.subplot(1,3,1)
@@ -200,8 +231,10 @@ plt.scatter(xONAFP, yONAFP, c=fringes3, cmap='jet', marker='s')
 ```
 
 ```{python}
-
-
+plt.figure(figsize=(16,8))
+plt.plot(PixCenY*-1, '.')
+plt.plot(xONAFP, '.')
+#print(PixCenX, xONAFP)
 ```
 
 ```{python}
@@ -213,19 +246,69 @@ print(max(rf), min(rf))
 ```
 
 ```{python}
-plt.figure(figsize=(16,4))
-plt.plot(bols2/max(bols2), '.')
-plt.plot(fringes2/max(fringes2), '.')
-plt.plot(rf, '.')
+plt.figure(figsize=(16,8))
+# plt.plot(bols2/max(bols2), '.', label='mydetsoft')
+# plt.plot(proper_normalise(fringes), '.', label='basic norm louise soft')
+plt.plot(bols2[np.isclose(xONAFP, PixCenX, atol=0.005)]/max(bols2), '.', label='mydetsoft')
+plt.plot(proper_normalise(fringes[np.isclose(xONAFP, PixCenX, atol=0.005)]), '.', label='basic norm louise soft')
+#plt.plot(rf, '.')
 ```
 
 ```{python}
 print(RMSE(bols2/max(bols2), rf))
+print(q.detector.area)
+det_area = q.detector.area
 ```
 
 ```{python}
 redupath = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsDETS/'
+redupath2 = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsDETSidealFPcomp/'
 
+def get_fringe_objs(h1, h2):
+    """because it looks like GRF is now ONAFPRF in qubicsoft..."""
+    
+    d = qubic.qubicdict.qubicDict()
+    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+    d['config'] = 'FI'
+    d['beam_shape'] = 'fitted_beam'
+    q = qubic.QubicInstrument(d)
+    
+    Model_Ana = scal.Model_Fringes_Ana(q, [h1, h2], 
+                                   theta_source=np.deg2rad(0.), 
+                                   phi_source=np.deg2rad(0.), 
+                                   nu_source=150e9, fwhm=20., amp=1., frame='GRF')
+
+    xONAFP, yONAFP, fringes = Model_Ana.get_fringes(times_gaussian=True)
+#     fringes2 = fringes+1 
+#     fringes2 = fringes2/ max(fringes2)
+    fringes = fringes**2
+    fringes2 = proper_normalise(fringes)
+    
+    det_area = q.detector.area
+    
+    vtxs = q.detector.vertex
+    
+    return xONAFP, yONAFP, fringes2, det_area, vtxs
+
+def proper_normalise(data):
+    
+    return (data - min(data)) / (max(data) - min(data))
+
+def qubicsoft_detcen_ordering():
+    
+    d = qubic.qubicdict.qubicDict()
+    d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+    d['config'] = 'FI'
+    q = qubic.QubicInstrument(d)
+    detcensx1 = q.detector.vertex[:,0,0]
+    detcensy1 = q.detector.vertex[:,0,1]
+    detcensx2 = q.detector.vertex[:,2,0]
+    detcensy2 = q.detector.vertex[:,2,1]
+    detcensx = (detcensx1 + detcensx2) /2
+    detcensy = (detcensy1 + detcensy2) /2
+    
+    return detcensx, detcensy
+    
 
 def reduce_combinations_DETS(file):
     #load file
@@ -259,6 +342,27 @@ def reduce_combinations_DETS(file):
     sfile.write("Orginal CB type file -> "+file+'\n')
     sfile.write("h1, h2, h3, h4, rmse"+'\n')
     
+#     #setup another file with ideal comparison
+    fname = os.path.basename(file)  
+    sfile2 = open(redupath2+'RMSE_detsideal'+fname, "w")
+    sfile2.write("Orginal CB type file -> "+file+'\n')
+    sfile2.write("ideal example horns, h1, h2, rmse"+'\n')
+    
+    print([int(dat[int(comb[0,0]),0]), int(dat[int(comb[0,0]),1])])
+#     #LOAD IDEAL EXAMPLE
+#     Model_Ana = scal.Model_Fringes_Ana(q, [int(dat[int(comb[0,0]),0]), int(dat[int(comb[0,0]),1])], 
+#                                    theta_source=np.deg2rad(0.), 
+#                                    phi_source=np.deg2rad(0.), 
+#                                    nu_source=150e9, fwhm=20., amp=1., frame='ONAFP')
+
+#     xONAFP, yONAFP, fringes = Model_Ana.get_fringes(times_gaussian=True)
+# #     fringes2 = fringes+1 
+# #     fringes2 = fringes2/ max(fringes2)
+#     fringes2 = (fringes - min(fringes)) / (max(fringes) - min(fringes))
+
+    xONAFP, yONAFP, fringes2, det_area, vtxs = get_fringe_objs(
+        int(dat[int(comb[0,0]),0]), int(dat[int(comb[0,0]),1]))
+    
     for i in range(len(comb[:,0])):
 #         print(i, comb[i], comb[i,0], comb[i,1], 
 #               dat[comb[i,0], 0], dat[comb[i,0], 1], dat[comb[i,1], 0], dat[comb[i,1], 1],
@@ -271,8 +375,10 @@ def reduce_combinations_DETS(file):
         x, y, i1 = calculate_intensity_4_baseline([int(dat[int(comb[i,0]),0]), int(dat[int(comb[i,0]),1])], my150dat)
         x, y, i2 = calculate_intensity_4_baseline([int(dat[int(comb[i,1]),0]), int(dat[int(comb[i,1]),1])], my150dat)
         #rmse1 = RMSE(i1/max(i1), i2/max(i2))
-        px, py, pi1 = IntegrateHornCombOnFP(i1, np.array([x, y]), vtxs)
-        px, py, pi2 = IntegrateHornCombOnFP(i2, np.array([x, y]), vtxs)
+        pi1 = scal.fullreso2TESreso(x, y, i1, vtxs, det_area)
+        pi2 = scal.fullreso2TESreso(x, y, i2, vtxs, det_area)
+        pi1 = proper_normalise(pi1)
+        pi2 = proper_normalise(pi2)
         rmse2 = RMSE(pi1, pi2)
         sfile.write("{}, {}, {}, {}, {:.5e} \n".format(
             int(dat[comb[i,0], 0]),
@@ -281,10 +387,43 @@ def reduce_combinations_DETS(file):
             int(dat[comb[i,1], 1]),
             rmse2))
         
+        #calcRMSEfor IDEAL thing
+        #pi1 = proper_normalise(pi1)
+        rmse3 = RMSE(pi1, fringes2)
+        #write it to the newfile
+        sfile2.write("{}, {}, {}, {}, {:.5e} \n".format(
+            int(dat[comb[0,0], 0]),
+            int(dat[comb[0,0], 1]),
+            int(dat[comb[i,1], 0]),
+            int(dat[comb[i,1], 1]),
+            rmse3))
+        
+        #get detcen ordering from qubicsoft
+#         detcensx, detcensy = qubicsoft_detcen_ordering()
+#         plt.figure(figsize=(16,4))
+#         plt.subplot(1,3,1)
+#         plt.scatter(x, y, c=i1, marker='.')
+#         plt.colorbar()
+#         plt.subplot(1,3,2)
+#         plt.scatter(detcensx, detcensy, c=pi1, marker='s')
+#         plt.colorbar()
+#         plt.subplot(1,3,3)
+#         plt.scatter(xONAFP, yONAFP, c=fringes2, marker='s')
+#         plt.colorbar()
+        
+#         plt.figure(figsize=(16,4))
+#         plt.plot(pi1, '.')
+#         plt.plot(fringes2, '.')
+        
     #close file here
     sfile.close()
-
+    sfile2.close()
+    
     return
+```
+
+```{python}
+
 ```
 
 ```{python}
@@ -302,7 +441,127 @@ print(cbfiles)
 ```
 
 ```{python}
-num_cores=15
+reduce_combinations_DETS(cbfiles[10])
+```
+
+```{python}
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+d['beam_shape'] = 'fitted_beam'
+q = qubic.QubicInstrument(d)
+vtxs = q.detector.vertex
+detcensx1 = q.detector.vertex[:,0,0]
+detcensy1 = q.detector.vertex[:,0,1]
+detcensx2 = q.detector.vertex[:,2,0]
+detcensy2 = q.detector.vertex[:,2,1]
+detcensx = detcensx1 + detcensx2 /2
+detcensy = detcensy1 + detcensy2 /2
+print(detcensx.shape)
+
+def rotate_about00(x, y, theta):
+    theta = np.deg2rad(theta)
+    xr = x*np.cos(theta) - y*np.sin(theta)
+    yr = x*np.sin(theta) + y*np.cos(theta)
+    
+    return xr, yr
+```
+
+```{python}
+# %matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 16}
+plt.rc('font', **font)
+plt.figure(figsize=(17,5))
+plt.subplot(1,3,1)
+plt.scatter(x, y, c=ii, marker='.')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+plt.ylabel('y ONAFPRF (m)')
+plt.subplot(1,3,2)
+plt.scatter(PixCenX, PixCenY, c=bolsii/max(bolsii), marker='s')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+plt.xlabel('x ONAFPRF (m)')
+plt.subplot(1,3,3)
+plt.scatter(xONAFP, yONAFP, c=fringes2**2, marker='s')
+#plt.axis('equal')
+plt.xlim(min(xONAFP)-0.003,max(xONAFP)+0.003)
+plt.ylim(min(yONAFP)-0.003,max(yONAFP)+0.003)
+plt.tight_layout()
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/detgeo.png', facecolor='white')
+```
+
+```{python}
+bl2 = [21, 328]
+
+baseline = [21, 328]
+baseline = [36, 347]
+baseline = [98, 139]
+baseline = [47, 82]
+x, y, ii = calculate_intensity_4_baseline(baseline, my150dat)
+PixCenX, PixCenY, bolsii = IntegrateHornCombOnFP(ii, np.array([x, y]),  vtxs)
+Model_Ana = scal.Model_Fringes_Ana(q, baseline, 
+                               theta_source=np.deg2rad(0.), 
+                               phi_source=np.deg2rad(0.), 
+                               nu_source=150e9, fwhm=20., amp=1., frame='GRF')
+
+xONAFP, yONAFP, fringes = Model_Ana.get_fringes(times_gaussian=True)
+#xONAFP, yONAFP = rotate_about00(xONAFP, yONAFP, -90)
+# fringes2 = fringes+1 
+# fringes2 = fringes2/ max(fringes2)
+fringes2 = proper_normalise(fringes)
+
+
+plt.figure(figsize=(16,4))
+plt.subplot(1,3,1)
+plt.scatter(x, y, c=ii, marker='.')
+plt.colorbar()
+plt.subplot(1,3,2)
+plt.scatter(PixCenX, PixCenY, c=bolsii/max(bolsii), marker='s')
+plt.colorbar()
+plt.subplot(1,3,3)
+plt.scatter(xONAFP, yONAFP, c=fringes**2, marker='s')
+plt.colorbar()
+
+plt.figure(figsize=(16,6))
+plt.subplot(1,2,1)
+plt.scatter(PixCenX, PixCenY, c=bolsii/max(bolsii), marker='s')
+plt.text(PixCenX[0], PixCenY[0], '0', fontsize=20, color='r')
+plt.text(PixCenX[100], PixCenY[100], '100', fontsize=20, color='r')
+plt.text(PixCenX[247], PixCenY[247], '247', fontsize=20, color='r')
+plt.colorbar()
+plt.subplot(1,2,2)
+plt.scatter(xONAFP, yONAFP, c=fringes**2, marker='s')
+plt.text(xONAFP[0], yONAFP[0], '0', fontsize=20, color='r')
+plt.text(xONAFP[100], yONAFP[100], '100', fontsize=20, color='r')
+plt.text(xONAFP[247], yONAFP[247], '247', fontsize=20, color='r')
+plt.colorbar()
+
+fig, axs = plt.subplots(1, 2)
+ax1, ax2 = np.ravel(axs)
+fig.suptitle(f'Baseline: {baseline}', fontsize=18)
+fig.subplots_adjust(wspace=0.3)
+
+scal.scatter_plot_FP(q, xONAFP, yONAFP, fringes, frame='ONAFP', fig=fig, ax=ax1, 
+                     title='Scatter plot', norm=None, s=30, cbar=True, fontsize=14)
+
+scal.pcolor_plot_FP(q, xONAFP, yONAFP, fringes, frame='ONAFP', fig=fig, ax=ax2, 
+                    title='pcolor plot', norm=None)
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+# plt.plot(detcensx, bolsii/max(bolsii), '.')
+# plt.plot(xONAFP, fringes2, '.')
+plt.plot(bolsii/max(bolsii), '.')
+plt.plot(fringes**2/max(fringes**2), '.')
+
+```
+
+```{python}
+num_cores=16
 #inputs=tqdm(cbfilesshort)
 inputs=tqdm(cbfiles)
 
@@ -316,9 +575,531 @@ print("time taken parrallel", endm - startm, "s")
 ```
 
 ```{python}
-#print(redupath)
+"""30066.26 seconda, 8.35 hours"""
 ```
 
 ```{python}
+"""maybe its something about it trying to pickly the qubic class object..."""
+```
 
+```{python}
+print(redupath)
+```
+
+```{python}
+rmsepath = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsDETS/'
+typefiles = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/'
+jet= plt.get_cmap('jet')
+colors = iter(jet(np.linspace(0,10,11)))
+
+rmsefiles = glob.glob(rmsepath+'*.txt')
+rmsefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+#print(rmsefiles)
+typefiles = glob.glob(typefiles+'*.txt')
+typefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+
+typelist = np.array([])
+rmses = np.array([])
+rmsesm = np.array([])
+rmsesSTD = np.array([])
+ind = np.array([])
+L2 = np.array([])
+theta = np.array([])
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+temp=0
+#740 since only one baseline for these types
+for i, file in enumerate(rmsefiles[0:740]):
+    """mod to also load R and phi"""
+    
+    typedat = np.loadtxt(typefiles[i], delimiter = ',', skiprows=1, max_rows=1)
+    #print(typefiles[i], typedat.shape, typedat[2], typedat[3])
+    
+    num = re.findall(r'\d+', file)
+    #print(file, num, i)
+    
+    dat = np.loadtxt(file, delimiter = ',', skiprows=2)
+    
+    temp = len(dat[:,4].shape) + temp
+    
+    #index = index+temp
+        
+    nums = np.full(dat[:,4].shape, num)
+    
+    #print(dat.shape, i, dat[:,8].shape, nums.shape)
+    
+    
+    rmses = np.append(rmses, dat[:,4])
+    rmsesm = np.append(rmsesm, np.mean(dat[:,4]))
+    rmsesSTD = np.append(rmsesSTD, np.std(dat[:,4]))
+    typelist = np.append(typelist, nums)
+    #ind = np.append(ind, index)
+    L2 = np.append(L2, typedat[2])
+    theta = np.append(theta, typedat[3])
+    plt.plot(nums, dat[:,4], '.', markersize=10)
+
+plt.legend(loc='upper right', fontsize=12)
+plt.xlabel('Baseline Type')
+plt.ylabel('RMSE')
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all_FI.png', facecolor='white')
+
+plt.figure(figsize=(16, 8))
+for i, file in enumerate(rmsefiles[0:740]):
+    plt.plot(i+1, rmsesm[i], 's', markersize=5)
+    
+plt.gca().set_prop_cycle(None)
+for i, file in enumerate(rmsefiles[0:740]):
+    plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
+    
+plt.xlabel('Baseline Type')
+plt.ylabel('Mean RMSE with Standard Deviation')
+
+#plt.xlim([0,100])
+
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/results_cb_meanstd_FI_DETS.png', facecolor='white')
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,10))
+
+plt.scatter(theta[::-1], L2[::-1], c=rmsesm[::-1], cmap='jet', s=65)
+plt.colorbar(label='Mean RMSE of Baseline Type')
+plt.ylabel('Distance Between Horns')
+plt.xlabel(r'Angular Orientation ($\theta$)')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/uvplotdets.png', facecolor='white')
+```
+
+```{python}
+print(min(rmsesm), max(rmsesm), max(rmsesm)/min(rmsesm))
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 20}
+# plt.rc('font', **font)
+# plt.figure(figsize=(16,10))
+
+# plt.scatter(theta, L2, c= rmsesm, cmap='jet')
+# plt.colorbar()
+# plt.ylabel('Distance Between Horns ($mm^2$)')
+# plt.xlabel(r'Angular Orientation ($\theta$)')
+```
+
+```{python}
+from operator import itemgetter
+import matplotlib as mpl
+
+def get_partitioned_baselines():
+    
+    n=20
+    N= n*n
+    N_baselines = N*(N-1)/2
+    
+    Coordinates_horns = []
+
+    count = 0
+    for j in range(400):
+        a = (q.horn.row[j], q.horn.column[j])
+        #print("Coordinates (x,y) are ", a)
+
+        Coordinates_horns.append(a)
+
+        count += 1
+
+    #print("count: ", count)
+    
+    Coordinates_horns = np.array(Coordinates_horns)
+    
+    baseline = []   #array that will keep L2 and the angle
+
+    baseline_v2 = []    #array that will keep the label of the horns that form the baseline, L2 and the angle
+
+    for i in range(N):
+        x_i,y_i = Coordinates_horns[i]
+
+        for j in range(i+1,N):
+
+            x_j,y_j = Coordinates_horns[j]        
+
+
+            L2 = (x_i - x_j)**2 + (y_i - y_j)**2
+
+            tan_alpha = (y_j - y_i)/(x_j - x_i)
+
+            angle= np.arctan(tan_alpha)
+
+            baseline.append([L2, angle])
+
+            baseline_v2.append([i,j, L2, angle])
+
+    baseline = np.array(baseline)
+    baseline_v2 = np.array(baseline_v2)
+    ordered_baselines_v2 = sorted(baseline_v2, key= itemgetter(2,3))
+    ordered_baselines_v2 = np.array(ordered_baselines_v2)
+    xx = np.diff(ordered_baselines_v2[:,2])
+    zz= np.split(ordered_baselines_v2, np.where(np.diff(ordered_baselines_v2[:,2]))[0]+1)
+    
+    # Now, for each distinct value of L2, I split the array in different values of the angle.
+
+    partitioned_baselines = []
+
+    for i in range(len(zz)):
+        
+        aa = zz[i]
+        bb = np.split(aa, np.where(np.diff(aa[:,3]))[0]+1)
+        bb = np.array(bb)
+        partitioned_baselines.append(bb)
+
+    partitioned_baselines = np.array(partitioned_baselines)
+    
+    return partitioned_baselines
+
+#partitioned_baselines = get_partitioned_baselines()
+print(partitioned_baselines[0].shape)
+n_angles  = len(partitioned_baselines[1])
+print(n_angles)
+print(partitioned_baselines[0][:,0,:])
+```
+
+```{python}
+"""okay lets do a plot"""
+# hcvmax = 0.42947485714285716
+# rmsesmNORM = rmsesm*1000
+# colors = plt.cm.jet(np.linspace(0, 1, hcvmax*1000))
+
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 20}
+# plt.rc('font', **font)
+# plt.figure(figsize=(16,10))
+
+# t=0
+
+# for i in range(len(partitioned_baselines)):
+
+#     n_angles  = len(partitioned_baselines[i])
+    
+#     for j in range(n_angles):
+#         #print(len(partitioned_baselines[i][j][:,0]), rmsesm[i], colors[np.where(rmsesm[i])])
+#         #print(colors[int(rmsesmNORM[i])])
+#         plt.plot(partitioned_baselines[i][j][0][3], partitioned_baselines[i][j][0][2], '.', 
+#                  color=colors[int(rmsesmNORM[i])], markersize=20)
+#         t+=1
+# cmap = mpl.cm.jet
+# norm = mpl.colors.Normalize(vmin=0, vmax=hcvmax)
+
+# plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+#              cax=None, orientation='vertical', label='Mean RMSE of Baseline Type')
+
+# plt.ylabel('Distance Between Horns (mm)')
+# plt.xlabel(r'Angular Orientation ($\theta$)')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype.png', facecolor='white')
+#print(t, colors.shape)
+
+# """plt the new alternate way"""
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 20}
+# plt.rc('font', **font)
+# plt.figure(figsize=(16,10))
+
+# plt.scatter(theta, L2, c= rmsesm, cmap='jet')
+# plt.colorbar()
+```
+
+```{python}
+rmsepath = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsDETSidealFPcomp/'
+jet= plt.get_cmap('jet')
+colors = iter(jet(np.linspace(0,10,11)))
+
+rmsefiles = glob.glob(rmsepath+'*.txt')
+rmsefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+#print(rmsefiles)
+
+typelist = np.array([])
+rmses = np.array([])
+rmsesm = np.array([])
+rmsesSTD = np.array([])
+ind = np.array([])
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+temp=0
+#740 since only one baseline for these types
+for i, file in enumerate(rmsefiles[0:740]):
+    
+    num = re.findall(r'\d+', file)
+    #print(file, num, i)
+    
+    dat = np.loadtxt(file, delimiter = ',', skiprows=2)
+    
+    temp = len(dat[:,4].shape) + temp
+    
+    #index = index+temp
+        
+    nums = np.full(dat[:,4].shape, num)
+    
+    #print(dat.shape, i, dat[:,8].shape, nums.shape)
+    if np.mean(dat[:,4])>0.4:
+        print(file)
+    
+    
+    rmses = np.append(rmses, dat[:,4])
+    rmsesm = np.append(rmsesm, np.mean(dat[:,4]))
+    rmsesSTD = np.append(rmsesSTD, np.std(dat[:,4]))
+    typelist = np.append(typelist, nums)
+    #ind = np.append(ind, index)
+
+    plt.plot(nums, dat[:,4], '.', markersize=10)
+
+plt.legend(loc='upper right', fontsize=12)
+plt.xlabel('Baseline Type')
+plt.ylabel('RMSE')
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all_FI.png', facecolor='white')
+
+plt.figure(figsize=(16, 8))
+for i, file in enumerate(rmsefiles[0:740]):
+    plt.plot(i+1, rmsesm[i], 's', markersize=5)
+    
+plt.gca().set_prop_cycle(None)
+for i, file in enumerate(rmsefiles[0:740]):
+    plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
+    
+plt.xlabel('Baseline Type')
+plt.ylabel('Mean RMSE with Standard Deviation')
+
+#plt.xlim([0,100])
+
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/results_cb_meanstd_FI_AB_ideal.png', facecolor='white')
+"""plt the new alternate way"""
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,10))
+
+plt.scatter(theta[::-1], L2[::-1], c=rmsesm[::-1], cmap='jet', s=65)
+plt.colorbar(label='Mean RMSE of Baseline Type')
+plt.ylabel('Distance Between Horns')
+plt.xlabel(r'Angular Orientation ($\theta$)')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/uvplotdetsAB_IDEAL.png', facecolor='white')#
+```
+
+```{python}
+# """okay lets do a plot"""
+# rmsesmNORM = rmsesm*1000
+# colors = plt.cm.jet(np.linspace(0, 1, max(rmsesmNORM)+1))
+# print(max(rmsesm))
+
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 20}
+# plt.rc('font', **font)
+# plt.figure(figsize=(16,10))
+
+# for i in range(len(partitioned_baselines)):
+
+#     n_angles  = len(partitioned_baselines[i])
+    
+#     for j in range(n_angles):
+#         #print(len(partitioned_baselines[i][j][:,0]), rmsesm[i], colors[np.where(rmsesm[i])])
+#         #print(colors[int(rmsesmNORM[i])])
+#         plt.plot(partitioned_baselines[i][j][0][3], partitioned_baselines[i][j][0][2], '.', 
+#                  color=colors[int(rmsesmNORM[i])], markersize=20)
+        
+#         if rmsesm[i] > 0.42:
+#             print(partitioned_baselines[i][j][0][3], partitioned_baselines[i][j][0][2])
+#             plt.plot(partitioned_baselines[i][j][0][3], partitioned_baselines[i][j][0][2], 's', 
+#                  color='k', markersize=100)
+
+# cmap = mpl.cm.jet
+# norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
+
+# plt.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap=cmap),
+#              cax=None, orientation='vertical', label='Mean RMSE of Baseline Type')
+
+# plt.ylabel('Distance Between Horns (mm)')
+# plt.xlabel(r'Angular Orientation ($\theta$)')
+```
+
+```{python}
+print(max(rmsesm))
+```
+
+```{python}
+# def powerz(x):
+
+#     y = x**5
+
+#     return y
+```
+
+```{python}
+# arr = np.linspace(1,100, 100)
+# inputs=tqdm(arr)
+
+# if __name__ == '__main__':
+#         process=Parallel(n_jobs=num_cores)(delayed(powerz)(file) for file in inputs)
+```
+
+```{python}
+# print(process)
+print(min())
+```
+
+```{python}
+typefiles = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/'
+
+#typefiles = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/'
+typefiles = glob.glob(typefiles+'*.txt')
+typefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+typefiles = typefiles[0:740]
+L2 = np.array([])
+theta = np.array([])
+nbl = np.array([])
+
+print(len(typefiles))
+
+for i, file in enumerate(typefiles[0:110]):
+    typedat = np.loadtxt(file, delimiter = ',', skiprows=1)
+    #print(typedat[:,0].shape, typedat[0,2], typedat[0,3])
+    
+    L2 = np.append(L2, typedat[0,2])
+    theta = np.append(theta, typedat[0,3])
+    nbl = np.append(nbl, typedat[:,0].shape)
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,10))
+
+plt.scatter(theta, L2, c= nbl, cmap='jet', s=65)
+plt.colorbar(label='Number of Baselines')
+plt.ylabel('Distance Between Horns')
+plt.xlabel(r'Angular Orientation ($\theta$)')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/uvTDnumBL.png', facecolor='white')
+```
+
+```{python}
+import matplotlib.colors as colors
+```
+
+```{python}
+"""TD RMSE FILES UV PLOT"""
+#redupath = '/home/james/mylibs/multifrequency/baseline_files/FI_baselines/RMSEsreduced/'
+rmsepath = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/RMSEs/'
+typefiles = '/home/james/mylibs/multifrequency/baseline_files/ClaudiasBaselines/'
+
+jet= plt.get_cmap('jet')
+colors = iter(jet(np.linspace(0,10,11)))
+
+rmsefiles = glob.glob(rmsepath+'*.txt')
+rmsefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+#print(rmsefiles)
+typefiles = glob.glob(typefiles+'*.txt')
+typefiles.sort(key=lambda f: int(re.sub('\D', '', f)))
+
+typelist = np.array([])
+rmses = np.array([])
+rmsesm = np.array([])
+rmsesSTD = np.array([])
+ind = np.array([])
+L2 = np.array([])
+theta = np.array([])
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+# %matplotlib inline
+plt.rc('font', **font)
+plt.figure(figsize=(16, 8))
+
+temp=0
+#740 since only one baseline for these types
+for i, file in enumerate(rmsefiles[0:106]):
+    
+    typedat = np.loadtxt(typefiles[i], delimiter = ',', skiprows=1, max_rows=1)
+    
+    num = re.findall(r'\d+', file)
+    #print(file, num, i)
+    
+    dat = np.loadtxt(file, delimiter = ',', skiprows=2)
+    #print(i, dat.shape, file)
+    temp = len(dat[:,8].shape) + temp
+    
+    #index = index+temp
+        
+    nums = np.full(dat[:,8].shape, num)
+    
+    #print(dat.shape, i, dat[:,8].shape, nums.shape)
+    
+    
+    rmses = np.append(rmses, dat[:,8])
+    rmsesm = np.append(rmsesm, np.mean(dat[:,8]))
+    rmsesSTD = np.append(rmsesSTD, np.std(dat[:,8]))
+    typelist = np.append(typelist, nums)
+    #ind = np.append(ind, index)
+    L2 = np.append(L2, typedat[2])
+    theta = np.append(theta, typedat[3])
+    
+    plt.plot(nums, dat[:,8], '.', markersize=10)
+
+plt.legend(loc='upper right', fontsize=12)
+plt.xlabel('Baseline Type')
+plt.ylabel('RMSE')
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all_FI.png', facecolor='white')
+
+plt.figure(figsize=(16, 8))
+for i, file in enumerate(rmsefiles[0:106]):
+    plt.plot(i+1, rmsesm[i], 's', markersize=5)
+    
+plt.gca().set_prop_cycle(None)
+for i, file in enumerate(rmsefiles[0:106]):
+    plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
+    
+plt.xlabel('Baseline Type')
+plt.ylabel('Mean RMSE with Standard Deviation')
+
+#plt.xlim([0,100])
+
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_meanstd_FI_full.png', facecolor='white')
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,10))
+
+plt.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
+plt.colorbar(label='Mean RMSE of Baseline Type')
+plt.ylabel('Distance Between Horns')
+plt.xlabel(r'Angular Orientation ($\theta$)')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype_TD_v2.png', facecolor='white')
+
+
+```
+
+```{python}
+print(min(rmsesm), max(rmsesm), max(rmsesm)/min(rmsesm))
+```
+
+```{python}
+print(colors.)
 ```
