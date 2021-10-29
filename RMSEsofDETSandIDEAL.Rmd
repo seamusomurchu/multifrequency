@@ -27,6 +27,7 @@ from tqdm import tqdm
 import multiprocessing
 from random import randint, sample
 from itertools import combinations
+import matplotlib as mpl
 ```
 
 ```{python}
@@ -987,6 +988,7 @@ font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
+# %matplotlib inline
 plt.figure(figsize=(16,10))
 
 plt.scatter(theta, L2, c= nbl, cmap='jet', s=65)
@@ -994,6 +996,37 @@ plt.colorbar(label='Number of Baselines')
 plt.ylabel('Distance Between Horns')
 plt.xlabel(r'Angular Orientation ($\theta$)')
 #plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/uvTDnumBL.png', facecolor='white')
+
+
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(20,15))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta, L2, c=nbl, s=100, cmap='jet', alpha=0.75)
+
+ax.set_thetamin(-90)
+ax.set_thetamax(+100)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+
+ax.text(-90, 1,'Distance Between Horns ($mm^2$)',
+       rotation=0,ha='center',va='center')
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=max(nbl))
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Number of Baselines', ticks=np.linspace(0,max(nbl),15), 
+             shrink=.6, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarTDBLs.png', facecolor='white')
 ```
 
 ```{python}

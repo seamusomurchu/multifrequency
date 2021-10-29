@@ -394,7 +394,7 @@ r = makemeshgrid(np.array([px, py, bola[0,:]]), 34)
 g = makemeshgrid(np.array([px, py, bola[2,:]]), 34)
 b = makemeshgrid(np.array([px, py, bola[4,:]]), 34)
 print(r.shape, g.shape, b.shape)
-rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergbBOLS.png",
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergbBOLS2.png",
                              stretch=1)
 print(rgb_default.shape, rgb_default[0,:,:].shape)
 print(np.min(px), np.max(px), np.min(py), np.max(py))
@@ -474,8 +474,8 @@ plt.tight_layout()
 """load daves data and try to compare"""
 TES93 = '/home/james/TESonSky/psf93.dat'
 daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
-TES93 = '/home/james/TESonSky/psf76.dat'
-daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
+TES76 = '/home/james/TESonSky/psf76.dat'
+daves = np.loadtxt(TES76, skiprows=1, delimiter='\t').T
 print(daves.shape)
 font = {'family' : 'normal',
         'weight' : 'normal',

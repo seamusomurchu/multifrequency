@@ -19,30 +19,57 @@ import matplotlib.pyplot as plt
 ```
 
 ```{python}
-# """Find this dictionary global_source_oneDetFI.dict and set to FI instead of TD"""
-# d = qubic.qubicdict.qubicDict()
-# d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
-# d['config'] = 'FI'
-# q = qubic.QubicInstrument(d)
-# vtxs = q.detector.vertex
+"""Find this dictionary global_source_oneDetFI.dict and set to FI instead of TD"""
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/pipeline_demo.dict')
+d['config'] = 'FI'
+q = qubic.QubicInstrument(d)
+vtxs = q.detector.vertex
+print(q.detector)
 ```
 
 ```{python}
-# print(vtxs.shape)
+#print(vtxs.shape)
+#print(q.detector.shape), q.detector[1, 35,34])
+
+# for i in len(q.detector[:,0,0]):
+#     print(i)
+
+print(q.detector)
 ```
 
 ```{python}
-# xcens = np.zeros(992)
-# ycens = np.zeros(992)
+from qubicpack.pix2tes import *
+from qubicpack.pixel_translation import *
+```
 
-# j=992
-# for i in range(992):
+```{python}
+# tes2index(1,1)
+# # %matplotlib inline
+# plt.figure(figsize=(12,12))
+# #q.plot()
+# for idx,pos in enumerate(q.detector.center[:,0:2]):
+#     quadrant_idx = q.detector.quadrant[idx]
+#     quadrant = quadrant_idx + 1
+#     fpindex = q.detector.index[idx]
+#     lbl = 'Q%i\n%i' % (quadrant,fpindex)
+#     #print(pos[0],pos[1], quadrant_idx)
+#     plt.text(pos[0],pos[1],lbl,va='center',ha='center',fontsize=12,color='r')
+
+```
+
+```{python}
+xcens = np.zeros(992)
+ycens = np.zeros(992)
+
+j=992
+for i in range(992):
     
-#     cenx = (vtxs[i,0,0] + vtxs[i,2,0]) / 2
-#     ceny = (vtxs[i,0,1] + vtxs[i,2,1]) / 2
-#     #print(i,j,cenx, ceny)
-#     xcens[i] = cenx
-#     ycens[i] = ceny
+    cenx = (vtxs[i,0,0] + vtxs[i,2,0]) / 2
+    ceny = (vtxs[i,0,1] + vtxs[i,2,1]) / 2
+    #print(i,j,cenx, ceny)
+    xcens[i] = cenx
+    ycens[i] = ceny
 
 ```
 
@@ -59,6 +86,15 @@ print(cf1data.shape, cf1data[:,1].shape)
 ```{python}
 plt.figure(figsize=(8,8))
 plt.scatter(cf1data[0,:], cf1data[1,:], c = cf1data[2,:], cmap='jet',marker='s')
+```
+
+```{python}
+plt.figure(figsize=(12,12))
+plt.scatter(cf1data[0,:], cf1data[1,:], c = cf1data[2,:], cmap='jet',marker='s')
+
+for i in range(len(cf1data[2,:])):
+    #print(i)
+    plt.text(cf1data[0,i], cf1data[1,i], str(i+1))
 ```
 
 ```{python}

@@ -307,14 +307,17 @@ MagXarr, PhaXarr, ReXarr, ImXarr, MagYarr, PhaYarr, ReYarr, ImYarr, vtxcntarr, P
 ```
 
 ```{python}
-#     d = qubic.qubicdict.qubicDict()
-#     #d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
-#     #change to moddded dictionary
-#     d.read_from_file(dictfile)
-#     q = qubic.QubicMultibandInstrument(d)
-    
-#     vtxs = q[0].detector.vertex
-#     vtxcounter = np.zeros(992)
+import qubic
+d = qubic.qubicdict.qubicDict()
+#d.read_from_file('../qubic/qubic/dicts/global_source_oneDet.dict')
+#change to moddded dictionary
+d.read_from_file(dictfile)
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+
+
 ```
 
 ```{python}

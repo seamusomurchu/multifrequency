@@ -572,8 +572,8 @@ print("Total number of redundant baselines of every type: ", Ncs)
 ```
 
 ```{python}
-print(partitioned_baselines[:][0][0][0][3])
-print(partitioned_baselines[:][0][0][:,0].shape)
+# print(partitioned_baselines[:][0][0][0][3])
+# print(partitioned_baselines[:][0][0][:,0].shape)
 import matplotlib as mpl
 ```
 
@@ -632,18 +632,52 @@ for i, file in enumerate(typefiles):
     L2 = np.append(L2, typedat[0,2])
     theta = np.append(theta, typedat[0,3])
     nbl = np.append(nbl, typedat[:,0].shape)
-
+# %matplotlib inline
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
+
 plt.figure(figsize=(16,10))
 
 plt.scatter(theta, L2, c= nbl, cmap='jet')
-plt.colorbar(label='num bl')
+plt.colorbar(label='Number of Baselines')
 plt.ylabel('Distance Between Horns ($mm^2$)')
 plt.xlabel(r'Angular Orientation ($\theta$)')
 #print(nbl)
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(15,14))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta, L2, c=nbl, s=50, cmap='jet', alpha=0.75)
+
+ax.set_thetamin(-95)
+ax.set_thetamax(+95)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+label_position=ax.get_rlabel_position()
+
+ax.text(-90, 210,'Distance Between Horns ($mm^2$)',
+       rotation=label_position-27,ha='center',va='center')
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=378)
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Number of Baselines', ticks=np.linspace(0,378,15), 
+             shrink=.6, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#ax.legend()
+#print(label_position)
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarTDBLs.png', facecolor='white')
+
 ```
 
 ```{python}
@@ -800,17 +834,30 @@ vtxs = q[0].detector.vertex
 vtxcounter = np.zeros(992)
 print("vertexes shape: ", vtxs.shape)
 
+
+
+```
+
+```{python}
 def RMSEtested(v1,v2):
     return np.sqrt(np.mean((v1-v2)**2)), mean_squared_error(v1, v2, squared=False)
 
 def RMSE(v1,v2):
+    return np.sqrt(np.sum((v1-v2)**2)/len(v1))
+
+def RMSEo(v1,v2):
+    """simple RMSE calculation for two arrays, typically focal plane intensity"""
     return np.sqrt(np.mean((v1-v2)**2))
 
 from sklearn.metrics import mean_squared_error
+
+x, y, i1 = calculate_intensity_4_baseline((120, 146), my150dat)
+x, y, i2 = calculate_intensity_4_baseline((121, 147), my150dat)
 #just to check...
-#MSE = mean_squared_error(y_actual, y_predicted, squared=False)
- 
-#RMSE = math.sqrt(MSE)
+MSE = mean_squared_error(i1, i2, sample_weight=i1,squared=True)
+myrmse = RMSE(i1,i2)
+rmseo = RMSEo(i1,i2)
+print(MSE, myrmse, rmseo)
 ```
 
 ```{python}
@@ -830,6 +877,9 @@ def RMSEcalc(file):
     #px, py, pi = IntegrateHornCombOnFP(i, np.array([x, y]), vtxs)
     #print(x.shape, i.shape, px.shape, pi.shape)
     return rmse
+
+rmse = RMSEcalc(my150dat)
+print(RMSE)
 ```
 
 ```{python}
@@ -1314,6 +1364,38 @@ plt.xlabel(r'Angular Orientation ($\theta$)')
 #plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype_v2.png', facecolor='white')
 
 
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(15,16))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
+
+ax.set_thetamin(-95)
+ax.set_thetamax(+95)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+label_position=ax.get_rlabel_position()
+
+ax.text(-90, 2,'Distance Between Horns ($mm^2$)',
+       rotation=label_position-27,ha='center',va='center')
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Mean RMSE of Baseline Type', ticks=np.linspace(0,0.2,9), 
+             shrink=.5, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#ax.legend()
+#print(label_position)
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarFI.png', facecolor='white')
 ```
 
 ```{python}
