@@ -653,19 +653,19 @@ font = {'family' : 'normal',
         'size'   : 20}
 plt.rc('font', **font)
 
-fig = plt.figure(figsize=(15,14))
+fig = plt.figure(figsize=(20,15))
 
 ax = fig.add_subplot(projection='polar')
-c = ax.scatter(theta, L2, c=nbl, s=50, cmap='jet', alpha=0.75)
+c = ax.scatter(theta, L2, c=nbl, s=65, cmap='jet', alpha=0.75)
 
-ax.set_thetamin(-95)
+ax.set_thetamin(-90)
 ax.set_thetamax(+95)
 #ax.set_rorigin(-2.5)
 ax.set_theta_zero_location('W', offset=-90)
 label_position=ax.get_rlabel_position()
 
-ax.text(-90, 210,'Distance Between Horns ($mm^2$)',
-       rotation=label_position-27,ha='center',va='center')
+ax.text(-90, 2,'Distance Between Horns',
+       rotation=0,ha='center',va='center')
 
 cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=378)
@@ -676,7 +676,7 @@ plt.tight_layout()
 ax.set_rscale('symlog')
 #ax.legend()
 #print(label_position)
-#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarTDBLs.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarFInBLs.png', facecolor='white')
 
 ```
 
@@ -1367,6 +1367,7 @@ plt.xlabel(r'Angular Orientation ($\theta$)')
 ```
 
 ```{python}
+# %matplotlib inline
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
@@ -1377,14 +1378,14 @@ fig = plt.figure(figsize=(15,16))
 ax = fig.add_subplot(projection='polar')
 c = ax.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
 
-ax.set_thetamin(-95)
+ax.set_thetamin(-90)
 ax.set_thetamax(+95)
 #ax.set_rorigin(-2.5)
 ax.set_theta_zero_location('W', offset=-90)
 label_position=ax.get_rlabel_position()
 
-ax.text(-90, 2,'Distance Between Horns ($mm^2$)',
-       rotation=label_position-27,ha='center',va='center')
+ax.text(-90, 2,'Distance Between Horns',
+       rotation=0,ha='center',va='center')
 
 cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))

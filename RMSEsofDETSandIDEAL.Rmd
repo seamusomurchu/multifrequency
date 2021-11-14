@@ -170,6 +170,8 @@ plt.scatter(PixCenX, PixCenY, c=bols3, cmap='jet', marker='s')
 
 ```{python}
 #baseline = [60, 63]
+#from qubic import selfcal_lib as scal
+#fipair is your horn pair e.g. [1, 57]
 Model_Ana = scal.Model_Fringes_Ana(q, fipair2, 
                                    theta_source=np.deg2rad(0.), 
                                    phi_source=np.deg2rad(0.), 
@@ -681,6 +683,37 @@ plt.xlabel(r'Angular Orientation ($\theta$)')
 ```
 
 ```{python}
+# %matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(15,16))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
+
+ax.set_thetamin(-90)
+ax.set_thetamax(+95)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+label_position=ax.get_rlabel_position()
+
+ax.text(-90, 2,'Distance Between Horns',
+       rotation=0,ha='center',va='center')
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Mean RMSE of Baseline Type', ticks=np.linspace(0,0.2,9), 
+             shrink=.5, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polardets.png', facecolor='white')
+```
+
+```{python}
 print(min(rmsesm), max(rmsesm), max(rmsesm)/min(rmsesm))
 # font = {'family' : 'normal',
 #         'weight' : 'normal',
@@ -902,6 +935,43 @@ plt.xlabel(r'Angular Orientation ($\theta$)')
 ```
 
 ```{python}
+print(theta.shape, L2.shape, rmsesm.shape)
+```
+
+```{python}
+# %matplotlib inline
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(15,16))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
+
+ax.set_thetamin(-90)
+ax.set_thetamax(+95)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+label_position=ax.get_rlabel_position()
+
+ax.text(-90, 2,'Distance Between Horns',
+       rotation=0,ha='center',va='center')
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Mean RMSE of Baseline Type', ticks=np.linspace(0,0.5,6), 
+             shrink=.5, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#ax.legend()
+#print(label_position)
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarFIidealcomp.png', facecolor='white')
+```
+
+```{python}
 # """okay lets do a plot"""
 # rmsesmNORM = rmsesm*1000
 # colors = plt.cm.jet(np.linspace(0, 1, max(rmsesmNORM)+1))
@@ -1016,8 +1086,8 @@ ax.set_thetamax(+100)
 #ax.set_rorigin(-2.5)
 ax.set_theta_zero_location('W', offset=-90)
 
-ax.text(-90, 1,'Distance Between Horns ($mm^2$)',
-       rotation=0,ha='center',va='center')
+ax.text(-90, 1,'Distance Between Horns',
+       rotation=0,ha='center',va='center') #($mm^2$)
 
 cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=max(nbl))
@@ -1134,5 +1204,35 @@ print(min(rmsesm), max(rmsesm), max(rmsesm)/min(rmsesm))
 ```
 
 ```{python}
-print(colors.)
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+fig = plt.figure(figsize=(20,15))
+
+ax = fig.add_subplot(projection='polar')
+c = ax.scatter(theta, L2, c=rmsesm, s=100, cmap='jet', alpha=0.75)
+
+ax.set_thetamin(-90)
+ax.set_thetamax(+100)
+#ax.set_rorigin(-2.5)
+ax.set_theta_zero_location('W', offset=-90)
+
+ax.text(-90, 1,'Distance Between Horns',
+       rotation=0,ha='center',va='center') #($mm^2$)
+
+cmap = mpl.cm.jet
+norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
+fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
+             cax=None, orientation='vertical', label='Mean RMSE of Baseline Types', ticks=np.linspace(0,0.06,5), 
+             shrink=.6, pad=0.05)
+plt.tight_layout()
+ax.set_rscale('symlog')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype_TD_polar.png', facecolor='white')
+
+```
+
+```{python}
+
 ```
