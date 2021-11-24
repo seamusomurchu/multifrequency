@@ -740,9 +740,9 @@ for i, file in enumerate(rmsefiles[0:106]):
 
 plt.legend(loc='upper right', fontsize=12)
 plt.xlabel('Baseline Type')
-plt.ylabel('RMSE')
+plt.ylabel('RMSE (W)')
 
-#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/results_cb_all_v2.png', facecolor='white')
 
 plt.figure(figsize=(16, 8))
 for i, file in enumerate(rmsefiles[0:106]):
@@ -753,9 +753,9 @@ for i, file in enumerate(rmsefiles[0:106]):
     plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
     
 plt.xlabel('Baseline Type')
-plt.ylabel('Mean RMSE with Standard Deviation')
+plt.ylabel('Mean RMSE (W) with Standard Deviation')
 
-#plt.savefig('/media/james/DATA/baseline_figures/results_cb_meanstd.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/results_cb_meanstd_v2.png', facecolor='white')
 ```
 
 ```{python}

@@ -1,0 +1,78 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from qbdataio import MultiHornMain
+from CSFPA_dataIO import *
+```
+
+```{python}
+grep130  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/130GHz/GRASPfiles/'
+grep140  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/140GHz/GRASPfiles/'
+grep150  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/150GHz/GRASPfiles/'
+grep160  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/160GHz/GRASPfiles/'
+grep170  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/170GHz/GRASPfiles/'
+
+mrep130  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/130GHz/MODALfiles/'
+mrep140  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/140GHz/MODALfiles/'
+mrep150  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/150GHz/MODALfiles/'
+mrep160  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/160GHz/MODALfiles/'
+mrep170  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel_1k/170GHz/MODALfiles/'
+
+inreps = np.array([grep130, grep140, grep150, grep160, grep170])
+#outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+
+```
+
+```{python}
+# for i, rep in enumerate(inreps):
+#     print(i, rep, outreps[i])
+
+#     MultiHornMain(rep, outreps[i])
+MultiHornMain(grep150, mrep150)
+# MultiHornMain(v4grep170, v4mrep170)
+# MultiHornMain(v4grep160, v4mrep160)
+
+
+"""only need to run once for new grasp data"""
+```
+
+```{python}
+freqint = QB_add_intensity_400horns(mrep150)
+```
+
+```{python}
+x0, y0 = 25, 231
+x1, y1 = 174, 114
+x2, y2 = 219, 35
+
+aziT = np.zeros((5, 194))
+ziT = np.zeros((5, 194))
+
+# for i, rep in enumerate(outreps):
+#     print(i, rep, outreps[i])
+#     aziT[i, :], ziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+#                                     x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+aziT, ziT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint, 
+                                     x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+```
+
+```{python}
+
+```

@@ -35,7 +35,7 @@ from timeit import default_timer as timer
 import os
 import re
 from random import randint, sample
-
+import matplotlib as mpl
 ```
 
 ```{python}
@@ -1333,9 +1333,9 @@ for i, file in enumerate(rmsefiles[0:740]):
 
 plt.legend(loc='upper right', fontsize=12)
 plt.xlabel('Baseline Type')
-plt.ylabel('RMSE')
+plt.ylabel('RMSE (W)')
 
-#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all_FI.png', facecolor='white')
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_all_FI_v2.png', facecolor='white')
 
 plt.figure(figsize=(16, 8))
 for i, file in enumerate(rmsefiles[0:740]):
@@ -1346,11 +1346,11 @@ for i, file in enumerate(rmsefiles[0:740]):
     plt.errorbar(i+1, rmsesm[i], yerr=rmsesSTD[i], elinewidth=3)
     
 plt.xlabel('Baseline Type')
-plt.ylabel('Mean RMSE with Standard Deviation')
+plt.ylabel('Mean RMSE (W) with Standard Deviation')
 
 #plt.xlim([0,100])
 
-#plt.savefig('/media/james/DATA/baseline_figures/results_cb_meanstd_FI_full.png', facecolor='white')
+#plt.savefig('/media/james/DATA/baseline_figures/results_cb_meanstd_FI_full_v2.png', facecolor='white')
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 20}
@@ -1358,10 +1358,10 @@ plt.rc('font', **font)
 plt.figure(figsize=(16,10))
 
 plt.scatter(theta[::-1], L2[::-1], c= rmsesm[::-1], cmap='jet', s=65)
-plt.colorbar(label='Mean RMSE of Baseline Type')
+plt.colorbar(label='Mean RMSE (W) of Baseline Type')
 plt.ylabel('Distance Between Horns')
 plt.xlabel(r'Angular Orientation ($\theta$)')
-#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype_v2.png', facecolor='white')
+#polarFI2meanrmseplt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/rmseofBLtype_v3.png', facecolor='white')
 
 
 ```
@@ -1390,13 +1390,13 @@ ax.text(-90, 2,'Distance Between Horns',
 cmap = mpl.cm.jet
 norm = mpl.colors.Normalize(vmin=0, vmax=max(rmsesm))
 fig.colorbar(mpl.cm.ScalarMappable(norm=norm, cmap='jet'),
-             cax=None, orientation='vertical', label='Mean RMSE of Baseline Type', ticks=np.linspace(0,0.2,9), 
+             cax=None, orientation='vertical', label='Mean RMSE (W) of Baseline Type', ticks=np.linspace(0,0.2,9), 
              shrink=.5, pad=0.05)
 plt.tight_layout()
 ax.set_rscale('symlog')
 #ax.legend()
 #print(label_position)
-#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarFI.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv4/Figures/figs_baselines/polarFI_v2.png', facecolor='white')
 ```
 
 ```{python}

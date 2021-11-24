@@ -683,7 +683,7 @@ def PowDiffCalc(file1,file2):
 	plt.show()
 	
 	return
-    
+
 def MultiFIntensityPlot(multifTES, multifraw, PixCenX, PixCenY, xycoords):
     
     plt.figure()
@@ -935,7 +935,7 @@ def baseline_plotter(x, y, p1i, p2i, diff, TDhornsFIconf, instTD, tdpair1, tdpai
     plt.axis('equal')
 
     plt.tight_layout()
-    
+
 def simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers):
     """elaborate baseline comparison plot
     requires you have qubic inst loaded e.g.
@@ -976,7 +976,7 @@ def simple_baseline_plotter(TDhornsFIconf, tdpair1, tdpair2, centers):
     plt.axis('equal')
 
     plt.tight_layout()
-    
+
 def baseline_plotter_FI(x, y, p1i, p2i, diff, instFI, fipair1, fipair2, centers, virtual_diff=False):
     """elaborate baseline comparison plot
     use show_baseline_types script to use this function"""

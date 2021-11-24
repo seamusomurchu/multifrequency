@@ -68,12 +68,12 @@ def getXYcoords(f, vtxs):
             else:                
                 x = j[0]
                 y = j[1]
-            x1 = i[0,0]
+            x2 = i[0,0]
             y1 = i[0,1]
-            x2 = i[2,0]
+            x1 = i[2,0]
             y2 = i[2,1]
             
-            print(x, y, x1, y1, x2, y2)
+            #print(x, y, x1, y1, x2, y2)
     
             #test if x and x1 are same unit
             #print "xandys", x, y, x1, y1
