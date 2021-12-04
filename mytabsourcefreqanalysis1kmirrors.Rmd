@@ -57,6 +57,37 @@ freqint = QB_add_intensity_400horns(mrep150)
 ```
 
 ```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+from matplotlib import colors
+divnorm=colors.LogNorm()
+
+
+plt.figure(figsize=(16,12))
+plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint/max(freqint), norm=None)
+plt.xlim([min(np.array(data['Xpos'])), max(np.array(data['Xpos']))])
+plt.ylim([min(np.array(data['Ypos'])), max(np.array(data['Ypos']))])
+plt.xlabel('FP RF x (m)')
+plt.ylabel('FP RF y (m)')
+plt.colorbar(label='Normalised Intenisty (W)')
+#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1k.png', facecolor='white')
+
+plt.figure(figsize=(16,12))
+plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint/max(freqint), norm=divnorm)
+plt.xlim([min(np.array(data['Xpos'])), max(np.array(data['Xpos']))])
+plt.ylim([min(np.array(data['Ypos'])), max(np.array(data['Ypos']))])
+plt.plot([-0.05, 0.01], [-0.045, 0.005], 'ro-', lw=3)
+plt.plot([0.01, 0.035], [0.005, 0.045], 'bo-', lw=3)
+plt.xlabel('FP RF x (m)')
+plt.ylabel('FP RF y (m)')
+plt.colorbar(label='Normalised Intenisty (W)')
+#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1klog.png', facecolor='white')
+```
+
+```{python}
 x0, y0 = 25, 231
 x1, y1 = 174, 114
 x2, y2 = 219, 35
@@ -69,8 +100,142 @@ ziT = np.zeros((5, 194))
 #     aziT[i, :], ziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
 #                                     x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
 data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
-aziT, ziT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint, 
-                                     x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+aziT, ziT, peaksT, fwhmT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint, 
+                                     x0, y0, x1, y1, x2, y2, 301, 2, 0.5, False, True);
+print(aziT[peaksT], fwhmT)
+degpt = (max(aziT) - min(aziT)) / len(aziT)
+print(fwhmT[0]*degpt)
+```
+
+```{python}
+#print(max(freqint), data['Xpos'][np.where(freqint == max(freqint))])
+
+#load old data
+old150dat = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+oldint = QB_add_intensity_400horns(old150dat)
+```
+
+```{python}
+adder=0
+x0, y0 = 25, 247
+x1, y1 = 173, 126
+x2, y2 = 220, 51
+
+oldaziT, oldziT, oldpeaksT, oldfwhmT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), oldint, 
+                         x0+adder, y0+adder, x1+adder, y1+adder, x2+adder, y2+adder, 
+                         301, 2, 0.5, False, True);
+
+print(oldaziT[oldpeaksT], oldfwhmT)
+degpt = (max(oldaziT) - min(oldaziT)) / len(oldaziT)
+print(oldfwhmT[0]*degpt)
+```
+
+```{python}
+"""load daves new FI files, convert, integrate, blah etc. BORING"""
+def QB_add_intensity_400hornsMODAL(files, freq):
+    
+    #FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(files[0], sep='\t')
+    #print(data)
+
+    addrex = np.zeros(len(data['X']))
+    addimx = np.zeros(len(data['X']))
+    addrey = np.zeros(len(data['X']))
+    addimy = np.zeros(len(data['X']))
+
+    cnt = 0
+    for datfile in files:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
+        data = pd.read_csv(datfile, sep='\t')
+        print(datfile, data.shape)
+
+        #add the relevant compnents to an array
+        rex = data['MagX'] * np.cos(data['PhaseX'])
+        imx = data['MagX'] * np.sin(data['PhaseX'])
+        rey = data['MagY'] * np.cos(data['PhaseY'])
+        imy = data['MagY'] * np.sin(data['PhaseY'])
+        
+        addrex = np.vstack((addrex, rex))
+        addimx = np.vstack((addimx, imy))
+        addrey = np.vstack((addrey, rey))
+        addimy = np.vstack((addimy, imy))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+#     #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit, data['X'], data['Y']
+
+drep150 = '/media/james/DATA/DaveFIMODAL/150_FI/'
+
+test = glob.glob(drep150+'*.dat')
+print(len(test))
+
+dint, dx, dy = QB_add_intensity_400hornsMODAL(test, 150)
+
+print(dint.shape)
+```
+
+```{python}
+adder = -2
+
+x0, y0 = 20, 256
+x1, y1 = 174, 127
+x2, y2 = 240, 30
+
+azi, zi, mpeaks, mfwhm = AbberatedCut(dx/1000, dy/1000, dint, 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.1e10, 0.5, False, True);
+
+# azi2, zi2 = AbberatedCut(dx/1000, dy/1000, dint, 
+#                          x0+adder, y0+adder, x1+adder, y1+adder, x2+adder, y2+adder, 
+#                          301, 0.051e10, 0.5, False, True);
+
+print(azi[mpeaks], mfwhm)
+degpt = (max(azi) - min(azi)) / len(azi)
+print(mfwhm[0]*degpt)
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+plt.plot(oldaziT, oldziT, lw=3, c='xkcd:teal green',
+         label = '300 K Mirrors, FWHMs (m) = \n{:.2e}, {:.2e}, {:.2e}'.format(oldfwhmT[0][0]*degpt, oldfwhmT[0][1]*degpt, oldfwhmT[0][2]*degpt))
+
+plt.plot(aziT, ziT, lw=3, c='xkcd:pastel red',
+         label='4 K Mirrors, FWHMs (m) = \n{:.2e}, {:.2e}, {:.2e}'.format(fwhmT[0][0]*degpt, fwhmT[0][1]*degpt, fwhmT[0][1]*degpt))
+#plt.plot(azi, zi/max(zi)*20, lw=3, label = '300 K Mirrors MODAL = {}'.format(mfwhm[0]*degpt))
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Arbitary Intensity (W)')
+#plt.xticks(np.arange(-0.06, 0.06, step=0.002))
+#plt.grid(axis='x')
+#plt.savefig("/home/james/OneDrive/Thesisv5/Figures/figsc3/PSFscomp.png", bbox_inches='tight', facecolor='white')
+#plt.ylim([0,35])
+```
+
+```{python}
+blahs = fwhmT[0]*degpt
+print(blahs.shape, blahs[0])
 ```
 
 ```{python}
