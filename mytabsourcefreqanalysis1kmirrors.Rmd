@@ -37,6 +37,10 @@ inreps = np.array([grep130, grep140, grep150, grep160, grep170])
 #outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 
+inreps = np.array([grep130, grep150, grep170])
+outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+#outreps = np.array([mrep130, mrep150, mrep170])
+
 ```
 
 ```{python}
@@ -44,7 +48,7 @@ outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 #     print(i, rep, outreps[i])
 
 #     MultiHornMain(rep, outreps[i])
-MultiHornMain(grep150, mrep150)
+MultiHornMain(grep140, mrep140)
 # MultiHornMain(v4grep170, v4mrep170)
 # MultiHornMain(v4grep160, v4mrep160)
 
@@ -236,6 +240,114 @@ plt.ylabel('Arbitary Intensity (W)')
 ```{python}
 blahs = fwhmT[0]*degpt
 print(blahs.shape, blahs[0])
+```
+
+```{python}
+print(outreps)
+```
+
+```{python}
+"""NOW FOR MULTI FREQS"""
+data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+freqs = ['130', '140', '150', '160', '170']
+freqs = ['130', '140', '150', '170']
+outreps = np.array([mrep130, mrep140, mrep150, mrep170])
+
+freqint = np.zeros([len(outreps), len(data['Rex'])])
+
+for i, rep in enumerate(outreps):
+    #print(i, rep, freqs[i])
+    #test = QB_add_intensity_400horns(rep)
+    freqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
+```
+
+```{python}
+print(freqint[0])
+```
+
+```{python}
+x0, y0 = 25, 231
+x1, y1 = 174, 114
+x2, y2 = 219, 35
+
+aziT = np.zeros((len(outreps), 194))
+ziT = np.zeros((len(outreps), 194))
+
+for i, rep in enumerate(outreps):
+    #print(i, rep, outreps[i])
+    aziT[i, :], ziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+#     aziT, ziT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+#                                 x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    #print(aziT.shape, ziT.shape)
+```
+
+```{python}
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    #plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3)
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+#plt.yscale('log')
+#plt.ylim(1e-3, 0)
+```
+
+```{python}
+"""NOW FOR MULTI FREQS OLD DAT currently in thesis, how diff"""
+oldmrep130 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+oldmrep150 = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+oldmrep170 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+oldoutreps = [oldmrep130, oldmrep150, oldmrep170]
+data = pd.read_csv(oldmrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+#freqs = ['130', '140', '150', '160', '170']
+freqs = ['130', '150', '170']
+
+oldfreqint = np.zeros([len(oldoutreps), len(data['Rex'])])
+
+for i, rep in enumerate(oldoutreps):
+    #print(i, rep, freqs[i])
+    #test = QB_add_intensity_400horns(rep)
+    oldfreqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 173, 126
+x2, y2 = 220, 51
+
+oldaziT = np.zeros((len(oldoutreps), 195))
+oldziT = np.zeros((len(oldoutreps), 195))
+
+for i, rep in enumerate(oldoutreps):
+    #print(i, rep, outreps[i])
+    oldaziT[i, :], oldziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), oldfreqint[i, :], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    #plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz 4K', lw=3)
+    plt.plot(oldaziT[i,:]+0.0042, oldziT[i,:], '--', label=str(freqs[i])+' GHz Old Ideal', lw=3)
+    #+0.0045
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+#plt.yscale('log')
+#plt.ylim(1e-3, 0)
 ```
 
 ```{python}

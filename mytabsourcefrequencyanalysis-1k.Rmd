@@ -1,0 +1,1347 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.2'
+      jupytext_version: 1.6.0
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+
+```
+
+```{python}
+#convert frequency files to qb and analyse
+```
+
+```{python}
+import numpy as np
+import glob
+import matplotlib.pyplot as plt
+from qbdataio import MultiHornMain
+from CSFPA_dataIO import *
+```
+
+```{python}
+#modalrep150 = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+grep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/GRASPfiles/'
+grep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/GRASPfiles/'
+grep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/GRASPfiles/'
+grep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
+mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
+mrep150  = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
+mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
+
+#v2grep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# v2mrep130  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/130GHz/MODALfiles/'
+# v2mrep140  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/140GHz/MODALfiles/'
+# v2mrep150  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/150GHz/MODALfiles/'
+# v2mrep160  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/160GHz/MODALfiles/'
+#v2mrep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+# v3grep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/GRASPfiles/'
+# v3mrep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+v4grep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
+v4mrep170  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+v4grep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
+v4mrep130  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+v4grep140  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/140GHz/GRASPfiles/'
+v4mrep140  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
+v4grep160  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/160GHz/GRASPfiles/'
+v4mrep160  = '/home/james/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
+
+inreps = np.array([grep130, grep140, grep160, grep170])
+#outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
+```
+
+```{python}
+#modalrep150 = '/home/james/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+# grep130  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/GRASPfiles/'
+# grep140  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/GRASPfiles/'
+# grep160  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/GRASPfiles/'
+# grep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# mrep130  = '/home/james/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/'
+# mrep140  = '/home/james/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/'
+mrep150  = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+# mrep160  = '/home/james/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/'
+# mrep170  = '/home/james/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/'
+
+#v2grep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/GRASPfiles/'
+
+# v2mrep130  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/130GHz/MODALfiles/'
+# v2mrep140  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/140GHz/MODALfiles/'
+# v2mrep150  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/150GHz/MODALfiles/'
+# v2mrep160  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/160GHz/MODALfiles/'
+#v2mrep170  = '/home/james/GRASPdata/v2_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+# v3grep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/GRASPfiles/'
+# v3mrep170  = '/home/james/GRASPdata/v3_MyTabSourceFIModel/170GHz/MODALfiles/'
+
+v4grep170  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
+v4mrep170  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+v4grep130  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
+v4mrep130  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+v4grep140  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/140GHz/GRASPfiles/'
+v4mrep140  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
+v4grep160  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/GRASPfiles/'
+v4mrep160  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
+
+inreps = np.array([grep130, grep140, grep160, grep170])
+#outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
+```
+
+```{python}
+# for i, rep in enumerate(inreps):
+#     print(i, rep, outreps[i])
+
+#     MultiHornMain(rep, outreps[i])
+#MultiHornMain(grep170, mrep170)
+#MultiHornMain(v4grep170, v4mrep170)
+#MultiHornMain(v4grep160, v4mrep160)
+
+
+#"""only need to run once for new grasp data"""
+```
+
+```{python}
+#define the TD and FI - remember the weird solution to TD numbers 1-64!
+FIhorns = np.linspace(1,400,400, dtype=int)
+
+tdrow1 = np.linspace(120, 127, 8, dtype=int)
+tdrow2 = np.linspace(142, 149, 8, dtype=int)
+tdrow3 = np.linspace(164, 171, 8, dtype=int)
+tdrow4 = np.linspace(186, 193, 8, dtype=int)
+tdrow5 = np.linspace(208, 215, 8, dtype=int)
+tdrow6 = np.linspace(230, 237, 8, dtype=int)
+tdrow7 = np.linspace(252, 259, 8, dtype=int)
+tdrow8 = np.linspace(274, 281, 8, dtype=int)
+TDhorns = np.concatenate((tdrow1, tdrow2, tdrow3, tdrow4, tdrow5, tdrow6, tdrow7, tdrow8))
+#TDhorns.extend(tdrow1, tdrow2)
+print(TDhorns.shape, FIhorns.shape)
+
+#example baseline
+baseline = [120, 127]
+print(baseline)
+```
+
+```{python}
+"""load with data frame to used headers"""
+#data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+def QB_add_intensity_400horns(filepath, freq):
+    
+    FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_'+str(freq)+'_GHz_Mstyle.qb', sep='\t')
+    #print(data)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in FIhorns:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(file, data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit
+```
+
+```{python}
+# test = QB_add_intensity_400horns(mrep130)
+# print(test.shape)
+```
+
+```{python}
+data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+freqs = ['130', '140', '150', '160', '170']
+
+freqint = np.zeros([len(outreps), len(data['Rex'])])
+
+for i, rep in enumerate(outreps):
+    print(i, rep, freqs[i])
+    #test = QB_add_intensity_400horns(rep)
+    freqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
+    
+```
+
+```{python}
+print(freqint.shape)
+"""an RGB composite image like JC might be interesting"""
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+aziT = np.zeros((5, 194))
+ziT = np.zeros((5, 194))
+
+for i, rep in enumerate(outreps):
+    print(i, rep, outreps[i])
+    aziT[i, :], ziT[i, :] = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[i, :], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+#     aziA = np.vstack((aziA, azi))
+#     ziA = np.vstack((ziA, zi))
+    
+#print(aziA.shape, ziA.shape)
+```
+
+```{python}
+"""test a cut with suboptimal indexes to see difference"""
+adder = 0
+x0, y0 = 25, 247
+x1, y1 = 173, 126
+x2, y2 = 220, 51
+
+aziT, ziT = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), freqint[2, :], 
+                         x0+adder, y0+adder, x1+adder, y1+adder, x2+adder, y2+adder, 
+                         301, 0.2, 0.5, False, False);
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+
+markers = ['','-','--','-.', '', '-']
+
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+#plt.yscale('log')
+#plt.ylim(1e-3, 0)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqs.png", bbox_inches='tight', facecolor='white')
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='upper left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqsNormed.png", bbox_inches='tight', facecolor='white')
+
+
+plt.figure(figsize=(16,8))
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziT[i,:], ziT[i,:], '', label=str(freqs[i])+' GHz', lw=3)
+    
+plt.legend(loc='lower left')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Intensity (W)')
+plt.yscale('log')
+plt.ylim(1e-3, 0)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/FPBatchFreqsLog.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+"""try RGB style image"""
+from astropy.visualization import make_lupton_rgb
+#import cv2
+print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[0,:]]), 201)
+g = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[2,:]]), 201)
+b = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[4,:]]), 201)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergb.png",
+                             stretch=0.5)
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+```
+
+```{python}
+X = np.linspace(min(data['Xpos']), max(data['Xpos']), 301)
+Y = np.linspace(min(data['Ypos']), max(data['Ypos']), 301)
+x0, y0 = 25, 53# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 175
+x2, y2 = 219, 250
+
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[i, :]/max(freqint[i, :]), 
+                cmap='nipy_spectral')
+    plt.colorbar(label='Normalised Intensity (W)')
+    #plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(data['Xpos']), max(data['Xpos']))
+    plt.ylim(min(data['Ypos']), max(data['Ypos']))
+
+plt.subplot(3,2,6)
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgrids.png", bbox_inches='tight', facecolor='white')
+#plt.savefig("/home/james/OneDrive/Thesisv4/Figures/figshornap/fpgridsv3.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+"""must load vertex"""
+import qubic
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+xycoords = np.array([data['Xpos'], data['Ypos']])
+#use the focal plane positions loaded before
+
+bola = np.zeros([5, 992])
+
+for i, freq in enumerate(freqint):
+    print(i, freq.shape, freqs[i])
+    px, py, bola[i,:] = IntegrateHornCombOnFP(freq, xycoords,vtxs)
+    
+print(bola.shape)
+```
+
+```{python}
+"""make rgb for bols"""
+"""try RGB style image"""
+
+import cv2
+#print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([px, py, bola[0,:]]), 34)
+g = makemeshgrid(np.array([px, py, bola[2,:]]), 34)
+b = makemeshgrid(np.array([px, py, bola[4,:]]), 34)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergbBOLS2.png",
+                             stretch=1)
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+print(np.min(px), np.max(px), np.min(py), np.max(py))
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+# draw filled circle in white on black background as mask
+mask = np.zeros_like(rgb_default)
+mask = cv2.circle(mask, (17,17), 17, (255,255,255), -1)
+
+# apply mask to image
+result = cv2.bitwise_and(rgb_default, mask)
+
+plt.imshow( result, extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+
+
+#another method
+# plt.figure(figsize=(14,14))
+# plt.rcParams['axes.facecolor'] = 'grey'
+
+
+# plt.scatter(px, py, c=bola[4, :]/max(bola[4, :]), cmap='Blues_r', marker='s', alpha=0.8)
+# plt.scatter(px, py, c=bola[2, :]/max(bola[2, :]), cmap='Greens_r', marker='s', alpha=0.8)
+# plt.scatter(px, py, c=bola[0, :]/max(bola[0, :]), cmap='Reds_r', marker='s', alpha=0.2)
+# #plt.colorbar(label='Normalised Intensity (W)')
+# plt.axis('equal')
+# plt.title('RGB')
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+
+# plt.rcParams['axes.facecolor'] = 'white'
+```
+
+```{python}
+"""multi plot for BOLS"""
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(px, py, c=bola[i, :]/max(bola[i, :]), 
+                cmap='nipy_spectral', marker='s')
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(3,2,6)
+plt.imshow(result, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/fpgridsBOLS.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+"""load daves data and try to compare"""
+TES93 = '/home/james/TESonSky/psf93.dat'
+daves = np.loadtxt(TES93, skiprows=1, delimiter='\t').T
+TES76 = '/home/james/TESonSky/psf76.dat'
+daves = np.loadtxt(TES76, skiprows=1, delimiter='\t').T
+print(daves.shape)
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+
+plt.figure(figsize=(16,8))
+plt.scatter(daves[0,:], daves[1,:], c=(daves[2,:]/max(daves[2,:]))**2)
+
+#plt.axis('equal')
+plt.colorbar(label='Intensity (W)')
+plt.ylim(-10, 10) #since focal length=300 area 11.31
+plt.xlim(-13, 13)
+# plt.ylim(min(daves[0,:]), max(daves[0,:])) #since focal length=300
+# plt.xlim(min(daves[1,:]), max(daves[1,:]))
+
+# plt.grid(True)
+# plt.xticks(np.arange(-12, 12, step=1));
+# plt.yticks(np.arange(-12, 12, step=1));
+plt.xlabel(r'Azimuth$^\circ$')
+plt.ylabel(r'Elevation$^\circ$')
+#plt.axis('equal')
+# plt.ylim((-10, 10)) 
+# plt.xlim(min(daves[1,:]), max(daves[1,:]))
+
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc6/samplesynth76.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+x0, y0 = 50, 260
+x1, y1 = 170, 142
+x2, y2 = 250, 60
+
+deg2x = 0.3 * np.arctan(np.deg2rad(daves[0,:])) #0.3 for meters
+deg2y = 0.3 * np.arctan(np.deg2rad(daves[1,:]))
+
+azi, zi = AbberatedCut(deg2x, deg2y, daves[2,:]**2, 
+                       x0, y0, x1, y1, x2, y2, 301, 0.1, 0.5, False, False)
+
+plt.figure(figsize=(16,8))
+plt.plot(aziT[3,:], ziT[3,:]/max(ziT[3,:]), '', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(azi, zi/max(zi), '', label='MODAL Synthetic 150 GHz', lw=3, alpha=0.2)
+plt.plot(azi+0.0125, zi/max(zi), '', label='MODAL Synthetic Peak Shift Match', lw=3)
+#+0.0125
+
+plt.xlim([-0.06, 0.06])
+plt.legend(loc='upper left')
+```
+
+```{python}
+"""must load vertex"""
+import qubic
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+    
+#use the focal plane positions loaded before
+xycoords = np.array([data['Xpos'], data['Ypos']])
+```
+
+```{python}
+
+
+def QB_add_intensity_400hornsMODAL(files, freq):
+    
+    #FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(files[0], sep='\t')
+    #print(data)
+
+    addrex = np.zeros(len(data['X']))
+    addimx = np.zeros(len(data['X']))
+    addrey = np.zeros(len(data['X']))
+    addimy = np.zeros(len(data['X']))
+
+    cnt = 0
+    for datfile in files:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        #file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
+        data = pd.read_csv(datfile, sep='\t')
+        print(datfile, data.shape)
+
+        #add the relevant compnents to an array
+        rex = data['MagX'] * np.cos(data['PhaseX'])
+        imx = data['MagX'] * np.sin(data['PhaseX'])
+        rey = data['MagY'] * np.cos(data['PhaseY'])
+        imy = data['MagY'] * np.sin(data['PhaseY'])
+        
+        addrex = np.vstack((addrex, rex))
+        addimx = np.vstack((addimx, imy))
+        addrey = np.vstack((addrey, rey))
+        addimy = np.vstack((addimy, imy))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+#     #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit, data['X'], data['Y']
+```
+
+```{python}
+"""load daves new FI files, convert, integrate, blah etc. BORING"""
+drep150 = '/media/james/DATA/DaveFIMODAL/150_FI/'
+
+test = glob.glob(drep150+'*.dat')
+print(len(test))
+
+dint, dx, dy = QB_add_intensity_400hornsMODAL(test, 150)
+
+print(dint.shape)
+```
+
+```{python}
+x0, y0 = 20, 256
+x1, y1 = 174, 127
+x2, y2 = 240, 30
+
+print(dint.shape)
+plt.figure(figsize=(17, 14))
+plt.scatter(dx, dy, c=dint)
+plt.colorbar()
+
+theta = np.linspace(0, 2*np.pi, 100)
+radius = max(dx)
+a = radius*np.cos(theta)
+b = radius*np.sin(theta)
+plt.plot(a,b, 'k')
+```
+
+```{python}
+adder = -2
+
+x0, y0 = 20, 256
+x1, y1 = 174, 127
+x2, y2 = 240, 30
+
+azi, zi = AbberatedCut(dx/1000, dy/1000, dint, 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.051e10, 0.5, False, False);
+
+azi2, zi2 = AbberatedCut(dx/1000, dy/1000, dint, 
+                         x0+adder, y0+adder, x1+adder, y1+adder, x2+adder, y2+adder, 
+                         301, 0.051e10, 0.5, False, False);
+
+# x0, y0 = 20*2, 256*2
+# x1, y1 = 174*2, 127*2
+# x2, y2 = 240*2, 30*2
+
+# azi, zi = AbberatedCut(dx/1000, dy/1000, np.log2(dint), 
+#                                     x0, y0, x1, y1, x2, y2, 301*2, 0.051e10, 0.5, False, False);
+    
+
+
+```
+
+```{python}
+"""check radius of dave FP and plot on My FP"""
+
+plt.figure(figsize=(16,8))
+#plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), marker="^",ls='--', label='GRASP PSF 150 GHz', lw=3)
+
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
+
+plt.plot(azi, zi/max(zi), marker="v",ls='-', label='DAVE FI 150 GHz', lw=3)
+#plt.plot(aziT, ziT/max(ziT), marker="o",ls='--', label='My Shift Cut 150 GHz', lw=3)
+#plt.plot(azi2, zi2/max(zi2), marker="o",ls='--', label='Dave Shift Cut 150 GHz', lw=3)
+
+
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3)
+plt.vlines(max(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, label='MODAL Data Radius')
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3)
+plt.legend(loc='upper left')
+
+plt.figure(figsize=(16,8))
+
+for i, rep in enumerate(outreps):
+    #print(rep)
+    plt.plot(aziT[i,:], ziT[i,:]/max(ziT[i,:]), '', label=str(freqs[i])+' GHz', lw=3, alpha=0.5)
+    
+#plt.plot(aziA[2,:], ziA[2,:]/max(ziA[2,:]), marker="^", ls='--', label='GRASP PSF 150 GHz', lw=3)
+plt.plot(azi, zi/max(zi), marker="v",ls='-', label='DAVE FI 150 GHz', lw=3)
+#plt.plot(aziT, ziT/max(ziT), marker="o",ls='--', label='My Shift Cut 150 GHz', lw=3)
+#plt.plot(azi2, zi2/max(zi2), marker="o",ls='--', label='Dave Shift Cut 150 GHz', lw=3)
+
+plt.legend(loc='upper right')
+plt.xlim([0, max(dx)/1000])
+plt.grid(b=True, which='major', color='#666666', linestyle='-')
+plt.minorticks_on()
+plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+
+#plt.xticks(np.arange(0, np.arctan2(max(dx)/300), steps=10))
+
+```
+
+```{python}
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(16,8))
+#plt.subplot(2,1,1)
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, linestyles='--', colors='k', lw=3, alpha=0.5)
+plt.vlines(max(dx)/1000, ymin=0, ymax=1, linestyles='--', colors='k', lw=3, alpha=0.5, label='MODAL Data Radius')
+#plt.plot([min(dx)/1000, min(dx)/1000], [0, 1], '--', color='grey', lw=3, label='Focal Plane Limit')
+plt.plot(azi, zi/max(zi),ls='-', color='xkcd:orange red', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), '', color='xkcd:bluish green', 
+         label='GRASP FI 150 GHz', lw=3)
+
+plt.legend(loc='upper right')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/150validationv2.png", bbox_inches='tight', facecolor='white')
+
+plt.figure(figsize=(16,8))
+plt.plot(azi, zi/max(zi), marker='x', ls='-', mew=2.5,
+         color='xkcd:orange red', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
+         color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
+
+plt.legend(loc='upper right')
+plt.xlim([0, max(dx)/1000])
+plt.grid(b=True, which='major', color='#666666', linestyle='-')
+plt.minorticks_on()
+plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+#plt.savefig("/home/james/OneDrive/Thesisv3_revised_layout/Figures/figshornap/150validationzoomv2.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+#ibols = np.zeros((5,992))
+# print(freqint.shape, ibols.shape)
+
+# plt.figure(figsize=(18,22))
+
+# for i, rep in enumerate(outreps):
+    
+#     x, y, bi = IntegrateHornCombOnFP(freqint[i,:], xycoords, vtxs)
+#     print("bi shape", bi.shape)
+#     ibols[i,:] = bi
+    
+#     plt.subplot(3,2,i+1)
+#     plt.scatter(x, y, c=ibols[i,:], 
+#                 cmap='plasma')
+# print(ibols.shape)
+```
+
+```{python}
+"""plot all the focal plane data, will need to integrate on bolometer
+This is for MY Model..."""
+# font = {'family' : 'normal',
+#         'weight' : 'normal',
+#         'size'   : 10}
+
+# plt.rc('font', **font)
+# plt.figure(figsize=(14,11))
+# plt.subplot(2,2,1)
+
+# plt.scatter(data['Xpos'], data['Ypos'], c=freqint[0, :], cmap='gnuplot', marker='.')#, s=1)
+# plt.axis([-60, 60, -60, 60])
+# plt.axis('equal')
+# plt.title("gaussit-donnyit2")
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+# plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+# plt.subplot(2,2,2)
+# plt.scatter(data['Xpos'], data['Ypos'], c=freqint[1, :], cmap='gnuplot', marker='.')#, s=1)
+# plt.axis([-60, 60, -60, 60])
+# plt.axis('equal')
+# plt.title("gaussit-myit")
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+# plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+# plt.subplot(2,2,3)
+# plt.scatter(data['Xpos'], data['Ypos'], c=freqint[2, :], cmap='gnuplot', marker='.')#, s=1)
+# plt.axis([-60, 60, -60, 60])
+# plt.axis('equal')
+# plt.title("gaussit-daveit")
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+# plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+
+# plt.subplot(2,2,4)
+# plt.scatter(data['Xpos'], data['Ypos'], c=freqint[4, :]-freqint[0, :], cmap='gnuplot', marker='.')#, s=1)
+# plt.axis([-60, 60, -60, 60])
+# plt.axis('equal')
+# plt.title("gaussit-donnyit")
+# plt.xlabel('Focal Plane X (m)')
+# plt.ylabel('Focal Plane Y (m)')
+# plt.colorbar(label="Normalised Intensity (W)", shrink=0.9)
+```
+
+```{python}
+# datah190f130 = pd.read_csv(mrep130+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+# datah190f170 = pd.read_csv(mrep170+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+# datah190f170.head()
+#print(outreps[2])
+myg150 = pd.read_csv(outreps[2]+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(myg150)
+
+
+davefi150 = pd.read_csv('/media/james/DATA/DaveFIMODAL/150_FI/x11y12.dat', sep='\t')
+#davefi150.head()
+myg150.head()
+```
+
+```{python}
+plt.figure(figsize=(30,30))
+
+plt.subplot(4,3,1)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Yamp'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,2)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['MagX'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+         
+plt.subplot(4,3,3)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Yamp']/max(myg150['Yamp']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['MagX'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['MagX'])),
+        label='Dave model 45 cut', lw=3)
+
+plt.subplot(4,3,4)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Xamp'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,5)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['MagY'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,6)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Xamp']/max(myg150['Xamp']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['MagY'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['MagY'])),
+        label='Dave model 45 cut', lw=3)
+         
+plt.subplot(4,3,7)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Ypha'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,8)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['PhaseX'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,9)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Ypha']/max(myg150['Ypha']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['PhaseX'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['PhaseX'])),
+        label='Dave model 45 cut', lw=3)
+
+plt.subplot(4,3,10)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Xpha'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,11)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['PhaseY'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,12)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Xpha']/max(myg150['Xpha']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['PhaseY'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['PhaseY'])),
+        label='Dave model 45 cut', lw=3)
+
+plt.tight_layout()
+```
+
+```{python}
+"""do for edge horn"""
+myg150 = pd.read_csv(outreps[2]+'FP_planar_grid_horn'+str(134)+'_150_GHz_Mstyle.qb', sep='\t')
+
+davefi150 = pd.read_csv('/media/james/DATA/DaveFIMODAL/150_FI/x08y22.dat', sep='\t')
+
+plt.figure(figsize=(30,30))
+
+plt.subplot(4,3,1)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Yamp'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=6)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,2)
+plt.scatter(davefi150['X']/1000, davefi150['Y']/1000, c=davefi150['MagX'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y']/1000)[np.where(davefi150['Y'] == davefi150['X'])], 
+         color='xkcd:sea green', lw=6)
+         
+plt.subplot(4,3,3)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Yamp']/max(myg150['Yamp']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=4)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['MagX'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['MagX'])),
+        color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+plt.legend(loc='upper right')
+
+
+plt.subplot(4,3,4)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Xamp'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,5)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['MagY'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,6)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Xamp']/max(myg150['Xamp']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['MagY'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['MagY'])),
+        label='Dave model 45 cut', lw=3)
+         
+plt.subplot(4,3,7)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Ypha'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,8)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['PhaseX'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,9)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Ypha']/max(myg150['Ypha']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['PhaseX'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['PhaseX'])),
+        label='Dave model 45 cut', lw=3)
+
+plt.subplot(4,3,10)
+plt.scatter(myg150['Xpos'], myg150['Ypos'], c=myg150['Xpha'], cmap='gnuplot', marker='.')
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+         np.array(myg150['Ypos'])[np.where(myg150['Ypos'] == myg150['Xpos'])], lw=3)
+plt.colorbar(label="blah", shrink=0.9)
+
+plt.subplot(4,3,11)
+plt.scatter(davefi150['X'], davefi150['Y'], c=davefi150['PhaseY'], cmap='gnuplot', marker='.')
+plt.colorbar(label="blah", shrink=0.9)
+plt.plot(np.array(davefi150['X'])[np.where(davefi150['Y'] == davefi150['X'])],
+         np.array(davefi150['Y'])[np.where(davefi150['Y'] == davefi150['X'])], lw=3)
+
+plt.subplot(4,3,12)
+plt.plot(np.array(myg150['Xpos'])[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        np.array(myg150['Xpha']/max(myg150['Xpha']))[np.where(myg150['Ypos'] == myg150['Xpos'])],
+        label='my model 45 cut', lw=3)
+plt.plot(np.array(davefi150['X']/1000)[np.where(davefi150['Y'] == davefi150['X'])],
+        np.array(davefi150['PhaseY'])[np.where(davefi150['Y'] == davefi150['X'])]/max(np.array(davefi150['PhaseY'])),
+        label='Dave model 45 cut', lw=3)
+
+plt.tight_layout()
+```
+
+```{python}
+print(plt.rcParams["axes.prop_cycle"])
+```
+
+```{python}
+"""make fancy plotter to compare beams"""
+#myg150 = pd.read_csv(outreps[2]+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb', sep='\t')
+#print(myg150)
+#davefi150 = pd.read_csv('/media/james/DATA/DaveFIMODAL/150_FI/x11y12.dat', sep='\t')
+
+
+def beamsplotter(qdatpath, mdatpath, horn):
+    
+    qdat = pd.read_csv(qdatpath, sep='\t')
+    mdat = pd.read_csv(mdatpath, sep='\t')
+    
+    plt.figure(figsize=(30,30))
+
+    #plot mag x from grasp data, think y and X are mixed up
+    plt.subplot(4,3,1)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Yamp'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.title('GRASP Model Horn {}'.format(str(horn)))
+    #plot mag X from modal data
+    plt.subplot(4,3,2)
+    plt.scatter(mdat['X']/1000, mdat['Y']/1000, c=mdat['MagX'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y']/1000)[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.title('MODAL Model Horn {}'.format(str(horn)))
+    #plot 45 deg cut
+    plt.subplot(4,3,3)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Yamp']/max(qdat['Yamp']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['MagX'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['MagX'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.legend(loc='lower right')
+    plt.ylabel('Normalised Magnitude (dB)')
+    plt.title(r'45$^\circ$ Cut')
+    #plot y dat
+    plt.subplot(4,3,4)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Xamp'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+
+    plt.subplot(4,3,5)
+    plt.scatter(mdat['X'], mdat['Y'], c=np.array(mdat['MagY'])[::-1], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+             
+    plt.subplot(4,3,6)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Xamp']/max(qdat['Xamp']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[::-1][np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['MagY'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['MagY'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    #Xphase
+    plt.subplot(4,3,7)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Ypha'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.ylabel('Focal Plane Y (m)', loc=('top'))
+
+    plt.subplot(4,3,8)
+    plt.scatter(mdat['X'], mdat['Y'], c=mdat['PhaseX'], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+
+    plt.subplot(4,3,9)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Ypha']/max(qdat['Ypha']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['PhaseX'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['PhaseX'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    #plot y phase
+    plt.subplot(4,3,10)
+    plt.scatter(qdat['Xpos'], qdat['Ypos'], c=qdat['Xpha'], cmap='gnuplot', marker='.')
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+             np.array(qdat['Ypos'])[np.where(qdat['Ypos'] == qdat['Xpos'])], lw=5)
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+
+    plt.subplot(4,3,11)
+    plt.scatter(mdat['X'], mdat['Y'], c=mdat['PhaseY'], cmap='gnuplot', marker='.')
+    plt.colorbar(label="Madnitude (dB)", shrink=0.9)
+    plt.plot(np.array(mdat['X'])[np.where(mdat['Y'] == mdat['X'])],
+             np.array(mdat['Y'])[np.where(mdat['Y'] == mdat['X'])], 
+             color='xkcd:sea green', lw=5)
+    plt.xlabel('Focal Plane X (m)')
+        
+    plt.subplot(4,3,12)
+    plt.plot(np.array(qdat['Xpos'])[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            np.array(qdat['Xpha']/max(qdat['Xpha']))[np.where(qdat['Ypos'] == qdat['Xpos'])],
+            label='my model 45 cut', lw=4)
+    plt.plot(np.array(mdat['X']/1000)[np.where(mdat['Y'] == mdat['X'])],
+            np.array(mdat['PhaseY'])[np.where(mdat['Y'] == mdat['X'])]/max(np.array(mdat['PhaseY'])),
+            color='xkcd:sea green', label='Dave model 45 cut', lw=4)
+    plt.ylabel('Normalised Magnitude (dB)')
+    
+    plt.tight_layout()
+
+    return
+
+horn = 190
+qpath = outreps[2]+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb'
+mpath = '/media/james/DATA/DaveFIMODAL/150_FI/x11y12.dat'
+
+#beamsplotter(qpath, mpath, horn)
+```
+
+```{python}
+"""do plots for many horns"""
+#central horns
+qpath = outreps[2]+'FP_planar_grid_horn'+str(190)+'_150_GHz_Mstyle.qb'
+rqpath = outreps[2]+'FP_planar_grid_horn'+str(329)+'_150_GHz_Mstyle.qb'
+mpath = '/media/james/DATA/DaveFIMODAL/150_FI/x11y12.dat'
+rmpath = '/media/james/DATA/DaveFIMODAL/150_FI/x12y11.dat'
+
+beamsplotter(qpath, rmpath, 190)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/h190.png", bbox_inches='tight', facecolor='white')
+
+#side edge horn
+myg150 = outreps[2]+'FP_planar_grid_horn'+str(134)+'_150_GHz_Mstyle.qb'
+davefi150 = '/media/james/DATA/DaveFIMODAL/150_FI/x08y22.dat'
+rdavefi150 = '/media/james/DATA/DaveFIMODAL/150_FI/x22y08.dat'
+
+beamsplotter(myg150, rdavefi150, 134)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/h134.png", bbox_inches='tight', facecolor='white')
+
+
+#opposite middle ish 
+qpath272 = outreps[2]+'FP_planar_grid_horn'+str(272)+'_150_GHz_Mstyle.qb'
+mpath272 = '/media/james/DATA/DaveFIMODAL/150_FI/x06y15.dat'
+#rdavefi150 = '/media/james/DATA/DaveFIMODAL/150_FI/x22y08.dat'
+
+beamsplotter(qpath272, mpath272, 272)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/h272.png", bbox_inches='tight', facecolor='white')
+
+qpath113 = outreps[2]+'FP_planar_grid_horn'+str(113)+'_150_GHz_Mstyle.qb'
+mpath113 = '/media/james/DATA/DaveFIMODAL/150_FI/x08y01.dat'
+#rdavefi150 = '/media/james/DATA/DaveFIMODAL/150_FI/x22y08.dat'
+
+beamsplotter(qpath272, mpath272, 113)
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/h272.png", bbox_inches='tight', facecolor='white')
+
+
+
+```
+
+```{python}
+"""here i will re-write intensity code to test only X or Y 
+OR to test with reverse y as shown in single horn data"""
+"""load with data frame to used headers"""
+#data = pd.read_csv(myrep+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+def QB_add_intensity_400horns_XPOL(filepath, freq):
+    
+    FIhorns = np.linspace(1,400,400, dtype=int)
+    
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_'+str(freq)+'_GHz_Mstyle.qb', sep='\t')
+    #print(data)
+
+    addimx = np.zeros(len(data['Rex']))
+    addrex = np.zeros(len(data['Rex']))
+    addrey = np.zeros(len(data['Rex']))
+    addimy = np.zeros(len(data['Rex']))
+
+    cnt = 0
+    for horn in FIhorns:
+
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
+        data = pd.read_csv(file, sep='\t')
+        print(file, data.shape)
+
+        #add the relevant compnents to an array
+        addrex = np.vstack((addrex, data['Rex']))
+        addimx = np.vstack((addimx, data['Imx']))
+        addrey = np.vstack((addrey, data['Rey']))
+        addimy = np.vstack((addimy, data['Imy']))
+
+        cnt+=1
+
+    #add / flatten the array
+    addrex = np.sum(addrex.T, axis=1, dtype=float)
+    addimx = np.sum(addimx.T, axis=1, dtype=float)
+    addrey = np.sum(addrey.T, axis=1, dtype=float)
+    addimy = np.sum(addimy.T, axis=1, dtype=float)
+    #convert to mag and phase... why didn't i just load the mag and phase...?
+    MagX = np.sqrt(addrex**2 + addimx**2)
+    PhaX = np.arctan2(addimx, addrex)
+    MagY = np.sqrt(addrey**2 + addimy**2)
+    PhaY = np.arctan2(addimy, addrey)
+    #convert mag phase to intensity
+    itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
+    ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
+    myit = itx[:] + ity[:]
+    print(myit.shape, type(myit))
+    
+    return myit, itx, ity
+```
+
+```{python}
+print(outreps[2])
+Xpolmymodel, xi, yi = QB_add_intensity_400horns_XPOL(outreps[2], 150)
+```
+
+```{python}
+x0, y0 = 25, 247
+x1, y1 = 174, 125
+x2, y2 = 219, 50
+
+aziX, ziX = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), yi, 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+x0, y0 = 25, 242
+x1, y1 = 174, 125
+x2, y2 = 219, 45
+
+aziY, ziY = AbberatedCut(np.array(data['Xpos']), np.array(data['Ypos']), xi[::-1], 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+
+  
+print(aziX.shape, ziX.shape)
+```
+
+```{python}
+plt.figure(figsize=(16,8))
+#plt.subplot(2,1,1)
+plt.vlines(min(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5)
+plt.vlines(max(dx)/1000, ymin=0, ymax=1, colors='k', lw=3, alpha=0.5, label='MODAL Data Radius')
+
+plt.plot(azi, zi/max(zi),ls='-', color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), '', color='xkcd:bluish green', 
+         label='GRASP FI 150 GHz', lw=3)
+plt.plot(aziX, ziX/max(ziX), '', color='xkcd:terracotta', 
+         label='GRASP FI 150 GHz X only', lw=3)
+plt.plot(aziY, ziY*1.5, '', color='xkcd:dark sky blue', 
+         label='GRASP FI 150 GHz Y only', lw=3)
+
+plt.legend(loc='upper center')
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/150validation.png", bbox_inches='tight', facecolor='white')
+
+plt.figure(figsize=(16,8))
+plt.plot(azi, zi/max(zi), marker='x', ls='-', mew=2.5,
+         color='xkcd:pastel purple', label='MODAL FI 150 GHz', lw=3)
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
+         color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
+
+plt.legend(loc='upper right')
+plt.xlim([0, max(dx)/1000])
+plt.grid(b=True, which='major', color='#666666', linestyle='-')
+plt.minorticks_on()
+plt.grid(b=True, which='minor', color='#999999', linestyle='-', alpha=0.2)
+plt.xlabel('Focal Plane Cut (Radial) (m)')
+plt.ylabel('Normalised Intensity (W)')
+#plt.savefig("/home/james/OneDrive/Thesisv2/Figures/figsc35/150validationzoom.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+horn = 190
+horn2 = 113
+freps = ['/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb',
+        '/media/james/DATA/GRASPdata/MyTabSourceFIModel/130GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/140GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/160GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb',
+         '/media/james/DATA/GRASPdata/MyTabSourceFIModel/170GHz/MODALfiles/FP_planar_grid_horn'+str(horn2)+'_150_GHz_Mstyle.qb']
+
+aziA = np.zeros([10, 220])
+ziA = np.zeros([10, 220])
+
+for i, f in enumerate(freps):
+    
+    #data = pd.read_csv(f, sep='\t')
+    print(f, data.shape)
+    dat = pd.read_csv(f, sep='\t')
+    GIx, GIy, GI = IntensityCalcRAW(f)
+    
+    azi, zi = AbberatedCut(np.array(dat['Xpos']), np.array(dat['Ypos']), np.array(GI), 
+                                    x0, y0, x1, y1, x2, y2, 301, 0.2, 0.5, False, False);
+    
+    #print(azi, zi)
+    
+#     aziA = np.vstack((aziA, azi))
+#     ziA = np.vstack((ziA, zi))
+    aziA[i,:] = azi
+    ziA[i,:] = zi
+    
+print(aziA.shape, ziA.shape)
+# data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+
+# freqs = ['130', '140', '150', '160', '170']
+
+# freqint = np.zeros([len(outreps), len(data['Rex'])])
+
+# for i, rep in enumerate(outreps):
+#     print(i, rep, freqs[i])
+#     #test = QB_add_intensity_400horns(rep)
+#     freqint[i,:] = QB_add_intensity_400horns(rep, freqs[i])
+```
+
+```{python}
+# %matplotlib inline
+freqs = ['130', '140', '150', '160', '170', '130', '140', '150', '160', '170']
+# print(azi.shape, zi.shape)
+# print(aziA[0,:], ziA[0,:])
+#plt.plot(aziA[0,:], ziA[0,:])
+
+plt.figure(figsize=(16,12))
+#plt.plot(aziA[0,:], ziA[0,:], 'r.')
+#plt.plot(aziA[1,:], ziA[1,:], 'b')
+for i, f in enumerate(freqs):
+    
+    plt.plot(aziA[i,:], ziA[i,:]/ max(ziA[i,:]), label='{}'.format(freqs[i]))
+    print(i, f)
+    
+plt.legend(loc='upper left')
+
+plt.plot(aziT[2,:], ziT[2,:]/max(ziT[2,:]), marker='x', ls='-', mew=2.5,
+         color='xkcd:bluish green', label='GRASP FI 150 GHz', lw=3)
+```
+
+```{python}
+
+```
+
+```{python}
+
+```
+
+```{python}
+
+```

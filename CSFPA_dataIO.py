@@ -625,14 +625,14 @@ def AbberatedCut(xdat, ydat, itdat, x0, y0, x1, y1, x2, y2, meshsize, prom, rel_
     else:
         return azi, zi
     
-def QB_add_intensity_400horns(filepath):
+def QB_add_intensity_400horns(filepath, freq):
     """take the rep with qb files, add intensity array for 400 horns return an array with intensity for 400 horns
     this code could/should be generalised/I think its already somewhere in my libraries, think i even added
     to qubicsoft already"""
     
     FIhorns = np.linspace(1,400,400, dtype=int)
     
-    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
+    data = pd.read_csv(filepath+'FP_planar_grid_horn'+str(100)+'_'+str(freq)+'_GHz_Mstyle.qb', sep='\t')
     #print(data)
 
     addimx = np.zeros(len(data['Rex']))
@@ -643,10 +643,10 @@ def QB_add_intensity_400horns(filepath):
     cnt = 0
     for horn in FIhorns:
 
-        print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
-        file = filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb'
+        #print(filepath+'FP_planar_grid_horn'+str(horn)+'_150_GHz_Mstyle.qb')
+        file = filepath+'FP_planar_grid_horn'+str(horn)+'_'+str(freq)+'_GHz_Mstyle.qb'
         data = pd.read_csv(file, sep='\t')
-        #print(data.shape)
+        print(file, data.shape)
 
         #add the relevant compnents to an array
         addrex = np.vstack((addrex, data['Rex']))
@@ -670,7 +670,7 @@ def QB_add_intensity_400horns(filepath):
     itx = (MagX*np.cos(PhaX))**2 + (MagX*np.sin(PhaX))**2
     ity = (MagY*np.cos(PhaY))**2 + (MagY*np.sin(PhaY))**2
     myit = itx[:] + ity[:]
-    #print(myit.shape, type(myit))
+    print(myit.shape, type(myit))
     
     return myit
 
