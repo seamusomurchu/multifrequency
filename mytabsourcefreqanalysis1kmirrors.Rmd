@@ -5,7 +5,7 @@ jupyter:
       extension: .Rmd
       format_name: rmarkdown
       format_version: '1.2'
-      jupytext_version: 1.6.0
+      jupytext_version: 1.3.0
   kernelspec:
     display_name: Python 3
     language: python
@@ -48,7 +48,7 @@ outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
 #     print(i, rep, outreps[i])
 
 #     MultiHornMain(rep, outreps[i])
-MultiHornMain(grep140, mrep140)
+MultiHornMain(grep160, mrep160)
 # MultiHornMain(v4grep170, v4mrep170)
 # MultiHornMain(v4grep160, v4mrep160)
 
@@ -71,16 +71,16 @@ divnorm=colors.LogNorm()
 
 
 plt.figure(figsize=(16,12))
-plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint/max(freqint), norm=None)
+plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[2,:]/max(freqint[2,:]), norm=None)
 plt.xlim([min(np.array(data['Xpos'])), max(np.array(data['Xpos']))])
 plt.ylim([min(np.array(data['Ypos'])), max(np.array(data['Ypos']))])
 plt.xlabel('FP RF x (m)')
 plt.ylabel('FP RF y (m)')
 plt.colorbar(label='Normalised Intenisty (W)')
-#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1k.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1k_v2.png', facecolor='white')
 
 plt.figure(figsize=(16,12))
-plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint/max(freqint), norm=divnorm)
+plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[2,:]/max(freqint[2,:]), norm=divnorm)
 plt.xlim([min(np.array(data['Xpos'])), max(np.array(data['Xpos']))])
 plt.ylim([min(np.array(data['Ypos'])), max(np.array(data['Ypos']))])
 plt.plot([-0.05, 0.01], [-0.045, 0.005], 'ro-', lw=3)
@@ -88,7 +88,7 @@ plt.plot([0.01, 0.035], [0.005, 0.045], 'bo-', lw=3)
 plt.xlabel('FP RF x (m)')
 plt.ylabel('FP RF y (m)')
 plt.colorbar(label='Normalised Intenisty (W)')
-#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1klog.png', facecolor='white')
+#plt.savefig('/home/james/OneDrive/Thesisv5/Figures/figsc3/PSF1klog_v2.png', facecolor='white')
 ```
 
 ```{python}
@@ -251,8 +251,8 @@ print(outreps)
 data = pd.read_csv(mrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
 
 freqs = ['130', '140', '150', '160', '170']
-freqs = ['130', '140', '150', '170']
-outreps = np.array([mrep130, mrep140, mrep150, mrep170])
+#freqs = ['130', '140', '150', '170']
+#outreps = np.array([mrep130, mrep140, mrep150, mrep170])
 
 freqint = np.zeros([len(outreps), len(data['Rex'])])
 
@@ -295,19 +295,24 @@ plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Intensity (W)')
 #plt.yscale('log')
 #plt.ylim(1e-3, 0)
+
+#plt.savefig("/home/james/OneDrive/Thesisv6/Figures/figsc3/PSFscomp_v2.png", bbox_inches='tight', facecolor='white')
+
 ```
 
 ```{python}
 """NOW FOR MULTI FREQS OLD DAT currently in thesis, how diff"""
 oldmrep130 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+oldmrep140 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
 oldmrep150 = '/media/james/DATA/GRASPdata/MyTabSourceFIModel/150GHz/MODALfiles/'
+oldmrep160 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
 oldmrep170 = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
 
-oldoutreps = [oldmrep130, oldmrep150, oldmrep170]
+oldoutreps = [oldmrep130, oldmrep140, oldmrep150, oldmrep160, oldmrep170]
 data = pd.read_csv(oldmrep150+'FP_planar_grid_horn'+str(100)+'_150_GHz_Mstyle.qb', sep='\t')
 
-#freqs = ['130', '140', '150', '160', '170']
-freqs = ['130', '150', '170']
+freqs = ['130', '140', '150', '160', '170']
+#freqs = ['130', '150', '170']
 
 oldfreqint = np.zeros([len(oldoutreps), len(data['Rex'])])
 
@@ -348,6 +353,169 @@ plt.xlabel('Focal Plane Cut (Radial) (m)')
 plt.ylabel('Intensity (W)')
 #plt.yscale('log')
 #plt.ylim(1e-3, 0)
+```
+
+```{python}
+"""try RGB style image"""
+from astropy.visualization import make_lupton_rgb
+#import cv2
+print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[0,:]]), 201)
+g = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[2,:]]), 201)
+b = makemeshgrid(np.array([np.array(data['Xpos']), np.array(data['Ypos']), freqint[4,:]]), 201)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergb.png",
+                             stretch=0.5)
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+```
+
+```{python}
+X = np.linspace(min(data['Xpos']), max(data['Xpos']), 301)
+Y = np.linspace(min(data['Ypos']), max(data['Ypos']), 301)
+x0, y0 = 20, 60# These are in _pixel_ coordinates!! in DEGREES
+x1, y1 = 174, 185
+x2, y2 = 225, 270
+
+
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(np.array(data['Xpos']), np.array(data['Ypos']), c=freqint[i, :]/max(freqint[i, :]), 
+                cmap='nipy_spectral')
+    plt.colorbar(label='Normalised Intensity (W)')
+    #plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+    plt.xlim(min(data['Xpos']), max(data['Xpos']))
+    plt.ylim(min(data['Ypos']), max(data['Ypos']))
+
+plt.subplot(3,2,6)
+plt.imshow(rgb_default, 
+           extent=[np.min(data['Xpos']), np.max(data['Xpos']), np.min(data['Ypos']), np.max(data['Ypos'])], 
+           aspect='equal')
+plt.plot([X[x0], X[x1]], [Y[y0], Y[y1]], 'ro-')
+plt.plot([X[x1], X[x2]], [Y[y1], Y[y2]], 'bo-')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+plt.savefig("/home/james/OneDrive/Thesisv6/Figures/figsc35/fpgrids_v2_4k.png", bbox_inches='tight', facecolor='white')
+
+```
+
+```{python}
+"""must load vertex"""
+import qubic
+basedir='/home/james/libraries/qubic/qubic'
+#basedir = Qubic_DataDir(datafile='instrument.py', ) 
+print('basedir : ', basedir)
+dictfilename = basedir + '/dicts/global_source_oneDet.dict'
+d = qubic.qubicdict.qubicDict()
+d.read_from_file('/home/james/libraries/qubic/qubic/dicts/global_source_oneDet.dict')
+d['config'] = 'FI'
+q = qubic.QubicMultibandInstrument(d)
+
+vtxs = q[0].detector.vertex
+vtxcounter = np.zeros(992)
+print("vertexes shape: ", vtxs.shape)
+xycoords = np.array([data['Xpos'], data['Ypos']])
+#use the focal plane positions loaded before
+
+bola = np.zeros([5, 992])
+
+for i, freq in enumerate(freqint):
+    print(i, freq.shape, freqs[i])
+    px, py, bola[i,:] = IntegrateHornCombOnFP(freq, xycoords,vtxs)
+    
+print(bola.shape)
+```
+
+```{python}
+"""make rgb for bols"""
+"""try RGB style image"""
+
+import cv2
+#print(freqint.shape, np.array(data['Xpos']).shape)
+r = makemeshgrid(np.array([px, py, bola[0,:]]), 34)
+g = makemeshgrid(np.array([px, py, bola[2,:]]), 34)
+b = makemeshgrid(np.array([px, py, bola[4,:]]), 34)
+print(r.shape, g.shape, b.shape)
+rgb_default = make_lupton_rgb(r,g,b, filename="/home/james/OneDrive/Thesisv2/Figures/figsc35/samplergbBOLS2.png",
+                             stretch=1)
+print(rgb_default.shape, rgb_default[0,:,:].shape)
+print(np.min(px), np.max(px), np.min(py), np.max(py))
+# alpha = 1.5 # Contrast control (1.0-3.0)
+# beta = 0 # Brightness control (0-100)
+
+# adjusted = cv2.convertScaleAbs(rgb_default, alpha=alpha, beta=beta)
+
+
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 20}
+plt.rc('font', **font)
+plt.figure(figsize=(14,14))
+plt.imshow(rgb_default, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+
+# draw filled circle in white on black background as mask
+mask = np.zeros_like(rgb_default)
+mask = cv2.circle(mask, (17,17), 17, (255,255,255), -1)
+
+# apply mask to image
+result = cv2.bitwise_and(rgb_default, mask)
+
+plt.imshow( result, extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+```
+
+```{python}
+"""multi plot for BOLS"""
+plt.figure(figsize=(18,22))
+
+for i, rep in enumerate(outreps):
+    plt.subplot(3,2,i+1)
+    plt.scatter(px, py, c=bola[i, :]/max(bola[i, :]), 
+                cmap='nipy_spectral', marker='s')
+    plt.colorbar(label='Normalised Intensity (W)')
+    plt.axis('equal')
+    plt.title('{} GHz'.format(freqs[i]))
+    plt.xlabel('Focal Plane X (m)')
+    plt.ylabel('Focal Plane Y (m)')
+
+plt.subplot(3,2,6)
+plt.imshow(result, 
+           extent=[np.min(px), np.max(px), np.min(py), np.max(py)], 
+           aspect='equal')
+plt.xlabel('Focal Plane X (m)')
+plt.ylabel('Focal Plane Y (m)')
+plt.title('RGB Composite')
+plt.tight_layout()
+
+plt.savefig("/home/james/OneDrive/Thesisv6/Figures/figsc35/fpgridsBOLS_4k.png", bbox_inches='tight', facecolor='white')
+
 ```
 
 ```{python}

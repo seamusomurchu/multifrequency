@@ -5,7 +5,7 @@ jupyter:
       extension: .Rmd
       format_name: rmarkdown
       format_version: '1.2'
-      jupytext_version: 1.6.0
+      jupytext_version: 1.3.0
   kernelspec:
     display_name: Python 3
     language: python
@@ -101,6 +101,21 @@ v4mrep160  = '/media/james/DATA/GRASPdata/v4_MyTabSourceFIModel/160GHz/MODALfile
 
 inreps = np.array([grep130, grep140, grep160, grep170])
 #outreps = np.array([mrep130, mrep140, mrep150, mrep160, mrep170])
+outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
+```
+
+```{python}
+mrep150  = '/home/james/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/150GHz/MODALfiles/'
+
+v4grep170  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/170GHz/GRASPfiles/'
+v4mrep170  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/170GHz/MODALfiles/'
+v4grep130  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/130GHz/GRASPfiles/'
+v4mrep130  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/130GHz/MODALfiles/'
+v4grep140  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/140GHz/GRASPfiles/'
+v4mrep140  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/140GHz/MODALfiles/'
+v4grep160  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/160GHz/GRASPfiles/'
+v4mrep160  = '/media/james/Seagate Backup Plus Drive/dataBackUp/GRASPdatabackup18032021/v4_MyTabSourceFIModel/160GHz/MODALfiles/'
+
 outreps = np.array([v4mrep130, v4mrep140, mrep150, v4mrep160, v4mrep170])
 ```
 
